@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>랜덤 팀 뽑기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{
+  --bg:#EDF1F7;
+  --ink:#152238;
+  --ink-soft:#5A6b85;
+  --paper:#FFFFFF;
+  --line:3px solid var(--ink);
+  --pop:#E8453C;
+  --pop-2:#2E86DE;
+  --radius:18px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:"Noto Sans KR",-apple-system,BlinkMacSystemFont,"Malgun Gothic",sans-serif;
+  font-weight:500;
+  -webkit-font-smoothing:antialiased;
+  overflow-x:hidden;
+}
+.display{font-family:"Black Han Sans","Noto Sans KR",sans-serif;font-weight:400;letter-spacing:-.01em}
+
+button{font-family:inherit;font-weight:700;cursor:pointer;border:none;background:none;color:inherit}
+button:focus-visible,input:focus-visible{outline:4px solid var(--pop-2);outline-offset:3px}
+input{font-family:inherit;color:inherit}
+
+/* ---------- shared chunky button ---------- */
+.btn{
+  border:var(--line);border-radius:14px;background:var(--paper);
+  padding:.7rem 1.2rem;font-size:1.05rem;
+  box-shadow:4px 4px 0 var(--ink);
+  transition:transform .08s ease, box-shadow .08s ease;
+}
+.btn:hover{transform:translate(1px,1px);box-shadow:3px 3px 0 var(--ink)}
+.btn:active{transform:translate(4px,4px);box-shadow:0 0 0 var(--ink)}
+.btn[disabled]{opacity:.35;cursor:not-allowed;transform:none;box-shadow:4px 4px 0 var(--ink)}
+.btn.solid{background:var(--pop);color:#fff}
+.btn.blue{background:var(--pop-2);color:#fff}
+.btn.ghost{box-shadow:none;border-width:2px;padding:.5rem .9rem;font-size:.95rem}
+.btn.ghost:hover{background:#fff;transform:none}
+
+/* ---------- layout ---------- */
+.wrap{max-width:1400px;margin:0 auto;padding:2rem clamp(1rem,3vw,2.5rem) 4rem}
+
+/* ---------- SETUP ---------- */
+#setup{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:2rem 1rem}
+.setup-card{
+  width:min(760px,100%);background:var(--paper);border:var(--line);border-radius:var(--radius);
+  box-shadow:10px 10px 0 var(--ink);padding:clamp(1.75rem,4vw,3rem);
+}
+.setup-card h1{font-size:clamp(2.6rem,7vw,4.2rem);line-height:1;margin-bottom:.35rem}
+.setup-card h1 .balls{display:inline-flex;gap:.28rem;vertical-align:.12em;margin-left:.5rem}
+.setup-card h1 .balls i{width:.42em;height:.42em;border-radius:50%;border:2px solid var(--ink);font-size:inherit;display:block}
+.sub{color:var(--ink-soft);font-size:1.05rem;margin-bottom:2rem;max-width:44ch;line-height:1.6}
+
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:1.25rem}
+@media (max-width:620px){.fields{grid-template-columns:1fr}}
+.field label{display:block;font-weight:700;font-size:1rem;margin-bottom:.55rem}
+.stepper{display:flex;align-items:stretch;border:var(--line);border-radius:14px;overflow:hidden;background:#fff}
+.stepper button{width:3.4rem;font-size:1.7rem;line-height:1;background:#F1F4F9;transition:background .12s}
+.stepper button:hover{background:#DEE5EF}
+.stepper input{
+  flex:1;min-width:0;text-align:center;border:none;background:transparent;
+  font-family:"Black Han Sans",sans-serif;font-size:2.4rem;padding:.45rem 0;
+}
+.stepper input::-webkit-outer-spin-button,.stepper input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.stepper input[type=number]{-moz-appearance:textfield}
+.field .hint{font-size:.85rem;color:var(--ink-soft);margin-top:.45rem}
+
+.preview{margin-top:1.75rem;border-top:2px dashed #C6CFDD;padding-top:1.5rem}
+.preview-head{font-family:"Black Han Sans",sans-serif;font-size:1.5rem;margin-bottom:.9rem}
+.preview-head.bad{color:var(--pop)}
+.chips{display:flex;flex-wrap:wrap;gap:.5rem}
+.chip{
+  border:2px solid var(--ink);border-radius:11px;padding:.4rem .75rem;font-weight:700;font-size:.95rem;
+  display:flex;align-items:center;gap:.45rem;background:#fff;
+}
+.chip .dot{width:.85rem;height:.85rem;border-radius:4px;border:1.5px solid rgba(0,0,0,.35)}
+.chip .cap{color:var(--ink-soft);font-weight:500;font-size:.85rem}
+
+.namebox{margin-top:1.5rem}
+.namebox summary{cursor:pointer;font-weight:700;padding:.5rem 0;list-style:none;display:flex;align-items:center;gap:.5rem}
+.namebox summary::-webkit-details-marker{display:none}
+.namebox summary::before{content:"＋";font-size:1.2rem;width:1.4rem;text-align:center}
+.namebox[open] summary::before{content:"－"}
+.name-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:.6rem;margin-top:.75rem}
+.name-grid input{border:2px solid var(--ink);border-radius:10px;padding:.55rem .7rem;font-size:1rem;font-weight:700;width:100%}
+.start-row{margin-top:2rem;display:flex;justify-content:flex-end}
+.btn.start{font-size:1.4rem;padding:.95rem 2.6rem;font-family:"Black Han Sans",sans-serif}
+
+/* ---------- DRAW HEADER ---------- */
+.topbar{
+  display:flex;flex-wrap:wrap;gap:1rem;align-items:center;justify-content:space-between;
+  background:var(--paper);border:var(--line);border-radius:var(--radius);
+  box-shadow:6px 6px 0 var(--ink);padding:1rem 1.25rem;margin-bottom:1.75rem;
+}
+.progress{display:flex;align-items:center;gap:1rem;flex:1;min-width:260px}
+.progress .count{font-family:"Black Han Sans",sans-serif;font-size:1.7rem;white-space:nowrap}
+.progress .count b{color:var(--pop)}
+.bar{flex:1;height:16px;border:2px solid var(--ink);border-radius:99px;background:#F1F4F9;overflow:hidden;min-width:80px}
+.bar i{display:block;height:100%;width:0;background:var(--pop-2);transition:width .4s cubic-bezier(.2,.8,.2,1)}
+.tools{display:flex;flex-wrap:wrap;gap:.55rem}
+
+/* ---------- STAGE ---------- */
+.stage{
+  background:var(--paper);border:var(--line);border-radius:var(--radius);
+  box-shadow:10px 10px 0 var(--ink);padding:clamp(1.5rem,4vw,2.5rem);margin-bottom:2rem;
+}
+.stage-inner{display:flex;gap:1.25rem;align-items:stretch;flex-wrap:wrap}
+.stage label.big{
+  flex:1;min-width:280px;display:flex;flex-direction:column;gap:.6rem;
+  font-family:"Black Han Sans",sans-serif;font-size:1.35rem;
+}
+#nameInput{
+  border:var(--line);border-radius:14px;padding:.85rem 1.1rem;
+  font-size:clamp(1.8rem,4.5vw,2.8rem);font-weight:900;width:100%;
+}
+#nameInput::placeholder{color:#B6C0CE;font-weight:700}
+#drawBtn{
+  font-family:"Black Han Sans",sans-serif;font-size:clamp(1.8rem,4.5vw,2.9rem);
+  padding:0 clamp(1.5rem,5vw,3.5rem);align-self:flex-end;min-height:5rem;
+  border:var(--line);border-radius:16px;background:var(--pop);color:#fff;
+  box-shadow:7px 7px 0 var(--ink);transition:transform .08s,box-shadow .08s;
+}
+#drawBtn:hover:not([disabled]){transform:translate(2px,2px);box-shadow:5px 5px 0 var(--ink)}
+#drawBtn:active:not([disabled]){transform:translate(7px,7px);box-shadow:0 0 0 var(--ink)}
+#drawBtn[disabled]{background:#C9D2DE;color:#8592A5;cursor:not-allowed;transform:none;box-shadow:7px 7px 0 var(--ink)}
+
+.warn{
+  margin-top:1.25rem;border:var(--line);border-radius:14px;background:#FFF6D6;
+  padding:1rem 1.25rem;display:flex;gap:1rem;align-items:center;flex-wrap:wrap;
+}
+.warn p{font-weight:700;flex:1;min-width:220px}
+.warn .row{display:flex;gap:.55rem}
+
+.done-panel{text-align:center;padding:1rem 0}
+.done-panel h2{font-family:"Black Han Sans",sans-serif;font-size:clamp(2.2rem,6vw,3.6rem);line-height:1.1}
+.done-panel p{margin:.6rem 0 1.6rem;font-size:1.2rem;color:var(--ink-soft)}
+.done-panel .row{display:flex;gap:.75rem;justify-content:center;flex-wrap:wrap}
+
+/* ---------- BOARDS ---------- */
+.boards{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:1.25rem}
+.team{
+  background:var(--paper);border:var(--line);border-radius:var(--radius);
+  box-shadow:6px 6px 0 var(--ink);overflow:hidden;display:flex;flex-direction:column;
+}
+.team.full{box-shadow:6px 6px 0 var(--ink),inset 0 0 0 5px rgba(0,0,0,.06)}
+.team header{
+  padding:.75rem 1rem;border-bottom:var(--line);display:flex;align-items:baseline;justify-content:space-between;gap:.5rem;
+}
+.team header h3{font-family:"Black Han Sans",sans-serif;font-size:1.55rem;line-height:1.1;word-break:keep-all}
+.team header .seats{font-weight:700;font-size:1rem;opacity:.85;white-space:nowrap}
+.team ol{list-style:none;padding:.7rem;display:flex;flex-direction:column;gap:.4rem;flex:1}
+.team li{
+  font-size:clamp(1.15rem,1.6vw,1.5rem);font-weight:700;padding:.4rem .6rem;border-radius:9px;background:#F4F7FB;
+  display:flex;gap:.6rem;align-items:baseline;word-break:break-all;
+}
+.team li span{font-size:.8em;color:var(--ink-soft);font-weight:500;flex:none}
+.team li.fresh{animation:pop .45s cubic-bezier(.2,1.5,.4,1)}
+.team li.empty{background:transparent;border:2px dashed #D3DBE6;color:#B6C0CE;font-weight:500;min-height:2.6rem}
+@keyframes pop{from{transform:scale(.7);opacity:0}to{transform:scale(1);opacity:1}}
+
+/* ---------- OVERLAY ---------- */
+#overlay{
+  position:fixed;inset:0;background:rgba(21,34,56,.94);z-index:50;
+  display:none;align-items:center;justify-content:center;padding:2rem;text-align:center;
+}
+#overlay.on{display:flex}
+.reveal{max-width:min(900px,92vw)}
+.reveal .who{
+  font-family:"Black Han Sans",sans-serif;color:#fff;opacity:.75;
+  font-size:clamp(1.6rem,4vw,2.6rem);margin-bottom:1rem;word-break:break-all;
+}
+.slot{
+  display:inline-block;background:#fff;border:6px solid #fff;border-radius:26px;
+  padding:clamp(1.2rem,4vw,2.4rem) clamp(2rem,7vw,4.5rem);min-width:min(560px,80vw);
+}
+.slot .team-line{
+  font-family:"Black Han Sans",sans-serif;line-height:1;
+  font-size:clamp(4rem,16vw,11rem);color:var(--ink);
+}
+.slot.rolling .team-line{animation:shake .09s linear infinite}
+@keyframes shake{0%{transform:translateY(-4px)}50%{transform:translateY(4px)}100%{transform:translateY(-4px)}}
+.slot.landed{animation:land .5s cubic-bezier(.2,1.6,.4,1)}
+@keyframes land{0%{transform:scale(.82)}60%{transform:scale(1.06)}100%{transform:scale(1)}}
+.reveal .ok{margin-top:2rem;display:none}
+.reveal .ok.on{display:inline-block}
+.btn.ok{background:#fff;font-size:1.35rem;padding:.85rem 2.4rem;font-family:"Black Han Sans",sans-serif}
+.hintkey{display:block;color:#fff;opacity:.5;font-size:.9rem;margin-top:.9rem}
+
+/* ---------- confetti ---------- */
+#confetti{position:fixed;inset:0;pointer-events:none;z-index:60}
+.conf{position:absolute;width:12px;height:18px;border-radius:2px;will-change:transform}
+
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms !important;transition-duration:.01ms !important}
+}
+</style>
+</head>
+<body>
+
+<!-- ================= SETUP ================= -->
+<section id="setup">
+  <div class="setup-card">
+    <h1 class="display">랜덤 팀 뽑기<span class="balls"><i style="background:#E8453C"></i><i style="background:#F5A623"></i><i style="background:#2E86DE"></i></span></h1>
+    <p class="sub">인원수만 정하면 팀이 만들어집니다. 학생이 한 명씩 나와서 이름을 적고 뽑기를 누르면 팀이 정해져요.</p>
+
+    <div class="fields">
+      <div class="field">
+        <label for="totalIn">전체 인원수</label>
+        <div class="stepper">
+          <button type="button" data-step="total" data-d="-1" aria-label="전체 인원 한 명 줄이기">−</button>
+          <input id="totalIn" type="number" min="2" max="100" value="24" inputmode="numeric">
+          <button type="button" data-step="total" data-d="1" aria-label="전체 인원 한 명 늘리기">＋</button>
+        </div>
+        <p class="hint">뽑기에 참여하는 학생 수</p>
+      </div>
+      <div class="field">
+        <label for="perIn">팀당 인원수</label>
+        <div class="stepper">
+          <button type="button" data-step="per" data-d="-1" aria-label="팀당 인원 한 명 줄이기">−</button>
+          <input id="perIn" type="number" min="1" max="30" value="4" inputmode="numeric">
+          <button type="button" data-step="per" data-d="1" aria-label="팀당 인원 한 명 늘리기">＋</button>
+        </div>
+        <p class="hint">한 팀에 들어갈 학생 수</p>
+      </div>
+    </div>
+
+    <div class="preview">
+      <p class="preview-head display" id="previewHead">6개 팀 · 모두 4명씩</p>
+      <div class="chips" id="previewChips"></div>
+    </div>
+
+    <details class="namebox" id="nameBox">
+      <summary>팀 이름 직접 정하기</summary>
+      <div class="name-grid" id="nameGrid"></div>
+    </details>
+
+    <div class="start-row">
+      <button class="btn solid start" id="startBtn">시작하기</button>
+    </div>
+  </div>
+</section>
+
+<!-- ================= DRAW ================= -->
+<section id="draw" class="wrap" hidden>
+  <div class="topbar">
+    <div class="progress">
+      <span class="count"><b id="doneCount">0</b> / <span id="totalCount">24</span>명 완료</span>
+      <span class="bar"><i id="barFill"></i></span>
+    </div>
+    <div class="tools">
+      <button class="btn ghost" id="undoBtn">마지막 뽑기 취소</button>
+      <button class="btn ghost" id="copyBtn">명단 복사</button>
+      <button class="btn ghost" id="xlsxBtn">엑셀로 저장</button>
+      <button class="btn ghost" id="resetBtn">전체 초기화</button>
+    </div>
+  </div>
+
+  <div class="stage" id="stage">
+    <div class="stage-inner" id="stageInput">
+      <label class="big" for="nameInput">
+        이름을 적어 주세요
+        <input id="nameInput" type="text" placeholder="이름" autocomplete="off" maxlength="20">
+      </label>
+      <button id="drawBtn" disabled>뽑기</button>
+    </div>
+
+    <div class="warn" id="dupWarn" hidden>
+      <p id="dupText">이미 뽑은 이름이에요.</p>
+      <div class="row">
+        <button class="btn ghost" id="dupCancel">취소</button>
+        <button class="btn blue" id="dupGo">그대로 진행</button>
+      </div>
+    </div>
+
+    <div class="done-panel" id="donePanel" hidden>
+      <h2 class="display">모두 배정 완료!</h2>
+      <p id="doneSummary"></p>
+      <div class="row">
+        <button class="btn solid" id="doneXlsx">엑셀로 저장</button>
+        <button class="btn" id="doneCopy">명단 복사</button>
+        <button class="btn ghost" id="doneReset">전체 초기화</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="boards" id="boards"></div>
+</section>
+
+<!-- ================= OVERLAY ================= -->
+<div id="overlay" role="dialog" aria-live="assertive">
+  <div class="reveal">
+    <p class="who" id="revealWho"></p>
+    <div class="slot" id="slot"><div class="team-line" id="slotLine">?</div></div>
+    <div class="ok" id="okWrap">
+      <button class="btn ok" id="okBtn">확인</button>
+      <span class="hintkey">Enter 키를 눌러도 됩니다</span>
+    </div>
+  </div>
+</div>
+
+<div id="confetti"></div>
+
+<script>
+(function(){
+"use strict";
+
+/* ---------------- palette ---------------- */
+var COLORS = [
+  {bg:"#E8453C",fg:"#fff"},{bg:"#2E86DE",fg:"#fff"},{bg:"#F5A623",fg:"#22150A"},
+  {bg:"#3DBB63",fg:"#fff"},{bg:"#7B5CD6",fg:"#fff"},{bg:"#E8558E",fg:"#fff"},
+  {bg:"#14B8A6",fg:"#08302C"},{bg:"#FFD400",fg:"#2A2200"},{bg:"#FF6B35",fg:"#fff"},
+  {bg:"#4C5FD5",fg:"#fff"},{bg:"#8CC63F",fg:"#1D2A08"},{bg:"#C74BB5",fg:"#fff"}
+];
+function color(i){ return COLORS[i % COLORS.length]; }
+
+/* ---------------- storage (best effort) ---------------- */
+var KEY = "team-draw-state";
+var mem = null;
+var store = {
+  save: function(s){
+    mem = s;
+    try { window.storage.set(KEY, JSON.stringify(s)); } catch(e){}
+  },
+  load: async function(){
+    try { var r = await window.storage.get(KEY); if(r && r.value) return JSON.parse(r.value); } catch(e){}
+    return mem;
+  },
+  clear: function(){
+    mem = null;
+    try { window.storage.delete(KEY); } catch(e){}
+  }
+};
+
+/* ---------------- state ---------------- */
+var S = { total:24, per:4, names:[], caps:[], picks:[] };
+
+/* capacity split: 앞 팀부터 1명씩 더 (= 뒷 팀부터 1명씩 적게) */
+function buildCaps(total, per){
+  var n = Math.max(1, Math.ceil(total / per));
+  var base = Math.floor(total / n), extra = total % n, caps = [];
+  for (var i=0;i<n;i++) caps.push(base + (i < extra ? 1 : 0));
+  return caps;
+}
+function capsSummary(caps){
+  var m = {}, i;
+  for(i=0;i<caps.length;i++) m[caps[i]] = (m[caps[i]]||0)+1;
+  var keys = Object.keys(m).map(Number).sort(function(a,b){return b-a;});
+  if (keys.length === 1) return caps.length + "개 팀 · 모두 " + keys[0] + "명씩";
+  return caps.length + "개 팀 · " + keys.map(function(k){ return k + "명 " + m[k] + "팀"; }).join(" + ");
+}
+function seatsUsed(t){ var c=0; for(var i=0;i<S.picks.length;i++) if(S.picks[i].team===t) c++; return c; }
+function membersOf(t){ return S.picks.filter(function(p){ return p.team===t; }); }
+
+/* ---------------- setup screen ---------------- */
+var totalIn = document.getElementById("totalIn"),
+    perIn   = document.getElementById("perIn"),
+    pHead   = document.getElementById("previewHead"),
+    pChips  = document.getElementById("previewChips"),
+    nameGrid= document.getElementById("nameGrid"),
+    startBtn= document.getElementById("startBtn"),
+    customNames = {};
+
+function readSetup(){
+  var t = parseInt(totalIn.value,10), p = parseInt(perIn.value,10);
+  if(isNaN(t)) t = 2; if(isNaN(p)) p = 1;
+  t = Math.min(100, Math.max(2, t));
+  p = Math.min(30, Math.max(1, p));
+  return {t:t, p:p};
+}
+function renderPreview(){
+  var v = readSetup();
+  var valid = v.p <= v.t;
+  if(!valid){
+    pHead.textContent = "팀당 인원이 전체 인원보다 많아요. 숫자를 줄여 주세요.";
+    pHead.classList.add("bad");
+    pChips.innerHTML = ""; nameGrid.innerHTML = "";
+    startBtn.disabled = true;
+    return;
+  }
+  pHead.classList.remove("bad");
+  startBtn.disabled = false;
+  var caps = buildCaps(v.t, v.p);
+  pHead.textContent = capsSummary(caps);
+  pChips.innerHTML = "";
+  nameGrid.innerHTML = "";
+  caps.forEach(function(cap,i){
+    var c = color(i), nm = customNames[i] || ((i+1) + "팀");
+    var chip = document.createElement("span");
+    chip.className = "chip";
+    chip.innerHTML = '<span class="dot" style="background:'+c.bg+'"></span>' +
+                     '<span class="nm">'+esc(nm)+'</span><span class="cap">'+cap+'명</span>';
+    pChips.appendChild(chip);
+
+    var inp = document.createElement("input");
+    inp.type = "text"; inp.maxLength = 12; inp.value = nm;
+    inp.setAttribute("aria-label", (i+1)+"번째 팀 이름");
+    inp.addEventListener("input", function(){
+      customNames[i] = inp.value;
+      chip.querySelector(".nm").textContent = inp.value || ((i+1)+"팀");
+    });
+    nameGrid.appendChild(inp);
+  });
+}
+document.querySelectorAll("[data-step]").forEach(function(b){
+  b.addEventListener("click", function(){
+    var el = b.dataset.step === "total" ? totalIn : perIn;
+    el.value = (parseInt(el.value,10)||0) + parseInt(b.dataset.d,10);
+    var v = readSetup(); totalIn.value = v.t; perIn.value = v.p;
+    renderPreview();
+  });
+});
+totalIn.addEventListener("input", renderPreview);
+perIn.addEventListener("input", renderPreview);
+
+startBtn.addEventListener("click", function(){
+  var v = readSetup();
+  if(v.p > v.t) return;
+  S.total = v.t; S.per = v.p;
+  S.caps = buildCaps(v.t, v.p);
+  S.names = S.caps.map(function(_,i){
+    var n = (customNames[i]||"").trim();
+    return n || ((i+1) + "팀");
+  });
+  S.picks = [];
+  store.save(S);
+  goDraw();
+});
+
+/* ---------------- draw screen ---------------- */
+var setupEl = document.getElementById("setup"),
+    drawEl  = document.getElementById("draw"),
+    nameInput = document.getElementById("nameInput"),
+    drawBtn = document.getElementById("drawBtn"),
+    boards  = document.getElementById("boards"),
+    doneCount = document.getElementById("doneCount"),
+    totalCount = document.getElementById("totalCount"),
+    barFill = document.getElementById("barFill"),
+    stageInput = document.getElementById("stageInput"),
+    donePanel = document.getElementById("donePanel"),
+    doneSummary = document.getElementById("doneSummary"),
+    dupWarn = document.getElementById("dupWarn"),
+    dupText = document.getElementById("dupText"),
+    undoBtn = document.getElementById("undoBtn");
+
+function goDraw(){
+  setupEl.hidden = true;
+  drawEl.hidden = false;
+  render();
+  nameInput.focus();
+}
+function esc(s){ return String(s).replace(/[&<>"]/g, function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
+
+var freshIndex = -1;
+function render(){
+  totalCount.textContent = S.total;
+  doneCount.textContent = S.picks.length;
+  barFill.style.width = (S.picks.length / S.total * 100) + "%";
+  undoBtn.disabled = S.picks.length === 0;
+
+  var finished = S.picks.length >= S.total;
+  stageInput.hidden = finished;
+  donePanel.hidden = !finished;
+  if(finished){
+    doneSummary.textContent = S.total + "명이 " + S.caps.length + "개 팀으로 나뉘었어요.";
+  }
+
+  boards.innerHTML = "";
+  S.caps.forEach(function(cap,i){
+    var c = color(i), used = seatsUsed(i), mem = membersOf(i);
+    var card = document.createElement("div");
+    card.className = "team" + (used>=cap ? " full" : "");
+    var head = '<header style="background:'+c.bg+';color:'+c.fg+'">' +
+               '<h3>'+esc(S.names[i])+'</h3><span class="seats">'+used+' / '+cap+'명</span></header>';
+    var lis = "";
+    mem.forEach(function(p,k){
+      var isFresh = (S.picks.indexOf(p) === freshIndex);
+      lis += '<li class="'+(isFresh?"fresh":"")+'"><span>'+(k+1)+'</span>'+esc(p.name)+'</li>';
+    });
+    for(var e=used; e<cap; e++) lis += '<li class="empty"></li>';
+    card.innerHTML = head + "<ol>" + lis + "</ol>";
+    boards.appendChild(card);
+  });
+  freshIndex = -1;
+}
+
+nameInput.addEventListener("input", function(){
+  drawBtn.disabled = nameInput.value.trim().length === 0;
+  dupWarn.hidden = true;
+});
+nameInput.addEventListener("keydown", function(e){
+  if(e.key === "Enter" && !drawBtn.disabled) tryDraw();
+});
+drawBtn.addEventListener("click", tryDraw);
+
+function tryDraw(){
+  var name = nameInput.value.trim();
+  if(!name) return;
+  var dup = S.picks.some(function(p){ return p.name === name; });
+  if(dup && dupWarn.hidden){
+    dupText.textContent = "‘" + name + "’은(는) 이미 뽑았어요. 동명이인이면 그대로 진행하세요.";
+    dupWarn.hidden = false;
+    return;
+  }
+  dupWarn.hidden = true;
+  roll(name);
+}
+document.getElementById("dupCancel").addEventListener("click", function(){
+  dupWarn.hidden = true; nameInput.select(); nameInput.focus();
+});
+document.getElementById("dupGo").addEventListener("click", function(){
+  dupWarn.hidden = true; roll(nameInput.value.trim());
+});
+
+/* ---------------- roll animation ---------------- */
+var overlay = document.getElementById("overlay"),
+    slot = document.getElementById("slot"),
+    slotLine = document.getElementById("slotLine"),
+    revealWho = document.getElementById("revealWho"),
+    okWrap = document.getElementById("okWrap"),
+    okBtn = document.getElementById("okBtn"),
+    pending = null, rolling = false;
+
+function openTeams(){
+  var out = [];
+  S.caps.forEach(function(cap,i){ if(seatsUsed(i) < cap) out.push(i); });
+  return out;
+}
+function roll(name){
+  var pool = openTeams();
+  if(!pool.length) return;
+  var chosen = pool[Math.floor(Math.random()*pool.length)];
+  pending = { name:name, team:chosen };
+
+  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  revealWho.textContent = name;
+  okWrap.classList.remove("on");
+  slot.classList.remove("landed");
+  slot.classList.add("rolling");
+  slotLine.textContent = "?";
+  slot.style.background = "#fff";
+  slotLine.style.color = "var(--ink)";
+  overlay.classList.add("on");
+  rolling = true;
+
+  var dur = reduce ? 250 : 1500, t0 = performance.now(), last = 0;
+  (function tick(now){
+    var el = now - t0;
+    if(el >= dur){ land(); return; }
+    var gap = 55 + Math.pow(el/dur, 3) * 190;
+    if(now - last > gap){
+      last = now;
+      var r = Math.floor(Math.random()*S.caps.length);
+      slotLine.textContent = S.names[r];
+      slot.style.background = color(r).bg;
+      slotLine.style.color = color(r).fg;
+    }
+    requestAnimationFrame(tick);
+  })(performance.now());
+}
+function land(){
+  var c = color(pending.team);
+  slot.classList.remove("rolling");
+  slot.classList.add("landed");
+  slot.style.background = c.bg;
+  slotLine.style.color = c.fg;
+  slotLine.textContent = S.names[pending.team];
+  okWrap.classList.add("on");
+  rolling = false;
+  okBtn.focus();
+}
+function confirmPick(){
+  if(rolling || !pending) return;
+  S.picks.push(pending);
+  freshIndex = S.picks.length - 1;
+  pending = null;
+  store.save(S);
+  overlay.classList.remove("on");
+  nameInput.value = "";
+  drawBtn.disabled = true;
+  render();
+  if(S.picks.length >= S.total) celebrate();
+  else nameInput.focus();
+}
+okBtn.addEventListener("click", confirmPick);
+document.addEventListener("keydown", function(e){
+  if(!overlay.classList.contains("on")) return;
+  if(e.key === "Enter" || e.key === " "){ e.preventDefault(); confirmPick(); }
+});
+
+/* ---------------- tools ---------------- */
+undoBtn.addEventListener("click", function(){
+  if(!S.picks.length) return;
+  var last = S.picks[S.picks.length-1];
+  if(!confirm("‘" + last.name + "’의 " + S.names[last.team] + " 배정을 취소할까요?")) return;
+  S.picks.pop();
+  store.save(S);
+  render();
+  nameInput.value = last.name;
+  drawBtn.disabled = false;
+  nameInput.focus(); nameInput.select();
+});
+
+function doReset(){
+  if(!confirm("지금까지 뽑은 결과가 모두 지워집니다. 처음부터 다시 할까요?")) return;
+  S.picks = [];
+  store.clear();
+  drawEl.hidden = true;
+  setupEl.hidden = false;
+  renderPreview();
+}
+document.getElementById("resetBtn").addEventListener("click", doReset);
+document.getElementById("doneReset").addEventListener("click", doReset);
+
+function resultText(){
+  var out = [];
+  S.caps.forEach(function(cap,i){
+    var m = membersOf(i);
+    out.push(S.names[i] + " (" + m.length + "명)");
+    m.forEach(function(p){ out.push("- " + p.name); });
+    out.push("");
+  });
+  return out.join("\n").trim();
+}
+function copyResult(btn){
+  var text = resultText(), old = btn.textContent;
+  function ok(){ btn.textContent = "복사했어요"; setTimeout(function(){ btn.textContent = old; }, 1600); }
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(ok, function(){ fallback(); });
+  } else fallback();
+  function fallback(){
+    var ta = document.createElement("textarea");
+    ta.value = text; ta.style.position="fixed"; ta.style.opacity="0";
+    document.body.appendChild(ta); ta.select();
+    try{ document.execCommand("copy"); ok(); }catch(e){ alert(text); }
+    document.body.removeChild(ta);
+  }
+}
+document.getElementById("copyBtn").addEventListener("click", function(){ copyResult(this); });
+document.getElementById("doneCopy").addEventListener("click", function(){ copyResult(this); });
+
+/* ---------------- Excel export ---------------- */
+function stamp(){
+  var d = new Date(), p = function(n){ return (n<10?"0":"")+n; };
+  return d.getFullYear() + "-" + p(d.getMonth()+1) + "-" + p(d.getDate());
+}
+function exportXlsx(){
+  if(typeof XLSX === "undefined"){
+    alert("엑셀 저장 기능을 불러오지 못했어요. 인터넷 연결을 확인하거나 ‘명단 복사’를 사용해 주세요.");
+    return;
+  }
+  var wb = XLSX.utils.book_new();
+
+  /* Sheet 1 — 세로 목록 */
+  var rows = [["번호","이름","팀"]];
+  S.picks.forEach(function(p,i){ rows.push([i+1, p.name, S.names[p.team]]); });
+  var ws1 = XLSX.utils.aoa_to_sheet(rows);
+  ws1["!cols"] = [{wch:6},{wch:16},{wch:16}];
+  XLSX.utils.book_append_sheet(wb, ws1, "뽑기 순서");
+
+  /* Sheet 2 — 팀별 가로표 */
+  var maxLen = 0;
+  S.caps.forEach(function(c){ if(c>maxLen) maxLen = c; });
+  var grid = [S.names.slice()];
+  for(var r=0;r<maxLen;r++){
+    var line = [];
+    for(var t=0;t<S.caps.length;t++){
+      var m = membersOf(t);
+      line.push(m[r] ? m[r].name : "");
+    }
+    grid.push(line);
+  }
+  grid.push([]);
+  grid.push(S.caps.map(function(_,t){ return membersOf(t).length + "명"; }));
+  var ws2 = XLSX.utils.aoa_to_sheet(grid);
+  ws2["!cols"] = S.caps.map(function(){ return {wch:14}; });
+  XLSX.utils.book_append_sheet(wb, ws2, "팀별 명단");
+
+  try{
+    XLSX.writeFile(wb, "팀배정_" + stamp() + ".xlsx");
+  }catch(e){
+    alert("파일 저장이 차단되었어요. 브라우저에서 열거나 ‘명단 복사’를 사용해 주세요.");
+  }
+}
+document.getElementById("xlsxBtn").addEventListener("click", exportXlsx);
+document.getElementById("doneXlsx").addEventListener("click", exportXlsx);
+
+/* ---------------- confetti ---------------- */
+function celebrate(){
+  if(window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  var host = document.getElementById("confetti");
+  for(var i=0;i<90;i++){
+    (function(){
+      var d = document.createElement("div");
+      d.className = "conf";
+      d.style.background = COLORS[Math.floor(Math.random()*COLORS.length)].bg;
+      d.style.left = Math.random()*100 + "vw";
+      d.style.top = "-30px";
+      var x = (Math.random()-0.5)*220, dur = 2200 + Math.random()*1600, rot = Math.random()*900;
+      host.appendChild(d);
+      d.animate(
+        [{transform:"translate(0,0) rotate(0deg)",opacity:1},
+         {transform:"translate("+x+"px,"+(window.innerHeight+80)+"px) rotate("+rot+"deg)",opacity:.9}],
+        {duration:dur, delay:Math.random()*600, easing:"cubic-bezier(.3,.6,.5,1)"}
+      ).onfinish = function(){ d.remove(); };
+    })();
+  }
+}
+
+/* ---------------- restore ---------------- */
+(async function(){
+  renderPreview();
+  var saved = await store.load();
+  if(saved && saved.caps && saved.caps.length && saved.picks && saved.picks.length){
+    S = saved;
+    totalIn.value = S.total; perIn.value = S.per;
+    S.names.forEach(function(n,i){ customNames[i] = n; });
+    renderPreview();
+    goDraw();
+  }
+})();
+
+})();
+</script>
+</body>
+</html>
