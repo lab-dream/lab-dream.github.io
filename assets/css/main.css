@@ -474,6 +474,13 @@ html[lang="ko"] .prof__cols h3 { letter-spacing: .04em; font-size: 13px; }
 .project { background: #fff; border-radius: var(--radius-lg); overflow: hidden; display: flex; flex-direction: column; box-shadow: var(--shadow); }
 .project__media img { width: 100%; aspect-ratio: 16 / 8; object-fit: cover; }
 .project--media { grid-column: 1 / -1; display: grid; grid-template-columns: 1.1fr 1fr; }
+.project--wide { grid-column: 1 / -1; }
+.project__head, .project__detail { display: grid; gap: 10px; align-content: start; }
+/* banner: 가로로 긴 사진을 위에 크게, 글은 아래 두 단 */
+.project--banner { grid-column: 1 / -1; }
+.project--banner .project__body,
+.project--wide .project__body { grid-template-columns: 1fr 1.35fr; gap: 10px 44px; padding: 32px 40px 34px; }
+.project--banner h3 { font-size: 26px; }
 .project--media .project__media img { height: 100%; aspect-ratio: auto; min-height: 280px; }
 .project--media .project__body { align-content: center; padding: 36px 40px; }
 .project--media h3 { font-size: 26px; }
@@ -644,6 +651,8 @@ html[lang="ko"] .award__result { letter-spacing: .02em; font-size: 13.5px; }
   .project--media { grid-template-columns: 1fr; }
   .project--media .project__media img { min-height: 0; aspect-ratio: 16 / 9; }
   .project--media .project__body { padding: 24px 26px 26px; }
+  .project--banner .project__body,
+  .project--wide .project__body { grid-template-columns: 1fr; padding: 24px 26px 26px; }
   .prof { grid-template-columns: 190px 1fr; gap: 36px; }
   .prof__cols { grid-template-columns: 1fr; }
   .pub-year, .news-year { grid-template-columns: 1fr; gap: 4px; }
