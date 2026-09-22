@@ -17,7 +17,7 @@ lang: en
 
 # 저장소 이름이 <org>.github.io 이면 baseurl은 "" 로 둡니다.
 # 다른 이름의 저장소(예: lab-dream/homepage)라면 baseurl: "/homepage" 로 바꾸세요.
-url: "https://lab-dream.xyz"
+url: "https://drl.kw.ac.kr"
 baseurl: ""
 
 # 연구실 기본 정보 (헤더/푸터/연락처 페이지에서 사용)
