@@ -1,0 +1,37 @@
+---
+layout: page
+---
+{%- assign t = site.data.i18n[page.lang] | default: site.data.i18n.en -%}
+{%- assign pubs = site.data.publications -%}
+{%- assign types = "journal,conference,workshop,preprint,thesis" | split: "," -%}
+
+<div class="wrap page-end">
+  <div class="pub-controls">
+    <div class="filter-chips" role="group" aria-label="{{ t.pubs.filter_label }}">
+      <button class="filter-chip" type="button" data-filter="all" aria-pressed="true">{{ t.pubs.all }}<span>{{ pubs.size }}</span></button>
+      {%- for ty in types %}
+        {%- assign n = pubs | where: "type", ty | size %}
+        {%- if n > 0 %}
+      <button class="filter-chip" type="button" data-filter="{{ ty }}" aria-pressed="false">{{ t.pubs.types[ty] }}<span>{{ n }}</span></button>
+        {%- endif %}
+      {%- endfor %}
+    </div>
+    <label class="visually-hidden" for="pub-search">{{ t.pubs.search_label }}</label>
+    <input id="pub-search" class="pub-search" type="search" placeholder="{{ t.pubs.search }}" data-pub-search autocomplete="off">
+  </div>
+
+  <div data-pub-list>
+    {%- assign by_year = pubs | group_by: "year" | sort: "name" | reverse %}
+    {%- for g in by_year %}
+    <section class="pub-year" aria-label="{{ g.name }}">
+      <h2 class="pub-year__label">{{ g.name }}</h2>
+      <div class="pub-list">
+        {%- for p in g.items %}
+        {% include pub.html pub=p %}
+        {%- endfor %}
+      </div>
+    </section>
+    {%- endfor %}
+  </div>
+  <p class="pub-empty" data-pub-empty hidden>{{ t.pubs.empty }}</p>
+</div>

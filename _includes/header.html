@@ -1,0 +1,29 @@
+{%- assign t = site.data.i18n[page.lang] | default: site.data.i18n.en -%}
+<header class="site-header">
+  <div class="wrap site-header__inner">
+    <a class="brand" href="{{ t.prefix | append: '/' | relative_url }}" aria-label="{{ site.lab.name }} home">
+      <img class="brand__dark" src="{{ '/assets/img/logo/letters_black.svg' | relative_url }}" alt="{{ site.lab.name }}" width="156" height="26">
+      <img class="brand__light" src="{{ '/assets/img/logo/letters_white.svg' | relative_url }}" alt="" width="156" height="26" aria-hidden="true">
+    </a>
+    <nav id="site-nav" class="site-nav" aria-label="{{ t.menu }}">
+      <ul>
+        {%- for item in site.data.navigation %}
+        {%- assign href = t.prefix | append: item.url %}
+        <li><a href="{{ href | relative_url }}"{% if page.url contains href %} aria-current="page"{% endif %}>{% include tr.html obj=item key="title" %}</a></li>
+        {%- endfor %}
+      </ul>
+    </nav>
+    <div class="site-header__tools">
+      {%- unless page.no_lang_switch %}
+      <div class="lang-switch" role="group" aria-label="{{ t.switch_label }}">
+        <a href="{{ en_url | relative_url }}" lang="en" hreflang="en"{% if page.lang != "ko" %} aria-current="true"{% endif %}>EN</a>
+        <a href="{{ ko_url | relative_url }}" lang="ko" hreflang="ko"{% if page.lang == "ko" %} aria-current="true"{% endif %}>KO</a>
+      </div>
+      {%- endunless %}
+      <button class="nav-toggle" type="button" aria-expanded="false" aria-controls="site-nav">
+        <span class="visually-hidden">{{ t.menu }}</span>
+        <span class="nav-toggle__bar"></span>
+      </button>
+    </div>
+  </div>
+</header>

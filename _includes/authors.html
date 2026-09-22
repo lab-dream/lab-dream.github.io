@@ -1,0 +1,11 @@
+{%- comment -%}
+  저자 문자열("A, B, C")을 받아 연구실 구성원(members.yml의 name)을 강조합니다.
+  사용: {% include authors.html authors=pub.authors %}
+{%- endcomment -%}
+{%- assign lab_names = site.data.members | map: "name" -%}
+{%- assign list = include.authors | split: ", " -%}
+{%- for a in list -%}
+  {%- assign clean = a | remove: "*" | remove: "†" | strip -%}
+  {%- if lab_names contains clean -%}<span class="au au--lab">{{ a | strip }}</span>{%- else -%}<span class="au">{{ a | strip }}</span>{%- endif -%}
+  {%- unless forloop.last -%}, {% endunless -%}
+{%- endfor -%}

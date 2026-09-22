@@ -1,0 +1,34 @@
+# ─────────────────────────────────────────────────────────────
+#  Projects  (Research 페이지 하단)
+#
+#  title / title_ko : 과제 이름 (title_ko 가 있으면 한국어 페이지에서 사용)
+#  sponsors         : 기관/기업 이름 목록
+#  members          : members.yml의 name 과 같게 적으면 구성원 페이지로 링크됩니다.
+#  status           : ongoing | completed
+#  description_ko / description_en : (선택) 한두 줄 설명
+# ─────────────────────────────────────────────────────────────
+
+- title: Auto-bagger Automation
+  title_ko: 오토배거 자동화
+  sponsors: [ROBROS]
+  status: ongoing
+  image: /assets/img/photos/igris-autobagger.jpg
+  members: [Dongwoo Son, Junho An, Chanwoo Seon, Jinwoo Lee]
+
+- title: BGF Logistics Automation
+  title_ko: BGF 물류 자동화
+  sponsors: [ROBOTIS, MOTIR]
+  status: ongoing
+  members: [Chanwoo Seon, Dongwoo Son, Gahyun Oh]
+
+- title: Swarm Humanoid
+  title_ko: 군집 휴머노이드
+  sponsors: [NRF]
+  status: ongoing
+  members: [Junho An, Dongwoo Son, Gahyun Oh, Chanwoo Seon]
+
+- title: Constraint-aware VLA
+  title_ko: 제약 인지 VLA
+  sponsors: [NRF]
+  status: ongoing
+  members: [Gahyun Oh, Junho An, Dongwoo Son]

@@ -1,0 +1,22 @@
+# 상단 메뉴. 순서를 바꾸거나 항목을 빼도 됩니다.
+# url 은 영어(기본) 주소이며, 한국어 페이지에서는 자동으로 /ko 가 앞에 붙습니다.
+- url: /members/
+  title_ko: 구성원
+  title_en: Members
+- url: /research/
+  title_ko: 연구
+  title_en: Research
+- url: /publications/
+  title_ko: 논문
+  title_en: Publications
+- url: /news/
+  title_ko: 소식
+  title_en: News
+- url: /events/
+  title_ko: 행사
+  title_en: Events
+- url: /robit/
+  title: RO:BIT
+- url: /contact/
+  title_ko: 연락처
+  title_en: Contact

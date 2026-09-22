@@ -1,0 +1,55 @@
+{%- comment -%}
+  논문 한 편. 사용: {% include pub.html pub=p %}   (compact=true 이면 썸네일 없이 한 줄)
+{%- endcomment -%}
+{%- assign p = include.pub -%}
+{%- assign t = site.data.i18n[page.lang] | default: site.data.i18n.en -%}
+{%- assign type_label = t.pubs.types[p.type] | default: p.type -%}
+{%- assign link_keys = "paper,pdf,arxiv,project,code,video,slides,poster,dataset" | split: "," -%}
+{%- assign link_labels = "Paper,PDF,arXiv,Project,Code,Video,Slides,Poster,Dataset" | split: "," -%}
+{%- capture search_text -%}{{ p.title }} {{ p.authors }} {{ p.venue }} {{ p.venue_full }} {{ p.year }} {{ p.note }} {{ p.award }}{%- endcapture -%}
+
+{%- if include.compact -%}
+<li class="pub-mini">
+  <span class="pub-mini__title">{{ p.title }}</span>
+  <span class="pub-mini__venue">{{ p.venue }} {{ p.year }}</span>
+  {%- for key in link_keys -%}
+    {%- if p.links[key] -%}<a class="pub-mini__link" href="{{ p.links[key] }}">{{ link_labels[forloop.index0] }}</a>{%- break -%}{%- endif -%}
+  {%- endfor -%}
+</li>
+{%- else -%}
+<article class="pub" data-type="{{ p.type }}" data-search="{{ search_text | downcase | strip_newlines | escape }}">
+  <div class="pub__thumb">
+    {%- if p.image -%}
+    <img src="{{ p.image | relative_url }}" alt="" loading="lazy">
+    {%- else -%}
+    <span class="pub__thumb-ph" aria-hidden="true">{{ p.venue }}</span>
+    {%- endif -%}
+  </div>
+  <div class="pub__body">
+    <h3 class="pub__title">{{ p.title }}</h3>
+    <p class="pub__authors">{% include authors.html authors=p.authors %}</p>
+    <p class="pub__meta">
+      <span class="pub__venue"{% if p.venue_full %} title="{{ p.venue_full }}"{% endif %}>{{ p.venue }} {{ p.year }}</span>
+      <span class="badge badge--{{ p.type }}">{{ type_label }}</span>
+      {%- if p.note %} <span class="badge">{{ p.note }}</span>{% endif -%}
+      {%- if p.award %} <span class="badge badge--award">{{ p.award }}</span>{% endif %}
+    </p>
+    <p class="pub__links">
+      {%- for key in link_keys -%}
+        {%- if p.links[key] -%}
+        <a class="pill" href="{{ p.links[key] }}">{{ link_labels[forloop.index0] }}</a>
+        {%- endif -%}
+      {%- endfor -%}
+      {%- if p.bibtex -%}
+        <button class="pill pill--btn" type="button" data-bibtex-toggle aria-expanded="false">BibTeX</button>
+      {%- endif -%}
+    </p>
+    {%- if p.bibtex %}
+    <div class="bibtex" hidden>
+      <pre><code>{{ p.bibtex | strip | escape }}</code></pre>
+      <button class="pill pill--btn" type="button" data-copy data-copied="{{ t.pubs.copied }}">{{ t.pubs.copy }}</button>
+    </div>
+    {%- endif %}
+  </div>
+</article>
+{%- endif -%}

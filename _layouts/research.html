@@ -1,0 +1,73 @@
+---
+layout: page
+---
+{%- assign t = site.data.i18n[page.lang] | default: site.data.i18n.en -%}
+<section class="section section--tight" aria-labelledby="topics-title">
+  <div class="wrap">
+    <h2 id="topics-title" class="visually-hidden">{{ t.research.topics }}</h2>
+    {%- for tp in site.data.research %}
+    {%- assign related = site.data.publications | where_exp: "p", "p.topics contains tp.id" %}
+    <article class="topic" id="{{ tp.id }}">
+      <div class="topic__media">
+        {%- if tp.image %}<img src="{{ tp.image | relative_url }}" alt="{{ tp.title }}" loading="lazy">{% endif %}
+      </div>
+      <div>
+        <p class="topic__num">0{{ forloop.index }}</p>
+        <h2>{% include tr.html obj=tp key="title" %}</h2>
+        <p class="topic__summary">{% include tr.html obj=tp key="summary" %}</p>
+        <ul class="chip-list">
+          {%- for it in tp.items %}<li>{{ it }}</li>{% endfor %}
+        </ul>
+        {%- if related.size > 0 %}
+        <div class="topic__pubs">
+          <h3>{{ t.pubs.related }}</h3>
+          <ul class="pub-mini-list">
+            {%- for p in related limit: 4 %}
+            {% include pub.html pub=p compact=true %}
+            {%- endfor %}
+          </ul>
+        </div>
+        {%- endif %}
+      </div>
+    </article>
+    {%- endfor %}
+  </div>
+</section>
+
+<section class="section section--ivory" id="projects" aria-labelledby="projects-title">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">{{ t.research.projects_eyebrow }}</p>
+        <h2 id="projects-title">{{ t.research.projects_title }}</h2>
+      </div>
+    </div>
+    {%- assign member_names = site.data.members | map: "name" %}
+    {%- assign members_url = t.prefix | append: '/members/' | relative_url %}
+    <div class="project-grid">
+      {%- for pr in site.data.projects %}
+      {%- assign status = pr.status | default: "ongoing" %}
+      {%- capture pr_desc %}{% include tr.html obj=pr key="description" %}{% endcapture %}
+      <article class="project{% if pr.image %} project--media{% endif %}">
+        {%- if pr.image %}<div class="project__media"><img src="{{ pr.image | relative_url }}" alt="{{ pr.title }}" loading="lazy"></div>{% endif %}
+        <div class="project__body">
+          <div class="project__top">
+            <span class="project__status project__status--{{ status }}">{{ t.research.status[status] | default: status }}</span>
+            {%- for s in pr.sponsors %}<span class="project__sponsor">{{ s }}</span>{% endfor %}
+          </div>
+          <h3>{% include tr.html obj=pr key="title" %}</h3>
+          {%- if pr_desc != "" %}<p class="project__desc">{{ pr_desc }}</p>{% endif %}
+          {%- if pr.members %}
+          <p class="project__members">
+            {%- for name in pr.members -%}
+              {%- if member_names contains name -%}<a href="{{ members_url }}#{{ name | slugify }}">{{ name }}</a>{%- else -%}{{ name }}{%- endif -%}
+              {%- unless forloop.last %}, {% endunless -%}
+            {%- endfor -%}
+          </p>
+          {%- endif %}
+        </div>
+      </article>
+      {%- endfor %}
+    </div>
+  </div>
+</section>

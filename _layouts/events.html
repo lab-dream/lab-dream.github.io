@@ -1,0 +1,44 @@
+---
+layout: page
+---
+{%- assign t = site.data.i18n[page.lang] | default: site.data.i18n.en -%}
+{%- assign events = site.data.events | sort: "date" | reverse -%}
+{%- assign today = site.time | date: "%Y-%m-%d" -%}
+<section class="section">
+  <div class="wrap">
+    <ul class="event-list">
+      {%- for e in events %}
+      {%- assign d = e.date | date: "%Y-%m-%d" %}
+      {%- capture e_speaker %}{% include tr.html obj=e key="speaker" %}{% endcapture %}
+      {%- capture e_desc %}{% include tr.html obj=e key="description" %}{% endcapture %}
+      {%- capture e_series %}{% include tr.html obj=e key="series" %}{% endcapture %}
+      {%- capture e_aff %}{% include tr.html obj=e key="speaker_affiliation" %}{% endcapture %}
+      {%- capture e_time %}{% include tr.html obj=e key="time" %}{% endcapture %}
+      {%- capture e_place %}{% include tr.html obj=e key="location" %}{% endcapture %}
+      <li class="event{% if d < today %} event--past{% endif %}">
+        <div class="event__date">
+          <div class="event__month">{% if page.lang == "en" %}{{ e.date | date: "%b" }}{% else %}{{ e.date | date: "%-m" }}월{% endif %}</div>
+          <div class="event__day">{{ e.date | date: "%-d" }}</div>
+          <div class="event__year">{{ e.date | date: "%Y" }}</div>
+        </div>
+        <div>
+          {%- if e_series != "" %}<p class="event__series">{{ e_series }}</p>{% endif %}
+          <h3>{% include tr.html obj=e key="title" %}</h3>
+          <p class="event__meta">
+            {%- if e_speaker != "" %}<span><b>{{ t.events.speaker }}</b>{% if e.speaker_url %}<a href="{{ e.speaker_url }}">{{ e_speaker }}</a>{% else %}{{ e_speaker }}{% endif %}{% if e_aff != "" %}<span class="event__aff"> · {{ e_aff }}</span>{% endif %}</span>{% endif %}
+            {%- if e_time != "" %}<span><b>{{ t.events.time }}</b>{{ e_time }}</span>{% endif %}
+            {%- if e_place != "" %}<span><b>{{ t.events.place }}</b>{{ e_place }}</span>{% endif %}
+            {%- if e.language %}<span><b>{{ t.events.language }}</b>{{ t.events.languages[e.language] | default: e.language }}</span>{% endif %}
+          </p>
+          {%- if e_desc != "" %}<p class="event__desc">{{ e_desc }}</p>{% endif %}
+          {%- if e.links %}
+          <p class="event__links">
+            {%- for l in e.links %}<a class="pill" href="{{ l.url | relative_url }}">{% include tr.html obj=l key="label" %}</a>{% endfor %}
+          </p>
+          {%- endif %}
+        </div>
+      </li>
+      {%- endfor %}
+    </ul>
+  </div>
+</section>

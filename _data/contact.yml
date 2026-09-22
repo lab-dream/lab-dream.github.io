@@ -1,0 +1,47 @@
+# ─────────────────────────────────────────────────────────────
+#  Contact / Open positions   (_ko = 한국어 페이지, _en = 영어 페이지)
+# ─────────────────────────────────────────────────────────────
+
+apply:
+  intro_ko: 지원은 이메일로 받습니다. 아래 내용을 함께 보내 주세요.
+  intro_en: Send us an email to apply, including the items below.
+  email_title: "[Lab Application] your-name"
+  requirements_ko:
+    - 희망 과정 / 포지션
+    - CV 또는 포트폴리오 (국문 또는 영문)
+    - 간단한 지원 동기 (국문 또는 영문)
+  requirements_en:
+    - Preferred program / position
+    - CV or portfolio (in Korean or English)
+    - A brief description of your motivation (in Korean or English)
+
+positions:
+  - title_ko: 대학원생
+    title_en: Graduate Students
+    subtitle_ko: 석사과정 · 석박사통합과정 · 박사과정
+    subtitle_en: M.S., integrated M.S.–Ph.D., or Ph.D. program
+    groups:
+      - name: Manipulation
+        items:
+          - VLA (Vision-Language-Action) Models
+          - Motion Planning for Mobile Manipulators
+          - Cooperative Manipulation
+          - Robotic Assembly
+          - Trajectory Optimization
+          - Grasp Planning
+      - name: Humanoids
+        items:
+          - Whole-body Manipulation (Loco-manipulation)
+          - Motion Retargeting
+
+  - title_ko: 학부연구생
+    title_en: Undergraduate Students
+    subtitle_ko: 학부 재학생
+    subtitle_en: Undergraduate research interns
+    groups:
+      - name_ko: 주제
+        name_en: Topics
+        items:
+          - Manipulation (Imitation Learning)
+          - Teleoperation Device (VR/AR, Hand-held Grippers)
+          - Motion Planning for Manipulators

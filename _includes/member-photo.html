@@ -1,0 +1,7 @@
+{%- assign m = include.m -%}
+{%- if m.photo -%}
+<img src="{{ m.photo | relative_url }}" alt="{{ m.name }}" loading="lazy">
+{%- else -%}
+{%- if m.name_ko -%}{%- assign initial = m.name_ko | slice: 0 -%}{%- else -%}{%- assign initial = m.name | slice: 0 -%}{%- endif -%}
+<span class="member__initial" aria-hidden="true">{{ initial }}</span>
+{%- endif -%}

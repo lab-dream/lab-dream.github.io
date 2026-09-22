@@ -1,0 +1,26 @@
+{%- assign t = site.data.i18n[page.lang] | default: site.data.i18n.en -%}
+<footer class="site-footer">
+  <div class="wrap site-footer__grid">
+    <div class="site-footer__brand">
+      <img src="{{ '/assets/img/logo/letters_white.svg' | relative_url }}" alt="{{ site.lab.name }}" width="190" height="31" loading="lazy">
+      <p>{{ site.lab.name_en }}<br>{{ site.lab.name_ko }}</p>
+    </div>
+    <div>
+      <h2>{{ t.footer.contact }}</h2>
+      <p>{% include tr.html obj=site.lab key="office" %}</p>
+      <p><a href="mailto:{{ site.lab.email }}">{{ site.lab.email }}</a><br>{{ site.lab.phone }}</p>
+    </div>
+    <div>
+      <h2>{{ t.footer.links }}</h2>
+      <ul class="site-footer__links">
+        <li><a href="{{ site.lab.university_url }}">{% include tr.html obj=site.lab key="university" %}</a></li>
+        <li><a href="{{ site.lab.github }}">GitHub</a></li>
+        <li><a href="{{ site.lab.youtube }}">YouTube</a></li>
+        <li><a href="{{ t.prefix | append: '/contact/' | relative_url }}">{{ t.footer.join }}</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="wrap site-footer__bottom">
+    <p>© {{ site.time | date: '%Y' }} {{ site.lab.name }} · {{ site.lab.department_en }}, {{ site.lab.university_en }}</p>
+  </div>
+</footer>

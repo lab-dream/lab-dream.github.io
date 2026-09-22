@@ -1,0 +1,75 @@
+# ─────────────────────────────────────────────────────────────
+#  RO:BIT 페이지 문구   (영상은 videos.yml 에서 pages: [robit])
+#
+#  achievements : 수상 실적. 날짜순으로 자동 정렬되며, 맨 위(가장 최근) 항목이 오른쪽 카드로 강조됩니다.
+#    date        : YYYY-MM (따옴표 없이 2026-09 처럼 적으면 됩니다)
+#    title_ko/en : 대회 이름      result_ko/en : 결과      note_ko/en : (선택) 한 줄 설명
+#    links       : 관련 기사 (label / url)
+# ─────────────────────────────────────────────────────────────
+
+url: https://kwrobit.com/
+
+intro_ko: >-
+  RO:BIT(로빛)은 2006년 창단한 광운대학교 로봇게임단으로, 학부생들이 로봇을 직접 설계·제작하고 국내외 로봇
+  경진대회에 출전합니다. 로빛 8기 출신인 박수한 교수가 2025년부터 지도교수를 맡고 있으며, DREAM Lab.은 로빛
+  학부생들과 휴머노이드 보행 등 공동 연구를 진행하고 있습니다.
+intro_en: >-
+  RO:BIT is Kwangwoon University's robot game team, founded in 2006, where undergraduates design and build their
+  own robots and compete in robotics competitions. Prof. Suhan Park, a RO:BIT alumnus (8th generation), has been
+  the team's advisor since 2025, and DREAM Lab. collaborates with RO:BIT students on research such as humanoid walking.
+button_ko: RO:BIT 홈페이지 더 알아보기
+button_en: Visit the RO:BIT website
+
+achievements:
+  - date: "2026-09"
+    title_ko: 2026 육군참모총장배 국방로봇경진대회
+    title_en: 2026 Army Chief of Staff Cup National Defense Robot Competition
+    result_ko: 1위 · 산업통상부장관상 (2년 연속)
+    result_en: 1st Place · Minister's Award (2nd consecutive year)
+    note_ko: 재난구조로봇 ‘이클립스’로 원격조종·자율주행 부문 모두 만점, 역대 최고점
+    note_en: Perfect scores in both teleoperation and autonomous navigation with the rescue robot “Eclipse” — a record high
+    links:
+      - label: 머니투데이
+        url: https://www.mt.co.kr/policy/2026/09/10/2026091013470379693
+      - label: 파이낸셜뉴스
+        url: https://www.fnnews.com/news/202609101348359971
+
+  - date: "2026-02"
+    title_ko: 한국로보컵오픈 2026
+    title_en: RoboCup Korea Open 2026
+    result_ko: 휴머노이드 축구 Kid Size 1위
+    result_en: 1st Place, Humanoid Soccer (Kid Size)
+    links:
+      - label: 중앙이코노미뉴스
+        url: https://www.joongangenews.com/news/articleView.html?idxno=496081
+
+  - date: "2025-10"
+    title_ko: 2025 극한로봇 경진대회
+    title_en: 2025 Extreme Robot Competition
+    result_ko: 대상
+    result_en: Grand Prize
+    note_ko: 재난구조로봇 ‘이클립스’ (서울 코엑스)
+    note_en: Rescue robot “Eclipse” (COEX, Seoul)
+    links:
+      - label: 중앙이코노미뉴스
+        url: https://www.joongangenews.com/news/articleView.html?idxno=458406
+
+  - date: "2025-09"
+    title_ko: 제25회 한국지능로봇경진대회
+    title_en: The 25th Korea Intelligent Robot Competition
+    result_ko: 국방로봇 부문 1위
+    result_en: 1st Place, Military Robot Competition
+    note_ko: 한국로봇융합연구원 주관 (포항)
+    note_en: Hosted by KIRO (Pohang)
+    links:
+      - label: 전자신문
+        url: https://www.etnews.com/20250915000015
+
+  - date: "2025-02"
+    title_ko: 한국로보컵오픈 2025
+    title_en: RoboCup Korea Open 2025
+    result_ko: 휴머노이드 축구 Kid Size 1위
+    result_en: 1st Place, Humanoid Soccer (Kid Size)
+    links:
+      - label: 한국대학신문
+        url: https://news.unn.net/news/articleView.html?idxno=575199

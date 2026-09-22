@@ -1,0 +1,70 @@
+---
+layout: page
+---
+{%- assign t = site.data.i18n[page.lang] | default: site.data.i18n.en -%}
+{%- assign r = site.data.robit -%}
+{%- assign wins = r.achievements | sort: "date" | reverse -%}
+{%- assign latest = wins | first -%}
+<section class="section">
+  <div class="wrap split">
+    <div class="prose">
+      <p>{% include tr.html obj=r key="intro" %}</p>
+      <p class="split__cta"><a class="btn btn--primary" href="{{ r.url }}">{% include tr.html obj=r key="button" %}</a></p>
+    </div>
+    {%- if latest %}
+    <aside class="highlight">
+      <p class="eyebrow">{{ t.robit.latest }} · {{ latest.date | replace: "-", "." }}</p>
+      <h3>{% include tr.html obj=latest key="result" %}</h3>
+      <p>{% include tr.html obj=latest key="title" %}</p>
+      {%- capture latest_note %}{% include tr.html obj=latest key="note" %}{% endcapture %}
+      {%- if latest_note != "" %}<p>{{ latest_note }}</p>{% endif %}
+      {%- if latest.links %}<p>{% for l in latest.links %}<a href="{{ l.url }}">{% include tr.html obj=l key="label" %} →</a>{% unless forloop.last %}&nbsp;&nbsp;{% endunless %}{% endfor %}</p>{% endif %}
+    </aside>
+    {%- endif %}
+  </div>
+</section>
+
+{%- if wins.size > 0 %}
+<section class="section section--ivory" aria-labelledby="achievements-title">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">Achievements</p>
+        <h2 id="achievements-title">{{ t.robit.achievements }}</h2>
+      </div>
+    </div>
+    <ol class="award-list">
+      {%- for a in wins %}
+      {%- capture a_note %}{% include tr.html obj=a key="note" %}{% endcapture %}
+      <li class="award">
+        <time class="award__date">{{ a.date | replace: "-", "." }}</time>
+        <div class="award__body">
+          <p class="award__result">{% include tr.html obj=a key="result" %}</p>
+          <h3 class="award__title">{% include tr.html obj=a key="title" %}</h3>
+          {%- if a_note != "" %}<p class="award__note">{{ a_note }}</p>{% endif %}
+        </div>
+        {%- if a.links %}
+        <p class="award__links">
+          {%- for l in a.links %}<a class="pill" href="{{ l.url }}">{% include tr.html obj=l key="label" %}</a>{% endfor -%}
+        </p>
+        {%- endif %}
+      </li>
+      {%- endfor %}
+    </ol>
+  </div>
+</section>
+{%- endif %}
+
+{%- assign videos = site.data.videos | where_exp: "v", "v.pages contains 'robit'" %}
+{%- if videos.size > 0 %}
+<section class="section">
+  <div class="wrap">
+    <div class="section-head"><h2>{{ t.robit.videos }}</h2></div>
+    <div class="video-grid video-grid--3">
+      {%- for v in videos %}
+      {% include video.html v=v %}
+      {%- endfor %}
+    </div>
+  </div>
+</section>
+{%- endif %}

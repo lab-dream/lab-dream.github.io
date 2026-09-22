@@ -1,0 +1,9 @@
+{%- comment -%}
+  다국어 필드 읽기.  obj[key_현재언어] → obj[key] → obj[key_다른언어] 순서로 찾습니다.
+  사용: {% include tr.html obj=item key="title" %}
+  (필터를 쓰려면 capture 로 감싸세요)
+{%- endcomment -%}
+{%- if page.lang == "ko" -%}{%- assign _tr_other = "en" -%}{%- else -%}{%- assign _tr_other = "ko" -%}{%- endif -%}
+{%- assign _tr_k1 = include.key | append: "_" | append: page.lang -%}
+{%- assign _tr_k2 = include.key | append: "_" | append: _tr_other -%}
+{{- include.obj[_tr_k1] | default: include.obj[include.key] | default: include.obj[_tr_k2] -}}

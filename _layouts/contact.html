@@ -1,0 +1,57 @@
+---
+layout: page
+---
+{%- assign t = site.data.i18n[page.lang] | default: site.data.i18n.en -%}
+{%- if page.lang == "ko" -%}{%- assign other = "en" -%}{%- else -%}{%- assign other = "ko" -%}{%- endif -%}
+{%- assign c = site.data.contact -%}
+{%- assign prof = site.data.members | where: "group", "professor" | first -%}
+{%- assign k_lang = "requirements_" | append: page.lang -%}{%- assign k_other = "requirements_" | append: other -%}
+{%- assign reqs = c.apply[k_lang] | default: c.apply.requirements | default: c.apply[k_other] -%}
+<section class="section">
+  <div class="wrap contact-grid">
+    <div class="card">
+      {%- if page.lang == "en" %}
+      <h2>{{ prof.name }} <span class="card__sub">{{ prof.name_ko }}</span></h2>
+      {%- else %}
+      <h2>{{ prof.name_ko }} <span class="card__sub">{{ prof.name }}</span></h2>
+      {%- endif %}
+      <ul class="contact-rows">
+        <li><span class="k">{{ t.contact.email }}</span><a href="mailto:{{ site.lab.email }}">{{ site.lab.email }}</a></li>
+        <li><span class="k">{{ t.contact.phone }}</span><span>{{ site.lab.phone }}</span></li>
+        <li><span class="k">{{ t.contact.office }}</span><span>{% include tr.html obj=site.lab key="office" %}<br><a href="{{ site.lab.map_url }}">{{ t.contact.map }} →</a></span></li>
+      </ul>
+    </div>
+    <div class="card" id="apply">
+      <h2>{{ t.contact.apply_title }}</h2>
+      <p>{% include tr.html obj=c.apply key="intro" %}</p>
+      <p class="mono-box">To: {{ site.lab.email }}<br>Subject: {{ c.apply.email_title }}</p>
+      <ul class="bullet-list">
+        {%- for r in reqs %}<li>{{ r }}</li>{% endfor %}
+      </ul>
+      <p class="card__cta"><a class="btn btn--primary" href="mailto:{{ site.lab.email }}?subject={{ c.apply.email_title | uri_escape }}">{{ t.contact.apply_button }}</a></p>
+    </div>
+  </div>
+</section>
+
+<section class="section section--ivory" aria-labelledby="positions-title">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">{{ t.contact.positions_eyebrow }}</p>
+        <h2 id="positions-title">{{ t.contact.positions_title }}</h2>
+      </div>
+    </div>
+    <div class="positions">
+      {%- for pos in c.positions %}
+      <article class="card position">
+        <h3>{% include tr.html obj=pos key="title" %}</h3>
+        <p class="position__sub">{% include tr.html obj=pos key="subtitle" %}</p>
+        {%- for g in pos.groups %}
+        <h4>{% include tr.html obj=g key="name" %}</h4>
+        <ul class="bullet-list">{% for it in g.items %}<li>{{ it }}</li>{% endfor %}</ul>
+        {%- endfor %}
+      </article>
+      {%- endfor %}
+    </div>
+  </div>
+</section>

@@ -1,0 +1,48 @@
+# ─────────────────────────────────────────────────────────────
+#  Research Topics  (Research 페이지)
+#
+#  id         : publications.yml의 topics 값과 연결됩니다. (영문 소문자-하이픈)
+#  summary_ko : 한국어 소개      summary_en : 영어 소개
+#  image      : 대표 이미지
+# ─────────────────────────────────────────────────────────────
+
+- id: motion-planning
+  title: Motion Planning
+  summary_ko: >-
+    기구학·폐연쇄(closed-chain)·작업 제약 조건 아래에서 실행 가능한 파지와 동작을 계획합니다.
+    단일 로봇 팔부터 전신 시스템까지 다룹니다.
+  summary_en: >-
+    Planning feasible grasps and motions under kinematic, closed-chain, and task constraints —
+    from single arms to whole-body systems.
+  image: /assets/img/pubs/park2024ljcmp.gif
+  items:
+    - Grasp Planning
+    - Whole-body Motion Planning
+    - Constrained Motion Planning
+
+- id: physical-ai
+  title: Physical AI
+  summary_ko: >-
+    모방학습, 비전-언어-행동(VLA) 모델, 데이터 수집을 위한 원격조작, 학습된 정책의 후처리 최적화 등
+    데이터로부터 조작 기술을 학습합니다.
+  summary_en: >-
+    Learning manipulation skills from data — imitation learning, vision-language-action models,
+    teleoperation for data collection, and post-optimization of learned policies.
+  image: /assets/img/research/domain-manipulation.gif
+  items:
+    - Post-optimization Algorithm
+    - Vision-Language-Action Models
+    - Imitation Learning
+    - Teleoperation
+    - Dataset Augmentation
+
+- id: humanoids
+  title: Humanoids
+  summary_ko: >-
+    실제 환경에서 일하는 휴머노이드 로봇의 전신 조작과 이족 보행을 연구합니다.
+  summary_en: >-
+    Whole-body manipulation and bipedal walking for humanoid robots working in real environments.
+  image: /assets/img/research/domain-humanoid-3.gif
+  items:
+    - Whole-body Manipulation
+    - Bipedal Walking

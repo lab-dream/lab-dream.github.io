@@ -1,0 +1,10 @@
+{%- assign m = include.m -%}
+{%- if m.email or m.github or m.homepage or m.scholar or m.linkedin -%}
+<div class="{{ include.class | default: 'member__links' }}">
+  {%- if m.homepage %}<a class="icon-link" href="{{ m.homepage }}" aria-label="{{ m.name }} homepage">{% include icon.html name="home" %}</a>{% endif -%}
+  {%- if m.email %}<a class="icon-link" href="mailto:{{ m.email }}" aria-label="Email {{ m.name }}">{% include icon.html name="mail" %}</a>{% endif -%}
+  {%- if m.github %}<a class="icon-link" href="{{ m.github }}" aria-label="{{ m.name }} on GitHub">{% include icon.html name="github" %}</a>{% endif -%}
+  {%- if m.scholar %}<a class="icon-link" href="{{ m.scholar }}" aria-label="{{ m.name }} on Google Scholar">{% include icon.html name="scholar" %}</a>{% endif -%}
+  {%- if m.linkedin %}<a class="icon-link" href="{{ m.linkedin }}" aria-label="{{ m.name }} on LinkedIn">{% include icon.html name="linkedin" %}</a>{% endif -%}
+</div>
+{%- endif -%}

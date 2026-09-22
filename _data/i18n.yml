@@ -1,0 +1,211 @@
+# ─────────────────────────────────────────────────────────────
+#  화면 문구(UI) 번역.  콘텐츠는 각 데이터 파일의 _ko / _en 필드에 있습니다.
+# ─────────────────────────────────────────────────────────────
+
+ko:
+  code: KO
+  prefix: "/ko"              # 한국어 페이지 주소 앞에 붙는 경로
+  skip: 본문 바로가기
+  menu: 메뉴
+  switch_label: 언어 선택
+  date: "%Y.%m.%d"
+  date_short: "%m.%d"
+
+  home:
+    cta_research: 연구 분야 보기
+    cta_join: 연구실 지원하기
+    about_eyebrow: About
+    about_title: 연구실 소개
+    keywords: 키워드
+    domains_eyebrow: Research
+    domains_title: 연구 분야
+    domains_more: 연구 주제 자세히
+    news_eyebrow: News
+    news_title: 최근 소식
+    news_more: 전체 소식
+    pubs_eyebrow: Publications
+    pubs_title: 대표 논문
+    pubs_more: 전체 논문
+    media_eyebrow: Media
+    media_title: 영상
+    media_more: 유튜브 채널
+
+  pubs:
+    filter_label: 유형별 보기
+    all: 전체
+    types:
+      journal: 저널
+      conference: 학회
+      workshop: 워크숍
+      preprint: 프리프린트
+      thesis: 학위논문
+    search_label: 논문 검색
+    search: 제목, 저자, 학회로 검색…
+    empty: 검색 결과가 없습니다.
+    related: 관련 논문
+    copy: 복사
+    copied: 복사됨
+
+  news_tags:
+    paper: 논문
+    grant: 과제
+    member: 구성원
+    award: 수상
+    event: 행사
+    media: 미디어
+    etc: 소식
+
+  members:
+    professor: 지도교수
+    alumni: 졸업생
+    education: 학력
+    experience: 경력
+    interests: 연구 관심사
+    activities: 활동
+    homepage: 홈페이지
+    now_at: 현재
+
+  research:
+    topics: 연구 주제
+    projects_eyebrow: Projects
+    projects_title: 연구 과제
+    status:
+      ongoing: 진행 중
+      completed: 완료
+
+  events:
+    speaker: 연사
+    time: 시간
+    place: 장소
+    language: 언어
+    languages:
+      ko: 한국어
+      en: 영어
+
+  contact:
+    email: 이메일
+    phone: 전화
+    office: 위치
+    map: 지도에서 보기
+    apply_title: 지원 방법
+    apply_button: 이메일로 지원하기
+    positions_eyebrow: Open Positions
+    positions_title: 모집 분야
+
+  robit:
+    videos: 영상
+    latest: 최근 수상
+    achievements: 수상 실적
+
+  footer:
+    contact: 연락처
+    links: 바로가기
+    join: 연구실 지원
+
+  not_found:
+    text: 요청하신 페이지를 찾을 수 없습니다.
+    home: 홈으로
+
+en:
+  code: EN
+  prefix: ""                 # 영어가 기본(루트) 주소
+  skip: Skip to content
+  menu: Menu
+  switch_label: Language
+  date: "%b %-d, %Y"
+  date_short: "%b %-d"
+
+  home:
+    cta_research: Our Research
+    cta_join: Join Us
+    about_eyebrow: About
+    about_title: Introduction
+    keywords: Keywords
+    domains_eyebrow: Research
+    domains_title: Research Domains
+    domains_more: Research topics
+    news_eyebrow: News
+    news_title: Latest News
+    news_more: All news
+    pubs_eyebrow: Publications
+    pubs_title: Selected Publications
+    pubs_more: All publications
+    media_eyebrow: Media
+    media_title: In Action
+    media_more: YouTube channel
+
+  pubs:
+    filter_label: Filter by type
+    all: All
+    types:
+      journal: Journal
+      conference: Conference
+      workshop: Workshop
+      preprint: Preprint
+      thesis: Thesis
+    search_label: Search publications
+    search: Search title, author, venue…
+    empty: No matching publications.
+    related: Related publications
+    copy: Copy
+    copied: Copied
+
+  news_tags:
+    paper: Paper
+    grant: Grant
+    member: Member
+    award: Award
+    event: Event
+    media: Media
+    etc: News
+
+  members:
+    professor: Professor
+    alumni: Alumni
+    education: Education
+    experience: Experience
+    interests: Research Interests
+    activities: Activities
+    homepage: Homepage
+    now_at: Now at
+
+  research:
+    topics: Research Topics
+    projects_eyebrow: Projects
+    projects_title: Funded Projects
+    status:
+      ongoing: Ongoing
+      completed: Completed
+
+  events:
+    speaker: Speaker
+    time: Time
+    place: Place
+    language: Language
+    languages:
+      ko: Korean
+      en: English
+
+  contact:
+    email: Email
+    phone: Phone
+    office: Office
+    map: View on map
+    apply_title: How to Apply
+    apply_button: Apply by email
+    positions_eyebrow: Open Positions
+    positions_title: We're Hiring
+
+  robit:
+    videos: Videos
+    latest: Latest
+    achievements: Achievements
+
+  footer:
+    contact: Contact
+    links: Links
+    join: Join us
+
+  not_found:
+    text: The page you are looking for doesn't exist.
+    home: Back to home

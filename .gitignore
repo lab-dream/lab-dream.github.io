@@ -1,0 +1,11 @@
+_site/
+.sass-cache/
+.jekyll-cache/
+.jekyll-metadata
+.bundle/
+vendor/
+.DS_Store
+Gemfile.lock
+
+# 로컬 전용 운영 메모 (도메인·DNS 등) — 공개 저장소에 올리지 않음
+_private/

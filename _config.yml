@@ -1,0 +1,84 @@
+# ─────────────────────────────────────────────────────────────
+#  DREAM Lab. 홈페이지 기본 설정
+#  이 파일을 수정한 뒤에는 로컬 미리보기(jekyll serve)를 재시작해야 반영됩니다.
+#  (GitHub에 push하면 자동으로 다시 빌드됩니다.)
+#
+#  영어 페이지(기본)는 /, 한국어 페이지는 /ko/ 아래에 있습니다.
+#  데이터 파일에서 번역이 필요한 필드는 이름 뒤에 _ko / _en 을 붙입니다.
+#  (한쪽만 적으면 두 언어 페이지 모두 그 값을 씁니다)
+# ─────────────────────────────────────────────────────────────
+
+title: DREAM Lab.
+tagline: Dynamic Robotic Embodiment & Autonomous Manipulation Lab.
+description: >-
+  DREAM Lab. (Dynamic Robotic Embodiment & Autonomous Manipulation Lab.) at Kwangwoon University
+  studies humanoids, mobile manipulation, and learning-based autonomous manipulation.
+lang: en
+
+# 저장소 이름이 <org>.github.io 이면 baseurl은 "" 로 둡니다.
+# 다른 이름의 저장소(예: lab-dream/homepage)라면 baseurl: "/homepage" 로 바꾸세요.
+url: "https://lab-dream.xyz"
+baseurl: ""
+
+# 연구실 기본 정보 (헤더/푸터/연락처 페이지에서 사용)
+lab:
+  name: DREAM Lab.
+  name_en: Dynamic Robotic Embodiment & Autonomous Manipulation Lab.
+  name_ko: 동적로봇 및 자율조작 연구실
+  university_en: Kwangwoon University
+  university_ko: 광운대학교
+  department_en: Department of Robotics
+  department_ko: 로봇학과
+  university_url: https://www.kw.ac.kr
+  email: park94@kw.ac.kr
+  phone: 02-940-8468
+  office_en: "#639 Hwado-gwan, 20 Gwangun-ro, Nowon-gu, Seoul, Korea"
+  office_ko: 서울시 노원구 광운로 20, 광운대학교 화도관 639호
+  map_url: https://maps.google.com/?q=광운대학교+화도관
+  github: https://github.com/lab-dream
+  youtube: https://www.youtube.com/channel/UCVLai4d1WsOG-iGewUGehUQ
+
+# SEO / 소셜 미리보기 (jekyll-seo-tag)
+logo: /assets/img/og-image.png
+social:
+  name: DREAM Lab.
+  links:
+    - https://github.com/lab-dream
+    - https://www.youtube.com/channel/UCVLai4d1WsOG-iGewUGehUQ
+
+defaults:
+  # 모든 페이지: 영어(기본) + 공유 이미지 (카카오톡·슬랙 등 링크 미리보기)
+  - scope:
+      path: ""
+    values:
+      lang: en
+      image: /assets/img/og-image.png
+  # ko/ 폴더의 페이지: 한국어
+  - scope:
+      path: "ko"
+    values:
+      lang: ko
+      description: >-
+        광운대학교 로봇학과 동적로봇 및 자율조작 연구실(DREAM Lab.)은 휴머노이드, 이동형 조작,
+        모방학습·강화학습 기반의 자율 조작을 연구합니다.
+
+# GitHub Pages 기본 테마(primer)를 쓰지 않고 이 저장소의 _layouts를 사용합니다.
+theme: null
+
+plugins:
+  - jekyll-seo-tag
+  - jekyll-sitemap
+  - jekyll-redirect-from   # 옛 Google Sites 주소(/home, /event …)를 새 주소로 연결
+
+markdown: kramdown
+kramdown:
+  input: GFM
+
+exclude:
+  - README.md
+  - Gemfile
+  - Gemfile.lock
+  - vendor
+  - tools
+  - .bundle
+  - .ruby-version

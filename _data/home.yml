@@ -1,0 +1,67 @@
+# ─────────────────────────────────────────────────────────────
+#  Home 화면 문구   (_ko = 한국어 페이지, _en = 영어 페이지)
+# ─────────────────────────────────────────────────────────────
+
+hero:
+  image: /assets/img/photos/igris-autobagger.jpg
+  image_alt: Humanoid robot operating an auto-bagger machine in the lab
+  lead_ko: >-
+    로봇 팔부터 이동형 매니퓰레이터, 휴머노이드까지 — 동적인 환경에서 스스로 작업하는 로봇을 연구합니다.
+  lead_en: >-
+    We study dynamic robot systems and autonomous manipulation — from robot arms to
+    wheeled mobile manipulators and humanoids.
+
+# 상단 공지 (여러 줄 가능, 비우면 숨김). 마크다운 사용 가능
+notice:
+  label_ko: 모집 중
+  label_en: Recruiting
+  items_ko:
+    - "**학부연구생 / 석사과정 / 박사과정 / 석박사통합과정** 학생을 모집 중입니다. 자세한 내용은 [연락처](contact/)를 참고해 주세요."
+    - "**군집 휴머노이드**, **VLA 모델**에 관심 있는 학생들을 기다립니다."
+  items_en:
+    - "We are recruiting **undergraduate interns, M.S., Ph.D., and integrated M.S.–Ph.D. students**. See [Contact](contact/) for details."
+    - "Students interested in **swarm humanoids** and **VLA models** are especially welcome."
+
+intro:
+  image: /assets/img/research/intro-robot.jpg
+  image_alt: Dual-arm humanoid robots manipulating objects
+  paragraphs_ko:
+    - >-
+      우리 연구실은 **동적 로봇 시스템**과 **자율 조작**에 대해 연구합니다. 로봇 팔을 활용한 작업을
+      중심으로, 바퀴형 로봇, 휴머노이드 등 다양한 **이동형 플랫폼**과 로봇 팔을 결합한
+      **이동형 조작 시스템** 연구를 진행합니다.
+    - >-
+      특히, 이러한 플랫폼을 활용하여 기존의 정적 물체 조작 뿐만 아니라 식탁 닦기, 유연체 조립 등
+      다양한 **동적 상황에도 대응**할 수 있도록 강화학습, 모방학습을 포함한 다양한 연구를 수행하고
+      있습니다.
+    - >-
+      이러한 연구를 뒷받침하기 위해, **효율적인 데이터 수집 방법** 및 **최적의 범용 하드웨어**에 대한
+      고민도 진행하고 있습니다.
+  paragraphs_en:
+    - >-
+      DREAM Lab. studies **dynamic robot systems** and **autonomous manipulation**. Centered on tasks
+      performed with robot arms, we build **mobile manipulation systems** that combine arms with a variety
+      of **mobile platforms**, such as wheeled robots and humanoids.
+    - >-
+      Beyond conventional manipulation of static objects, we use these platforms to **handle dynamic
+      situations** — wiping a table, assembling deformable parts, and more — through reinforcement learning,
+      imitation learning, and related methods.
+    - >-
+      To support this research, we also work on **efficient data collection** and **optimal
+      general-purpose hardware**.
+
+domains:
+  - title: Humanoids
+    items: [Mobile Manipulation, Whole-body Manipulation]
+    images:
+      - /assets/img/research/domain-humanoid-2.gif
+      - /assets/img/research/domain-humanoid-3.gif
+      - /assets/img/research/domain-humanoid-1.gif
+  - title: Manipulation
+    items: [Cooperative Manipulation, Motion Planning and Control, Imitation Learning, Reinforcement Learning, Physical AI]
+    images:
+      - /assets/img/research/domain-manipulation.gif
+
+keywords: >-
+  Robots, Artificial Intelligence, Physical AI, Embodied AI, Digital Twin, Manipulation,
+  Autonomous System, Mobile Manipulator, AI Robots

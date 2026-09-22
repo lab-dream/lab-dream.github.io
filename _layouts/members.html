@@ -1,0 +1,119 @@
+---
+layout: page
+---
+{%- assign t = site.data.i18n[page.lang] | default: site.data.i18n.en -%}
+{%- if page.lang == "ko" -%}{%- assign other = "en" -%}{%- else -%}{%- assign other = "ko" -%}{%- endif -%}
+{%- assign members = site.data.members -%}
+{%- assign profs = members | where: "group", "professor" -%}
+
+<div class="wrap">
+  {%- for m in profs %}
+  {%- assign k_lang = "activities_" | append: page.lang -%}{%- assign k_other = "activities_" | append: other -%}
+  {%- assign activities = m[k_lang] | default: m.activities | default: m[k_other] %}
+  <section class="member-group" aria-label="{{ t.members.professor }}">
+    <div class="member-group__head"><h2>{{ t.members.professor }}</h2></div>
+    <article class="prof" id="{{ m.name | slugify }}">
+      <div class="prof__photo">{% include member-photo.html m=m %}</div>
+      <div>
+        {%- if page.lang == "en" %}
+        <h3 class="prof__name">{{ m.name }}<span>{{ m.name_ko }}</span></h3>
+        <p class="prof__position">{{ m.position_en }}, {{ site.lab.department_en }}, {{ site.lab.university_en }}</p>
+        {%- else %}
+        <h3 class="prof__name">{{ m.name_ko | default: m.name }}<span>{{ m.name }}</span></h3>
+        <p class="prof__position">{{ site.lab.university_ko }} {{ site.lab.department_ko }} {{ m.position_ko }}</p>
+        {%- endif %}
+        <div class="prof__links">
+          {%- if m.email %}<a class="pill" href="mailto:{{ m.email }}">{% include icon.html name="mail" %}{{ m.email }}</a>{% endif -%}
+          {%- if m.homepage %}<a class="pill" href="{{ m.homepage }}">{% include icon.html name="home" %}{{ t.members.homepage }}</a>{% endif -%}
+          {%- if m.scholar %}<a class="pill" href="{{ m.scholar }}">{% include icon.html name="scholar" %}Scholar</a>{% endif -%}
+          {%- if m.linkedin %}<a class="pill" href="{{ m.linkedin }}">{% include icon.html name="linkedin" %}LinkedIn</a>{% endif -%}
+          {%- if m.github %}<a class="pill" href="{{ m.github }}">{% include icon.html name="github" %}GitHub</a>{% endif -%}
+        </div>
+        <div class="prof__cols">
+          {%- if m.education %}
+          <div>
+            <h3>{{ t.members.education }}</h3>
+            <ul class="cv-list">
+              {%- for e in m.education %}<li><span class="cv-period">{{ e.period }}</span><span>{% include tr.html obj=e key="text" %}</span></li>{% endfor %}
+            </ul>
+          </div>
+          {%- endif %}
+          {%- if m.experience %}
+          <div>
+            <h3>{{ t.members.experience }}</h3>
+            <ul class="cv-list">
+              {%- for e in m.experience %}<li><span class="cv-period">{{ e.period }}</span><span>{% include tr.html obj=e key="text" %}</span></li>{% endfor %}
+            </ul>
+          </div>
+          {%- endif %}
+          {%- if m.interests %}
+          <div>
+            <h3>{{ t.members.interests }}</h3>
+            <ul class="bullet-list">{% for i in m.interests %}<li>{{ i }}</li>{% endfor %}</ul>
+          </div>
+          {%- endif %}
+          {%- if activities %}
+          <div>
+            <h3>{{ t.members.activities }}</h3>
+            <ul class="bullet-list">{% for a in activities %}<li>{{ a }}</li>{% endfor %}</ul>
+          </div>
+          {%- endif %}
+        </div>
+      </div>
+    </article>
+  </section>
+  {%- endfor %}
+
+  {%- for g in site.data.member_groups %}
+  {%- assign people = members | where: "group", g.id %}
+  {%- if people.size > 0 %}
+  {%- capture g_title %}{% include tr.html obj=g key="title" %}{% endcapture %}
+  <section class="member-group" aria-label="{{ g_title }}">
+    <div class="member-group__head"><h2>{{ g_title }}</h2><span>{{ people.size }}</span></div>
+    <div class="member-grid">
+      {%- for m in people %}
+      <article class="member" id="{{ m.name | slugify }}">
+        <div class="member__photo">{% include member-photo.html m=m %}</div>
+        {%- if page.lang == "en" or m.name_ko == nil %}
+        <h3 class="member__name">{{ m.name }}{% if m.name_ko %}<span class="member__name-sub">{{ m.name_ko }}</span>{% endif %}</h3>
+        {%- else %}
+        <h3 class="member__name">{{ m.name_ko }}<span class="member__name-sub">{{ m.name }}</span></h3>
+        {%- endif %}
+        {%- if m.program %}<p class="member__program">{{ m.program }}</p>{% endif %}
+        {%- if m.interests %}<p class="member__interests">{{ m.interests | join: " · " }}</p>{% endif %}
+        {% include member-links.html m=m %}
+      </article>
+      {%- endfor %}
+    </div>
+  </section>
+  {%- endif %}
+  {%- endfor %}
+
+  {%- assign alumni = members | where: "group", "alumni" %}
+  {%- if alumni.size > 0 %}
+  <section class="member-group" aria-label="{{ t.members.alumni }}">
+    <div class="member-group__head"><h2>{{ t.members.alumni }}</h2></div>
+    <ul class="alumni-list">
+      {%- for m in alumni %}
+      <li class="alumni" id="{{ m.name | slugify }}">
+        <div class="alumni__photo">{% include member-photo.html m=m %}</div>
+        <div>
+          {%- if page.lang == "en" or m.name_ko == nil %}
+          <p class="alumni__name">{{ m.name }} {% if m.name_ko %}<span class="member__name-sub">{{ m.name_ko }}</span>{% endif %}</p>
+          {%- else %}
+          <p class="alumni__name">{{ m.name_ko }} <span class="member__name-sub">{{ m.name }}</span></p>
+          {%- endif %}
+          <p class="alumni__meta">
+            {%- if m.graduated %}{{ m.graduated }}{% endif -%}
+            {%- if m.graduated and m.now %} · {% endif -%}
+            {%- if m.now %}{{ t.members.now_at }} {{ m.now }}{% endif -%}
+            {%- unless m.graduated or m.now %}{{ m.interests | join: " · " }}{% endunless -%}
+          </p>
+        </div>
+      </li>
+      {%- endfor %}
+    </ul>
+  </section>
+  {%- endif %}
+  <div class="page-end"></div>
+</div>

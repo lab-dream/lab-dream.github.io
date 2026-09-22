@@ -1,0 +1,15 @@
+---
+layout: default
+title: Page not found
+permalink: /404.html
+sitemap: false
+no_lang_switch: true
+---
+<section class="not-found">
+  <div class="wrap">
+    <h1>404</h1>
+    <p>{{ site.data.i18n.en.not_found.text }}<br><span lang="ko">{{ site.data.i18n.ko.not_found.text }}</span></p>
+    <a class="btn btn--primary" href="{{ '/' | relative_url }}">{{ site.data.i18n.en.not_found.home }}</a>
+    <a class="btn btn--outline" href="{{ '/ko/' | relative_url }}" lang="ko">{{ site.data.i18n.ko.not_found.home }}</a>
+  </div>
+</section>

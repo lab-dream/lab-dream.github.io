@@ -1,0 +1,11 @@
+{%- assign t = site.data.i18n[page.lang] | default: site.data.i18n.en -%}
+{%- assign n = include.item -%}
+{%- assign tag = n.tag | default: "etc" -%}
+{%- capture news_text %}{% include tr.html obj=n key="text" %}{% endcapture -%}
+<li class="news-item">
+  <time class="news-item__date" datetime="{{ n.date | date: '%Y-%m-%d' }}">{% if include.short %}{{ n.date | date: t.date_short }}{% else %}{{ n.date | date: t.date }}{% endif %}</time>
+  <span class="news-item__tag news-item__tag--{{ tag }}">{{ t.news_tags[tag] | default: tag }}</span>
+  {%- comment %} 데이터에 적은 사이트 내부 링크(/로 시작)는 baseurl을 붙여 줍니다 {% endcomment %}
+  {%- assign base_href = 'href="' | append: site.baseurl | append: '/' %}
+  <div class="news-item__text">{{ news_text | markdownify | remove: '<p>' | remove: '</p>' | strip | replace: 'href="/', base_href }}</div>
+</li>

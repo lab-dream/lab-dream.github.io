@@ -1,0 +1,17 @@
+---
+layout: page
+---
+{%- assign news = site.data.news | sort: "date" | reverse -%}
+{%- assign by_year = news | group_by_exp: "n", "n.date | date: '%Y'" -%}
+<div class="section--tight"><div class="wrap">
+  {%- for g in by_year %}
+  <section class="news-year" aria-label="{{ g.name }}">
+    <h2 class="news-year__label">{{ g.name }}</h2>
+    <ul class="news-list">
+      {%- for n in g.items %}
+      {% include news-item.html item=n short=true %}
+      {%- endfor %}
+    </ul>
+  </section>
+  {%- endfor %}
+</div></div>

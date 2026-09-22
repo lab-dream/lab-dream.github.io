@@ -1,0 +1,16 @@
+{%- comment -%} 사용: {% include video.html v=video feature=true %} {%- endcomment -%}
+{%- assign v = include.v -%}
+{%- capture v_title %}{% include tr.html obj=v key="title" %}{% endcapture -%}
+{%- capture v_source %}{% include tr.html obj=v key="source" %}{% endcapture -%}
+<figure class="video{% if include.feature %} video--feature{% endif %}">
+  <a class="video__frame" href="https://www.youtube.com/watch?v={{ v.id }}" data-yt="{{ v.id }}" aria-label="{{ v_title | strip | escape }}">
+    <img src="https://i.ytimg.com/vi/{{ v.id }}/{% if include.feature %}maxresdefault{% else %}hqdefault{% endif %}.jpg" alt="" loading="lazy">
+    <span class="video__play" aria-hidden="true"></span>
+  </a>
+  {%- unless include.feature %}
+  <figcaption>
+    <p class="video__title">{{ v_title | strip }}</p>
+    {% if v_source != "" %}<p class="video__source">{{ v_source | strip }}</p>{% endif %}
+  </figcaption>
+  {%- endunless %}
+</figure>

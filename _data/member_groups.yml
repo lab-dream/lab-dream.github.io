@@ -1,0 +1,8 @@
+# 구성원 페이지의 그룹 순서와 제목. members.yml 의 group 값과 id 를 맞춰 주세요.
+# (professor, alumni 는 전용 레이아웃이 있어 여기에는 적지 않습니다)
+- id: graduate
+  title_ko: 대학원생
+  title_en: Graduate Students
+- id: undergraduate
+  title_ko: 학부연구생
+  title_en: Undergraduate Students

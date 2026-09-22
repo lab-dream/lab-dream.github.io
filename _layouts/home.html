@@ -1,0 +1,174 @@
+---
+layout: default
+---
+{%- assign t = site.data.i18n[page.lang] | default: site.data.i18n.en -%}
+{%- assign h = site.data.home -%}
+{%- if page.lang == "ko" -%}{%- assign other = "en" -%}{%- else -%}{%- assign other = "ko" -%}{%- endif -%}
+{%- assign k_lang = "items_" | append: page.lang -%}{%- assign k_other = "items_" | append: other -%}
+{%- assign notice_items = h.notice[k_lang] | default: h.notice.items | default: h.notice[k_other] -%}
+{%- assign k_lang = "paragraphs_" | append: page.lang -%}{%- assign k_other = "paragraphs_" | append: other -%}
+{%- assign intro_paras = h.intro[k_lang] | default: h.intro.paragraphs | default: h.intro[k_other] -%}
+
+<section class="hero">
+  <div class="wrap">
+    <div class="hero__grid">
+      <div class="hero__text">
+        <h1 class="hero__title"><span class="ini">D</span>ynamic <span class="ini">R</span>obotic <span class="ini">E</span>mbodiment &amp; <span class="ini">A</span>utonomous <span class="ini">M</span>anipulation Lab.</h1>
+        {%- if page.lang != "en" %}
+        <p class="hero__ko">{{ site.lab.name_ko }}</p>
+        {%- endif %}
+        <p class="hero__lead">{% include tr.html obj=h.hero key="lead" %}</p>
+        <div class="hero__cta">
+          <a class="btn btn--champagne" href="{{ t.prefix | append: '/research/' | relative_url }}">{{ t.home.cta_research }}</a>
+          <a class="btn btn--line" href="{{ t.prefix | append: '/contact/' | relative_url }}">{{ t.home.cta_join }}</a>
+        </div>
+      </div>
+      <figure class="hero__media">
+        <img src="{{ h.hero.image | relative_url }}" alt="{{ h.hero.image_alt }}" width="2000" height="1500" fetchpriority="high">
+      </figure>
+    </div>
+  </div>
+</section>
+
+{%- if notice_items and notice_items.size > 0 %}
+<aside class="notice" aria-label="{% include tr.html obj=h.notice key='label' %}">
+  <div class="wrap notice__inner">
+    <span class="notice__label">{% include tr.html obj=h.notice key="label" %}</span>
+    <ul class="notice__items">
+      {%- for item in notice_items %}
+      <li>{{ item | markdownify | remove: '<p>' | remove: '</p>' | strip }}</li>
+      {%- endfor %}
+    </ul>
+  </div>
+</aside>
+{%- endif %}
+
+<section class="section" aria-labelledby="about-title">
+  <div class="wrap intro">
+    <div>
+      <p class="eyebrow">{{ t.home.about_eyebrow }}</p>
+      <h2 id="about-title" class="h2 intro__title">{{ t.home.about_title }}</h2>
+      <div class="intro__text prose">
+        {%- for para in intro_paras %}
+        {{ para | markdownify }}
+        {%- endfor %}
+      </div>
+      <p class="intro__keywords"><b>{{ t.home.keywords }}</b>{{ h.keywords }}</p>
+    </div>
+    <figure class="intro__media">
+      <img src="{{ h.intro.image | relative_url }}" alt="{{ h.intro.image_alt }}" loading="lazy">
+    </figure>
+  </div>
+</section>
+
+<section class="section section--ivory" aria-labelledby="domains-title">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">{{ t.home.domains_eyebrow }}</p>
+        <h2 id="domains-title">{{ t.home.domains_title }}</h2>
+      </div>
+      <a class="section-head__more" href="{{ t.prefix | append: '/research/' | relative_url }}">{{ t.home.domains_more }}</a>
+    </div>
+    <div class="domains">
+      {%- for d in h.domains %}
+      <article class="domain">
+        <div class="domain__media domain__media--{{ d.images.size }}">
+          {%- for img in d.images %}
+          <img src="{{ img | relative_url }}" alt="{{ d.title }} research" loading="lazy">
+          {%- endfor %}
+        </div>
+        <div class="domain__body">
+          <p class="domain__num">0{{ forloop.index }}</p>
+          <h3>{{ d.title }}</h3>
+          <ul class="chip-list">
+            {%- for it in d.items %}<li>{{ it }}</li>{% endfor %}
+          </ul>
+        </div>
+      </article>
+      {%- endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="section" aria-labelledby="news-title">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">{{ t.home.news_eyebrow }}</p>
+        <h2 id="news-title">{{ t.home.news_title }}</h2>
+      </div>
+      <a class="section-head__more" href="{{ t.prefix | append: '/news/' | relative_url }}">{{ t.home.news_more }}</a>
+    </div>
+    {%- assign news = site.data.news | sort: "date" | reverse %}
+    <ul class="news-list">
+      {%- for n in news limit: 6 %}
+      {% include news-item.html item=n %}
+      {%- endfor %}
+    </ul>
+  </div>
+</section>
+
+{%- assign selected = site.data.publications | where: "selected", true %}
+{%- if selected.size > 0 %}
+<section class="section section--ivory" aria-labelledby="pubs-title">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">{{ t.home.pubs_eyebrow }}</p>
+        <h2 id="pubs-title">{{ t.home.pubs_title }}</h2>
+      </div>
+      <a class="section-head__more" href="{{ t.prefix | append: '/publications/' | relative_url }}">{{ t.home.pubs_more }}</a>
+    </div>
+    <div class="pub-cards">
+      {%- for p in selected limit: 3 %}
+      <article class="pub-card">
+        <div class="pub-card__thumb">{% if p.image %}<img src="{{ p.image | relative_url }}" alt="" loading="lazy">{% endif %}</div>
+        <div class="pub-card__body">
+          <p class="pub-card__venue">{{ p.venue }} {{ p.year }}</p>
+          <h3 class="pub-card__title">{{ p.title }}</h3>
+          <p class="pub-card__authors">{% include authors.html authors=p.authors %}</p>
+          <p class="pub__links">
+            {%- if p.links.paper %}<a class="pill" href="{{ p.links.paper }}">Paper</a>{% endif -%}
+            {%- if p.links.arxiv %}<a class="pill" href="{{ p.links.arxiv }}">arXiv</a>{% endif -%}
+            {%- if p.links.project %}<a class="pill" href="{{ p.links.project }}">Project</a>{% endif -%}
+            {%- if p.links.code %}<a class="pill" href="{{ p.links.code }}">Code</a>{% endif -%}
+          </p>
+        </div>
+      </article>
+      {%- endfor %}
+    </div>
+  </div>
+</section>
+{%- endif %}
+
+{%- assign videos = site.data.videos | where_exp: "v", "v.pages contains 'home'" %}
+{%- if videos.size > 0 %}
+<section class="section" aria-labelledby="media-title">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">{{ t.home.media_eyebrow }}</p>
+        <h2 id="media-title">{{ t.home.media_title }}</h2>
+      </div>
+      <a class="section-head__more" href="{{ site.lab.youtube }}">{{ t.home.media_more }}</a>
+    </div>
+    {%- assign featured = videos | where: "featured", true | first %}
+    {%- if featured %}
+    <div class="video-feature">
+      {% include video.html v=featured feature=true %}
+      <div class="video-feature__text">
+        <p class="eyebrow">{% include tr.html obj=featured key="source" %}</p>
+        <h3>{% include tr.html obj=featured key="title" %}</h3>
+        <p>{% include tr.html obj=featured key="description" %}</p>
+      </div>
+    </div>
+    {%- endif %}
+    <div class="video-grid">
+      {%- for v in videos %}{% unless v.featured %}
+      {% include video.html v=v %}
+      {%- endunless %}{% endfor %}
+    </div>
+  </div>
+</section>
+{%- endif %}

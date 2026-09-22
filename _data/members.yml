@@ -1,0 +1,136 @@
+# ─────────────────────────────────────────────────────────────
+#  Members
+#
+#  ▸ group: professor | graduate | undergraduate | alumni
+#    (그룹 제목과 순서는 _data/member_groups.yml 에서 바꿀 수 있습니다)
+#  ▸ 한국어 페이지에서는 name_ko, 영어 페이지에서는 name 이 먼저 크게 표시됩니다.
+#  ▸ name 은 publications.yml의 저자 이름과 똑같이 적어야 논문 목록에서 자동 강조됩니다.
+#  ▸ 사진은 assets/img/members/ 에 넣고 photo 에 경로를 적습니다. (세로 3:4 비율 권장)
+#    사진이 없으면 이름 첫 글자로 된 기본 이미지가 표시됩니다.
+#  ▸ 졸업하면 group 을 alumni 로 바꾸고 graduated / now 를 적어 주세요.
+#
+#  선택 필드: name_ko, program, photo, interests, email, github, homepage, scholar, linkedin,
+#             since, graduated, now
+# ─────────────────────────────────────────────────────────────
+
+- name: Suhan Park
+  name_ko: 박수한
+  group: professor
+  position_en: Assistant Professor
+  position_ko: 조교수
+  photo: /assets/img/members/suhan-park.jpg
+  email: park94@kw.ac.kr
+  homepage: https://sites.google.com/view/suhan-park/
+  linkedin: https://www.linkedin.com/in/suhan-park/
+  github: https://github.com/psh117
+  interests: [Robot Task and Motion Planning, Robot Intelligence, Embodied AI]
+  education:
+    - period: 2017 – 2024
+      text_en: "Ph.D., Dept. of Transdisciplinary Studies, Seoul National University (Advisor: Prof. Jaeheung Park)"
+      text_ko: "서울대학교 융합과학부 박사 (지도교수: 박재흥)"
+    - period: 2013 – 2017
+      text_en: "B.S., Robotics, Kwangwoon University (Achievement Award)"
+      text_ko: "광운대학교 로봇학부 학사 (공로상)"
+  experience:
+    - period: 2025 –
+      text_en: "Assistant Professor, Department of Robotics, Kwangwoon University"
+      text_ko: "광운대학교 로봇학과 조교수"
+    - period: 2024 – 2025
+      text_en: "Staff Engineer, Samsung Electronics"
+      text_ko: "삼성전자"
+  activities_en:
+    - "Associate Editor, IEEE International Conference on Robotics and Automation (ICRA)"
+    - "Associate Editor, Journal of Mechanical Science and Technology"
+    - "Robotics Bootcamp (Linux, ROS, and dynamic simulator lectures)"
+    - "Alumnus of RO:BIT, Kwangwoon University robot game team"
+  activities_ko:
+    - "IEEE ICRA (International Conference on Robotics and Automation) Associate Editor"
+    - "Journal of Mechanical Science and Technology Associate Editor"
+    - "로보틱스 부트캠프 강의 (Linux, ROS, 동역학 시뮬레이터)"
+    - "광운대학교 로봇게임단 RO:BIT 출신"
+
+# ── Graduate Students ────────────────────────────────────────
+- name: Dongwoo Son
+  name_ko: 손동우
+  group: graduate
+  photo: /assets/img/members/dongwoo-son.jpg
+  interests: [Imitation Learning, Manipulation]
+  github: https://github.com/son-dongwoo
+
+- name: Chanwoo Seon
+  name_ko: 선찬우
+  group: graduate
+  photo: /assets/img/members/chanwoo-seon.jpg
+  interests: [Reinforcement Learning, Imitation Learning]
+
+- name: Jinwoo Lee
+  name_ko: 이진우
+  group: graduate
+  photo: /assets/img/members/jinwoo-lee.jpg
+  interests: [Model Predictive Control, Whole-Body Control]
+  github: https://github.com/jinw00-1
+
+- name: Gahyun Oh
+  name_ko: 오가현
+  group: graduate
+  photo: /assets/img/members/gahyun-oh.jpg
+  interests: [Manipulator, Planning & Control]
+  github: https://github.com/gahyun0425
+
+- name: Junho An
+  name_ko: 안준호
+  group: graduate
+  photo: /assets/img/members/junho-an.jpg
+  interests: [Imitation Learning, Constrained Motion Planning]
+  github: https://github.com/AnJunHo98
+
+- name: Hwang Young Sang
+  name_ko: 황영상
+  group: graduate
+  photo: /assets/img/members/youngsang-hwang.jpg
+  interests: [Social Robotics, Safe Learning-based Control]
+
+# ── Undergraduate Students ───────────────────────────────────
+- name: Sanghun Moon
+  name_ko: 문상훈
+  group: undergraduate
+  photo: /assets/img/members/sanghun-moon.jpg
+  interests: [Reinforcement Learning, Robot Locomotion]
+  github: https://github.com/moon0108
+
+- name: Mingi Kim
+  name_ko: 김민기
+  group: undergraduate
+  photo: /assets/img/members/mingi-kim.jpg
+  interests: [Whole-body Control, Sim-to-Real]
+  github: https://github.com/Mingi1211
+
+- name: Jeognhwa Lee
+  name_ko: 이정화
+  group: undergraduate
+  photo: /assets/img/members/jeonghwa-lee.jpg
+  interests: [Manipulation, Imitation Learning]
+
+- name: 어재혁
+  group: undergraduate
+  interests: [Reinforcement Learning, Robot Locomotion]
+
+- name: 강주은
+  group: undergraduate
+  interests: [Manipulation, Robot Locomotion]
+
+- name: 김민채
+  group: undergraduate
+  interests: [Manipulation, Imitation Learning]
+
+- name: 김원빈
+  group: undergraduate
+  interests: [Vision Model, Imitation Learning]
+
+# ── Alumni ───────────────────────────────────────────────────
+- name: Kyong-min Kim
+  name_ko: 김경민
+  group: alumni
+  photo: /assets/img/members/kyongmin-kim.jpg
+  interests: [Imitation Learning, Mechanical Design]
+  github: https://github.com/rlarudals0228

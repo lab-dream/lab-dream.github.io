@@ -1,0 +1,74 @@
+# ─────────────────────────────────────────────────────────────
+#  Videos  (YouTube)
+#
+#  id       : YouTube 영상 ID (https://www.youtube.com/watch?v=<여기>)
+#  title    : 원래 제목  /  title_en : 영어 페이지용 제목 (선택)
+#  pages    : 표시할 페이지 목록 → home | robit
+#  featured : true 이면 홈에서 크게 표시 (하나만). description_ko / _en 은 그 옆 설명
+# ─────────────────────────────────────────────────────────────
+
+- id: Mi0MxbyrpSo
+  title: 택배 포장 휴머노이드 로봇 연구 — Physical AI
+  title_en: Humanoid Robot for Parcel Packaging — Physical AI
+  source: DREAM Lab.
+  description_ko: 휴머노이드 로봇이 택배 포장 공정을 수행하는 DREAM Lab.의 Physical AI 연구 영상입니다.
+  description_en: A humanoid robot performing a parcel-packaging process — Physical AI research at DREAM Lab.
+  pages: [home]
+  featured: true
+
+- id: sKvWowc7y1c
+  title: 포장도 뚝딱…잠 없는 물류센터 ‘인턴’
+  title_en: "“Packing in a snap”: the logistics center's sleepless robot intern"
+  source: KBS 9시 뉴스 · 2026.04.10
+  source_en: KBS News 9 · 2026.04.10
+  pages: [home]
+
+- id: ZXRYaJbVwkM
+  title: 야간근로부터 투입…현장 배치 앞두고 훈련 한창인 로봇들
+  title_en: Robots in training before deployment, starting with night shifts
+  source: TV조선 뉴스7
+  source_en: TV Chosun News 7
+  pages: [home]
+
+- id: s63-s8UEsxI
+  title: 실사용자 인터뷰 EP.1 | 광운대학교
+  title_en: "User Interview EP.1 | Kwangwoon University"
+  source: ROBROS
+  pages: [home]
+
+- id: c9f4QDOQgxo
+  title: 포장도 뚝딱…잠 없는 물류센터 ‘인턴’
+  title_en: "“Packing in a snap”: the logistics center's sleepless robot intern"
+  source: KBS · 2026.04.10
+  pages: [home]
+
+- id: x6SsxnASSUI
+  title: 포장도 뚝딱…잠 없는 물류센터 ‘인턴’
+  title_en: "“Packing in a snap”: the logistics center's sleepless robot intern"
+  source: KBS · 2026.04.11
+  pages: [home]
+
+- id: 8xk2nbVEJGc
+  title: 택배 포장·분류 작업 로봇이? 물류업계, 본격 ‘AI 로봇’ 도입
+  title_en: Robots for parcel packing and sorting — logistics industry adopts AI robots
+  source: KNN 뉴스
+  source_en: KNN News
+  pages: [home]
+
+- id: waZoXuK1AuE
+  title: 프로미스나인 채영이 공대에 가면 생기는 일! [성수기 EP.20]
+  title_en: "What happens when fromis_9's Chaeyoung visits an engineering lab [EP.20]"
+  source: MUSINSA TV
+  pages: [home]
+
+- id: 9F4gfLZr6IM
+  title: 2025 광운대학교 로봇게임단 로빛 신입생 홍보 영상
+  title_en: RO:BIT 2025 Recruitment Video
+  source: RO:BIT
+  pages: [robit]
+
+- id: MCHbNuHfIvg
+  title: 과거를 지나 현재로 이른 로빛의 궤적 — Kwangwoon RoboConnect 2025
+  title_en: The Journey of RO:BIT — Kwangwoon RoboConnect 2025
+  source: RO:BIT
+  pages: [robit]

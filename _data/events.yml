@@ -1,0 +1,82 @@
+# ─────────────────────────────────────────────────────────────
+#  Events  (세미나, 강연 등) — 날짜순 자동 정렬
+#
+#  series, title, speaker, speaker_affiliation, time, location, description, label 은
+#  모두 _ko / _en 을 붙여 번역할 수 있습니다. (한쪽만 적으면 두 언어 모두 그 값을 사용)
+#  language : ko | en
+#  links.url : 외부 주소(https://…) 또는 사이트 안 주소(/ros2_special_lecture/)
+# ─────────────────────────────────────────────────────────────
+
+- series: Special Lecture
+  series_ko: 초청강연
+  title_ko: "재현 가능한 ROS 2 시스템 — 시행착오에서 연구로"
+  title_en: "Reproducible ROS 2 Systems — From Trial and Error to Research"
+  date: 2026-09-07
+  time_ko: 오후 7시 – 9시
+  time_en: 7 – 9 PM
+  speaker_ko: 이상훈 박사
+  speaker_en: Sanghoon Lee, Ph.D.
+  speaker_affiliation: DGIST, Research Group for Bio-Embodied Physical AI
+  location_ko: 광운대학교 새빛관 101호
+  location_en: Saebit-gwan 101, Kwangwoon University
+  language: ko
+  description_ko: >-
+    DREAM Lab. 연구실 인턴십 프로그램 초청강연. ROSCon KR 연사를 모시고 로봇 개발에서 자주 겪는 ROS 2 문제와
+    그 원인, 재현 가능한 로봇 소프트웨어 개발에 대해 이야기합니다. 사전 신청 없이 참석할 수 있으며 외부 학생 청강을 환영합니다.
+  description_en: >-
+    An invited talk for the DREAM Lab. internship program. A ROSCon KR speaker discusses common ROS 2
+    problems in robot development, why they happen, and what reproducible robot software requires.
+    No registration needed; students from outside the lab are welcome.
+  links:
+    - label_ko: 안내 페이지
+      label_en: Event page
+      url: /ros2_special_lecture/
+
+- series: Conference
+  series_ko: 컨퍼런스
+  title: ROSCon Korea 2026
+  date: 2026-01-21
+  time_ko: 1월 21일 – 22일
+  time_en: Jan 21 – 22
+  location_ko: 광운대학교 판교캠퍼스
+  location_en: Kwangwoon University Pangyo Campus
+  language: ko
+  description_ko: >-
+    국내 첫 공식 ROS 개발자 컨퍼런스. 박수한 교수가 행사를 총괄했으며, OSRF 공식 라이선스 아래
+    광운대학교·핑크랩·XYZ가 공동 주최했습니다.
+  description_en: >-
+    Korea's first official ROS developer conference, chaired by Prof. Suhan Park and co-hosted by
+    Kwangwoon University, PinkLAB, and XYZ under an official OSRF license.
+  links:
+    - label_ko: 관련 기사
+      label_en: Press (Korean)
+      url: https://www.fnnews.com/news/202601291515370422
+    - label: The Korea Times
+      url: https://www.koreatimes.co.kr/southkorea/20260129/kwangwoon-university-hosts-robot-developer-conference
+
+- series: Open Seminar
+  title: Automatic Control System
+  date: 2025-06-30
+  time: "7:30 PM"
+  speaker: Mingoo Jeong, Ph.D.
+  speaker_url: https://scholar.google.com/citations?user=BmjdcIwAAAAJ
+  language: ko
+  links:
+    - label_ko: 수강 신청
+      label_en: Register
+      url: https://docs.google.com/forms/d/e/1FAIpQLSdDkC8OordZzBLRkY_LK_YP9Myd1hW-NvA1R7uRIyCNoKvP9w/viewform?usp=dialog
+    - label_ko: 강의자료
+      label_en: Slides
+      url: https://drive.google.com/file/d/1ALGdDjFNf9yChXsW28381_UEk60oVMeu/view?usp=drive_link
+
+- series: CO-WEEK
+  title_ko: 지능형 로봇의 자율 조작 작업 기술
+  title_en: Autonomous Manipulation Technologies for Intelligent Robots
+  date: 2025-07-01
+  speaker_ko: 박수한
+  speaker_en: Suhan Park
+  language: ko
+  links:
+    - label_ko: 수강 신청
+      label_en: Register
+      url: https://www.cossnet.com/lecture?id=298
