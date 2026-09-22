@@ -1,11 +1,19 @@
 ---
 layout: default
 ---
-<header class="page-head">
+{%- comment %} 제목 옆 구간 클립 — _data/videos.yml 에서 pages 에 이 페이지(layout 이름)가 있고 end 가 적힌 항목 {% endcomment %}
+{%- assign head_clip = site.data.videos | where_exp: "v", "v.end" | where_exp: "v", "v.pages contains page.layout" | first %}
+<header class="page-head{% if head_clip %} page-head--clip{% endif %}">
   <div class="wrap">
-    {% if page.eyebrow %}<p class="eyebrow">{{ page.eyebrow }}</p>{% endif %}
-    <h1>{{ page.title }}</h1>
-    {% if page.lead %}<p class="page-lead">{{ page.lead }}</p>{% endif %}
+    <div class="page-head__text">
+      {% if page.eyebrow %}<p class="eyebrow">{{ page.eyebrow }}</p>{% endif %}
+      <h1>{{ page.title }}</h1>
+      {% if page.lead %}<p class="page-lead">{{ page.lead }}</p>{% endif %}
+    </div>
+    {%- if head_clip %}
+    {%- assign t = site.data.i18n[page.lang] | default: site.data.i18n.en %}
+    {% include clip.html c=head_clip t=t %}
+    {%- endif %}
   </div>
 </header>
 {{ content }}

@@ -1,0 +1,24 @@
+{%- comment -%}
+  구간 클립 — YouTube 영상의 일부 구간(start~end)을 소리 없이 반복 재생, 🔇 누르면 소리와 함께 (동작은 main.js)
+  사용: {% include clip.html c=video t=t %}   (video = _data/videos.yml 의 start/end 가 있는 항목)
+{%- endcomment -%}
+{%- assign c = include.c -%}
+{%- assign t = include.t -%}
+{%- capture c_quote %}{% include tr.html obj=c key="quote" %}{% endcapture -%}
+{%- capture c_caption %}{% include tr.html obj=c key="caption" %}{% endcapture -%}
+<figure class="clip">
+  <div class="clip__player" data-clip="{{ c.id }}" data-start="{{ c.start | default: 0 }}" data-end="{{ c.end }}"
+       data-label-play="{{ t.members.clip_play }}" data-label-on="{{ t.members.clip_sound_on }}" data-label-off="{{ t.members.clip_sound_off }}">
+    <img class="clip__poster" src="https://i.ytimg.com/vi/{{ c.id }}/maxresdefault.jpg" alt="">
+    <div class="clip__frame"></div>
+    <div class="clip__veil"></div>
+    <button class="clip__btn" type="button" hidden></button>
+  </div>
+  <figcaption class="clip__cap">
+    <span class="clip__row">
+      <span class="clip__quote">{{ c_quote | strip }}</span>
+      <a class="clip__cta" href="{{ t.prefix | append: '/contact/' | relative_url }}">{{ t.members.clip_cta }} →</a>
+    </span>
+    <a class="clip__src" href="https://www.youtube.com/watch?v={{ c.id }}&amp;t={{ c.start | default: 0 }}s">{{ c_caption | strip }} ↗</a>
+  </figcaption>
+</figure>

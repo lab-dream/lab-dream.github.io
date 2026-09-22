@@ -3,7 +3,10 @@
 #
 #  id       : YouTube 영상 ID (https://www.youtube.com/watch?v=<여기>)
 #  title    : 원래 제목  /  title_en : 영어 페이지용 제목 (선택)
-#  pages    : 표시할 페이지 목록 → home | robit
+#  pages    : 표시할 페이지 목록 → home | robit | members
+#  ── 구간 클립 (pages 에 적은 페이지의 제목 옆. start~end 구간을 소리 없이 반복 → 🔇 누르면 소리와 함께 처음부터) ──
+#  start / end : 반복할 구간 (초). 17:15 → 17*60+15 = 1035
+#  quote_ko / quote_en : 한 줄 대사      caption_ko / caption_en : 출처 (누르면 YouTube의 그 장면으로)
 #  featured : true 이면 홈에서 크게 표시 (하나만). description_ko / _en 은 그 옆 설명
 # ─────────────────────────────────────────────────────────────
 
@@ -60,6 +63,18 @@
   title_en: "What happens when fromis_9's Chaeyoung visits an engineering lab [EP.20]"
   source: MUSINSA TV
   pages: [home]
+
+- id: waZoXuK1AuE
+  title: 프로미스나인 채영이 공대에 가면 생기는 일! [성수기 EP.20]
+  title_en: "What happens when fromis_9's Chaeyoung visits an engineering lab [EP.20]"
+  source: MUSINSA TV
+  start: 1035   # 17:15
+  end: 1041     # 17:21
+  quote_ko: "“대학원이요…?”"
+  quote_en: "“Grad school…?”"
+  caption_ko: 프로미스나인 채영 · MUSINSA TV 〈성수기〉 EP.20
+  caption_en: "fromis_9's Chaeyoung · MUSINSA TV, EP.20"
+  pages: [members]
 
 - id: 9F4gfLZr6IM
   title: 2025 광운대학교 로봇게임단 로빛 신입생 홍보 영상

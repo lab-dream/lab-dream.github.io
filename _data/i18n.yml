@@ -86,6 +86,10 @@ ko:
     activities: 활동
     homepage: 홈페이지
     now_at: 현재
+    clip_play: "“대학원이요…?” 장면 보기"
+    clip_sound_on: 소리 켜기
+    clip_sound_off: 소리 끄기
+    clip_cta: 대학원 진학 문의
 
   research:
     period: 기간
@@ -223,6 +227,10 @@ en:
     activities: Activities
     homepage: Homepage
     now_at: Now at
+    clip_play: Play the clip
+    clip_sound_on: Unmute
+    clip_sound_off: Mute
+    clip_cta: Ask about grad school
 
   research:
     period: Period

@@ -123,6 +123,109 @@
     }, { threshold: 0.35 }).observe(video);
   });
 
+  // 구간 클립 — YouTube 영상의 일부 구간(start~end)을 소리 없이 반복 재생 (GIF처럼).
+  // 화면에 보일 때 플레이어를 불러오고, 벗어나면 멈춤. 🔇 버튼을 누르면 소리를 켜고 구간 처음부터.
+  // 모션 줄이기 설정이면 자동재생 없이 누를 때만 재생합니다.
+  var ytQueue = null;
+  function loadYT(cb) {
+    if (window.YT && window.YT.Player) return cb();
+    if (ytQueue) return ytQueue.push(cb);
+    ytQueue = [cb];
+    var prev = window.onYouTubeIframeAPIReady;
+    window.onYouTubeIframeAPIReady = function () {
+      if (prev) prev();
+      ytQueue.forEach(function (f) { f(); });
+    };
+    var s = document.createElement("script");
+    s.src = "https://www.youtube.com/iframe_api";
+    document.head.appendChild(s);
+  }
+  var CLIP_ICON = {
+    play: '<path d="M8 5v14l11-7z" fill="currentColor"/>',
+    muted: '<path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M16.5 9.5l5 5m0-5l-5 5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>',
+    sound: '<path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>'
+  };
+  document.querySelectorAll("[data-clip]").forEach(function (box) {
+    var start = Math.floor(parseFloat(box.dataset.start) || 0);
+    var end = parseFloat(box.dataset.end) || start + 6;
+    var btn = box.querySelector(".clip__btn");
+    var frame = box.querySelector(".clip__frame");
+    var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var player = null, ready = false, sound = false, visible = false;
+
+    function setBtn() {
+      var mode = !player ? "play" : sound ? "sound" : "muted";
+      var text = mode === "play" ? box.dataset.labelPlay : mode === "sound" ? box.dataset.labelOff : box.dataset.labelOn;
+      btn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">' + CLIP_ICON[mode] + "</svg>";
+      btn.setAttribute("aria-label", text);
+      btn.title = text;
+    }
+    function tick() {
+      if (!ready) return;
+      var t = player.getCurrentTime();
+      if (player.getPlayerState() === 1 && t > start + 0.2) box.classList.remove("is-buffering");
+      if (t >= end - 0.05 || t < start - 1) {
+        box.classList.add("is-buffering");   // 되감는 순간의 로딩 표시를 잠깐 가림
+        player.seekTo(start, true);
+      }
+    }
+    function create(withSound) {
+      if (player) return;
+      sound = withSound;
+      box.classList.add("is-loading");
+      loadYT(function () {
+        var target = document.createElement("div"); // YT가 이 요소를 iframe으로 바꿈 → .clip__frame 안에 들어가 CSS가 적용됨
+        frame.appendChild(target);
+        player = new YT.Player(target, {
+          host: "https://www.youtube-nocookie.com",
+          videoId: box.dataset.clip,
+          playerVars: { start: start, autoplay: 1, mute: withSound ? 0 : 1, controls: 0, rel: 0, playsinline: 1, disablekb: 1, fs: 0, iv_load_policy: 3 },
+          events: {
+            onReady: function (e) {
+              ready = true;
+              if (sound) e.target.unMute(); else e.target.mute();
+              if (visible || withSound) e.target.playVideo();
+              setInterval(tick, 150);
+              setBtn();
+            },
+            onStateChange: function (e) {
+              if (e.data === YT.PlayerState.PLAYING) {
+                box.classList.remove("is-loading");
+                box.classList.add("is-playing");
+              }
+              if (e.data === YT.PlayerState.ENDED) { e.target.seekTo(start, true); e.target.playVideo(); }
+            }
+          }
+        });
+        var iframe = frame.querySelector("iframe");
+        if (iframe) iframe.setAttribute("tabindex", "-1");
+        setBtn();
+      });
+    }
+    function toggleSound() {
+      if (!player) { create(true); return; }
+      if (!ready) return;
+      sound = !sound;
+      if (sound) { player.unMute(); player.setVolume(100); box.classList.add("is-buffering"); player.seekTo(start, true); player.playVideo(); }
+      else player.mute();
+      setBtn();
+    }
+
+    btn.hidden = false;
+    setBtn();
+    btn.addEventListener("click", function (e) { e.stopPropagation(); toggleSound(); });
+    box.addEventListener("click", toggleSound);
+
+    if (!("IntersectionObserver" in window)) { if (!reduce) { visible = true; create(false); } return; }
+    new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        visible = en.isIntersecting;
+        if (visible && !player) { if (!reduce) create(false); }
+        else if (ready) { if (visible) player.playVideo(); else player.pauseVideo(); }
+      });
+    }, { threshold: 0.4 }).observe(box);
+  });
+
   // Publication filters (type chips + text search)
   var list = document.querySelector("[data-pub-list]");
   if (list) {

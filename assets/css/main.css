@@ -491,6 +491,57 @@ html[lang="ko"] .prof__cols h3 { letter-spacing: .04em; font-size: 13px; }
   backdrop-filter: blur(14px) saturate(1.3) brightness(.85); -webkit-backdrop-filter: blur(14px) saturate(1.3) brightness(.85);
 }
 .media-toggle:hover { background: rgba(42, 12, 20, .6); }
+
+/* ---------- 제목 옆 구간 클립 (YouTube 일부 구간을 GIF처럼 반복, Members 페이지) ---------- */
+.page-head--clip { padding: 56px 0 44px; }
+.page-head--clip .wrap { display: grid; grid-template-columns: 1fr 340px; gap: 28px 56px; align-items: center; }
+.clip { margin: 0; }
+.clip .clip__player { box-shadow: 0 14px 40px rgba(42, 12, 20, .14); }
+.clip__cap { display: grid; gap: 2px; margin-top: 10px; }
+.clip__row { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.clip__quote { font-size: 15px; font-weight: 700; color: var(--ink); letter-spacing: -.01em; }
+.clip__cta { font-size: 13px; font-weight: 700; color: var(--burgundy); white-space: nowrap; }
+.clip__cta:hover { color: var(--wine); }
+.clip__src { font-size: 12.5px; color: var(--stone); }
+.clip__src:hover { color: var(--ink-soft); }
+.clip__player { position: relative; aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden; background: #000; }
+.clip__poster, .clip__frame, .clip__veil { position: absolute; inset: 0; width: 100%; height: 100%; }
+/* YouTube 제목줄·로고가 위아래 여백에 뜨도록 플레이어를 크게 두고 잘라냄 */
+.clip__frame iframe { position: absolute; left: 0; top: -64px; width: 100%; height: calc(100% + 128px); }
+.clip__player { cursor: pointer; }
+/* 포스터가 플레이어 위를 덮고 있다가 재생이 시작되면 사라짐 (YouTube 로딩·버튼 화면을 가림) */
+.clip__poster { z-index: 1; object-fit: cover; pointer-events: none; transition: opacity .45s var(--ease); }
+/* 구간을 되감는 순간 잠깐 뜨는 로딩 표시를 가림 */
+.clip__veil { z-index: 1; background: #000; opacity: 0; pointer-events: none; transition: opacity .25s var(--ease); }
+.clip__player.is-buffering .clip__veil { opacity: .9; transition-duration: .1s; }
+.clip__player.is-playing .clip__poster { opacity: 0; }
+/* 대기 중일 때 가운데 재생 표시 */
+.clip__player::after {
+  content: ""; position: absolute; z-index: 2; left: 50%; top: 50%; width: 54px; height: 54px; margin: -27px 0 0 -27px;
+  border-radius: 50%; pointer-events: none; transition: opacity .3s var(--ease), transform .3s var(--ease);
+  background: rgba(42, 12, 20, .5) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M9 6.5v11l9-5.5z' fill='%23e6d6b3'/%3E%3C/svg%3E") center / 26px no-repeat;
+  border: 1px solid rgba(230, 214, 179, .3);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+}
+.clip__player:hover::after { transform: scale(1.06); }
+.clip__player.is-loading::after, .clip__player.is-playing::after { opacity: 0; }
+/* 영상 위 클릭은 사이트가 받음 (누르면 소리 켜기/끄기) */
+.clip__frame iframe { border: 0; pointer-events: none; }
+.clip__btn {
+  position: absolute; right: 12px; bottom: 12px; z-index: 3; cursor: pointer;
+  width: 38px; height: 38px; padding: 0; display: grid; place-items: center; border-radius: 50%; color: var(--champagne-light);
+  background: rgba(42, 12, 20, .5); border: 1px solid rgba(230, 214, 179, .28);
+  backdrop-filter: blur(14px) saturate(1.3) brightness(.85); -webkit-backdrop-filter: blur(14px) saturate(1.3) brightness(.85);
+}
+.clip__btn:hover { background: rgba(42, 12, 20, .7); }
+.clip__btn[hidden] { display: none; }
+/* 대기 중에는 버튼이 포스터 전체를 덮는 투명한 버튼 (가운데 ▶ 표시는 ::after) */
+.clip__player:not(.is-playing):not(.is-loading) .clip__btn {
+  inset: 0; width: auto; height: auto; border-radius: 0; border: 0; background: transparent;
+  backdrop-filter: none; -webkit-backdrop-filter: none;
+}
+.clip__player:not(.is-playing):not(.is-loading) .clip__btn svg { display: none; }
+.clip__btn:focus-visible { outline: 2px solid var(--champagne); outline-offset: 2px; }
 .media-toggle[hidden] { display: none; }
 .media-toggle::before { content: ""; width: 12px; height: 14px; border-left: 4px solid currentColor; border-right: 4px solid currentColor; box-sizing: border-box; }
 .media-toggle.is-paused::before { width: 0; height: 0; border-style: solid; border-width: 8px 0 8px 13px; border-color: transparent transparent transparent currentColor; margin-left: 3px; }
@@ -666,6 +717,8 @@ html[lang="ko"] .award__result { letter-spacing: .02em; font-size: 13.5px; }
   .project--media .project__body { padding: 24px 26px 26px; }
   .project--banner .project__body,
   .project--wide .project__body { grid-template-columns: 1fr; padding: 24px 26px 26px; }
+  .page-head--clip .wrap { grid-template-columns: 1fr; }
+  .page-head--clip .clip { max-width: 420px; }
   .prof { grid-template-columns: 190px 1fr; gap: 36px; }
   .prof__cols { grid-template-columns: 1fr; }
   .pub-year, .news-year { grid-template-columns: 1fr; gap: 4px; }

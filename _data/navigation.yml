@@ -2,7 +2,7 @@
 # url 은 영어(기본) 주소이며, 한국어 페이지에서는 자동으로 /ko 가 앞에 붙습니다.
 - url: /members/
   title_ko: 구성원
-  title_en: Members
+  title_en: People
 - url: /research/
   title_ko: 연구
   title_en: Research
