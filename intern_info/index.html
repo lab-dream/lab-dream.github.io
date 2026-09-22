@@ -200,6 +200,7 @@ permalink: /intern_info/
     main {
       margin-left: var(--sidebar-w);
       flex: 1;
+      min-width: 0; /* 긴 한 줄(저자 목록 등)이 화면 폭을 밀어내지 않도록 */
       max-width: 820px;
       padding: 48px 56px 80px;
     }
@@ -782,15 +783,6 @@ permalink: /intern_info/
       <div class="nav-item" data-page="lab-calendar">
         <span class="icon">📅</span> 일정 & 구글캘린더
       </div>
-      <div class="nav-item" data-page="press">
-        <span class="icon">📰</span> 관련 기사
-      </div>
-      <div class="nav-item" data-page="projects">
-        <span class="icon">🔬</span> 수행 과제
-      </div>
-      <div class="nav-item" data-page="awards">
-        <span class="icon">🏆</span> 수상 실적
-      </div>
     </div>
 
     <div class="nav-divider"></div>
@@ -821,9 +813,6 @@ permalink: /intern_info/
 
     <div class="nav-section">
       <span class="nav-section-label">관심 학생 안내</span>
-      <div class="nav-item" data-page="recruit-intro">
-        <span class="icon">✨</span> 연구실 소개
-      </div>
       <div class="nav-item" data-page="recruit-undergrad">
         <span class="icon">🎓</span> 학부연구생 프로그램
       </div>
@@ -855,11 +844,6 @@ permalink: /intern_info/
         <div style="flex:1; height:1px; background:var(--border-light);"></div>
       </div>
       <div class="quick-grid">
-        <div class="quick-card" data-target="recruit-intro">
-          <span class="qc-icon">✨</span>
-          <div class="qc-title">연구실 소개</div>
-          <div class="qc-desc">연구 방향·문화·모집 중인 포지션 안내</div>
-        </div>
         <div class="quick-card" data-target="recruit-undergrad">
           <span class="qc-icon">🎓</span>
           <div class="qc-title">학부연구생 프로그램</div>
@@ -897,21 +881,6 @@ permalink: /intern_info/
           <span class="qc-icon">📅</span>
           <div class="qc-title">일정 & 구글캘린더</div>
           <div class="qc-desc">캘린더 초기 설정 및 연구실 일정 관리</div>
-        </div>
-        <div class="quick-card" data-target="press">
-          <span class="qc-icon">📰</span>
-          <div class="qc-title">관련 기사</div>
-          <div class="qc-desc">연구실·연구 분야 국내 언론 보도 모음</div>
-        </div>
-        <div class="quick-card" data-target="projects">
-          <span class="qc-icon">🔬</span>
-          <div class="qc-title">수행 과제</div>
-          <div class="qc-desc">연구실에서 진행 중인 국가 연구 과제 안내</div>
-        </div>
-        <div class="quick-card" data-target="awards">
-          <span class="qc-icon">🏆</span>
-          <div class="qc-title">수상 실적</div>
-          <div class="qc-desc">DREAM Lab의 수상 및 성과 기록</div>
         </div>
       </div>
 
@@ -954,133 +923,35 @@ permalink: /intern_info/
       </div>
     </div>
 
-    <!-- AWARDS -->
-    <div class="page" id="page-awards">
-      <div class="page-header">
-        <div class="breadcrumb">연구실 안내 / 수상 실적</div>
-
-      {%- comment %} 수상 실적 — _data/awards.yml 에서 불러옵니다 (홈페이지 News 페이지와 공유) {% endcomment %}
-      {%- assign awards = site.data.awards | sort: "date" | reverse %}
-      {%- for a in awards %}
-      <div style="background: linear-gradient(135deg, var(--surface) 0%, var(--surface2) 100%); border: 2px solid var(--accent); border-radius: 14px; overflow: hidden; margin-bottom: 24px; box-shadow: var(--shadow-lg); position: relative;">
-        <div style="position: absolute; top: 20px; right: 24px; font-size: 56px; opacity: 0.15; user-select: none; pointer-events: none;">🏆</div>
-        <div style="background: var(--accent); padding: 10px 24px; display: flex; align-items: center; gap: 12px;">
-          <span style="font-family:var(--mono); font-size:13px; font-weight:700; color:var(--bg); letter-spacing:.06em;">🥇 {{ a.rank_en | upcase }}</span>
-          <span style="font-family:var(--mono); font-size:11px; color:var(--bg); opacity:.75;">{{ a.date | replace: "-", "." }}{% if a.place_ko %} · {{ a.place_ko }}{% endif %}</span>
-        </div>
-        <div style="padding: 28px 28px 24px;">
-          <div style="font-family:var(--mono); font-size:11px; color:var(--accent); letter-spacing:.1em; margin-bottom:10px; text-transform:uppercase;">{{ a.organizer_ko }}</div>
-          <div style="font-family:var(--head); font-size:22px; font-weight:700; color:var(--text); line-height:1.3; margin-bottom:6px;">{{ a.title_ko }} <span style="color:var(--accent);">{{ a.rank_ko }}</span></div>
-          <div style="font-family:var(--mono); font-size:12px; color:var(--text-muted); margin-bottom:6px;">{{ a.title_en }} · 광운대학교 DREAM Lab. 연구실 팀</div>
-          {%- if a.highlight_ko %}
-          <div style="font-size:13.5px; color:var(--accent); font-weight:600; margin-bottom:20px;">🌍 {{ a.highlight_ko }}</div>
-          {%- endif %}
-          {%- if a.image %}
-          <div style="width:100%; aspect-ratio:16/9; border-radius:10px; overflow:hidden; margin-bottom:22px;">
-            <img src="{{ a.image | relative_url }}" alt="{{ a.title_ko }} 수상" style="display:block; width:100%; height:100%; object-fit:cover;" loading="lazy">
-          </div>
-          {%- endif %}
-          {%- if a.description_ko %}
-          <p style="font-size:14.5px; color:var(--text-dim); line-height:1.85; margin:0;">{{ a.description_ko }}</p>
-          {%- endif %}
-          {%- if a.members %}
-          <div style="margin-top:16px; background:var(--surface2); border:1px solid var(--border-light); border-radius:8px; padding:14px 18px;">
-            <div style="font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--text-muted); margin-bottom:8px;">참여 학생</div>
-            <div style="display:flex; flex-wrap:wrap; gap:8px;">
-              {%- for name in a.members %}{% assign mm = site.data.members | where: "name", name | first %}
-              <span class="tag green">{{ mm.name_ko | default: name }}</span>
-              {%- endfor %}
-            </div>
-          </div>
-          {%- endif %}
-          <div style="margin-top:18px; display:flex; flex-wrap:wrap; gap:8px;">
-            <span class="tag green">🥇 {{ a.rank_ko }}</span>
-            {%- for tg in a.tags %}
-            <span class="tag blue">{{ tg }}</span>
-            {%- endfor %}
-          </div>
-          {%- if a.url %}
-          <div style="margin-top:18px;"><a class="equip-card-link" href="{{ a.url }}" target="_blank" style="font-size:12px;">📰 관련 기사</a></div>
-          {%- endif %}
-        </div>
-      </div>
-      {%- endfor %}
-    </div>
-
-    <div class="page" id="page-projects">
-      <div class="page-header">
-        <div class="breadcrumb">연구실 안내 / 수행 과제</div>
-
-      {%- comment %} 수행 과제 — _data/projects.yml 에서 불러옵니다 (홈페이지 Research 페이지와 공유) {% endcomment %}
-      {%- for pr in site.data.projects %}
-      <div class="equip-card" style="margin-bottom:20px;">
-        <div class="equip-card-body">
-          <div class="equip-card-header">
-            <div class="equip-card-title">{% if pr.icon %}{{ pr.icon }} {% endif %}{{ pr.official_title_ko | default: pr.title_ko | default: pr.title }}</div>
-            {%- if pr.status == "completed" %}
-            <span class="tag blue">완료</span>
-            {%- else %}
-            <span class="tag green">진행 중</span>
-            {%- endif %}
-          </div>
-          {%- if pr.official_title_en %}
-          <div style="margin-bottom:12px;">
-            <div style="font-size:12.5px; color:var(--text-muted); font-family:var(--mono); margin-bottom:4px;">{{ pr.official_title_en }}</div>
-          </div>
-          {%- endif %}
-          <table class="wiki-table" style="margin:0 0 14px;">
-            <tbody>
-              {%- if pr.agency_ko %}
-              <tr><td style="width:110px; font-family:var(--mono); font-size:12px; color:var(--text-muted);">재원</td><td>{{ pr.agency_ko }}</td></tr>
-              {%- else %}
-              <tr><td style="width:110px; font-family:var(--mono); font-size:12px; color:var(--text-muted);">지원</td><td>{{ pr.sponsors | join: ", " }}</td></tr>
-              {%- endif %}
-              {%- if pr.period %}
-              <tr><td style="font-family:var(--mono); font-size:12px; color:var(--text-muted);">기간</td><td>{{ pr.period }}</td></tr>
-              {%- endif %}
-              {%- if pr.members %}
-              <tr><td style="font-family:var(--mono); font-size:12px; color:var(--text-muted);">참여</td><td>
-                {%- for name in pr.members %}{% assign mm = site.data.members | where: "name", name | first %}{{ mm.name_ko | default: name }}{% unless forloop.last %}, {% endunless %}{% endfor -%}
-              </td></tr>
-              {%- endif %}
-            </tbody>
-          </table>
-          {%- if pr.description_ko %}
-          <div class="equip-card-desc">{{ pr.description_ko }}</div>
-          {%- endif %}
-          {%- if pr.tags or pr.period %}
-          <div class="equip-card-tags">
-            {%- for tg in pr.tags %}
-            <span class="tag blue">{{ tg }}</span>
-            {%- endfor %}
-            {%- if pr.period %}{% assign y0 = pr.period | slice: 0, 4 %}{% assign y1 = pr.period | split: "~" | last | strip | slice: 0, 4 %}
-            <span class="tag green">{{ y0 }}{% if y1 != y0 %}~{{ y1 }}{% endif %}</span>
-            {%- endif %}
-          </div>
-          {%- endif %}
-        </div>
-      </div>
-      {%- endfor %}
-      <div class="callout info">
-        <span class="callout-icon">ℹ️</span>
-        <div class="callout-body">과제 참여나 세부 내용 문의는 교수님 또는 담당 선배에게 연락하세요.</div>
-      </div>
-    </div>
-
-    <!-- LAB INTRO -->
     <div class="page" id="page-lab-intro">
       <div class="page-header">
         <div class="breadcrumb">연구실 안내 / 소개</div>
         <h2>연구실 소개</h2>
-        <p>DREAM Lab의 연구 분야와 구성원을 소개합니다.</p>
+        <p>DREAM Lab의 연구 방향, 문화, 연구 분야와 구성원을 소개합니다.</p>
       </div>
 
       <p>DREAM Lab은 <strong style="color:var(--text)">Dynamic Robotic Embodiment and Autonomous Manipulation (DREAM)</strong>을 연구합니다. 로봇 팔·휴머노이드·이동형 플랫폼을 결합한 시스템으로, 정적 조작을 넘어 식탁 닦기·유연체 조립 등 동적 환경에서 작동하는 로봇을 만드는 것을 목표로 합니다.</p>
 
-      <div class="callout tip">
-        <span class="callout-icon">🌐</span>
-        <div class="callout-body">공식 홈페이지: <a href="{{ '/ko/' | relative_url }}" class="wiki-link" target="_blank">{{ site.url | remove: 'https://' | remove: 'http://' }}</a></div>
+      <h3>현재 모집 중</h3>
+      <div class="callout info">
+        <span class="callout-icon">📢</span>
+        <div class="callout-body">{%- comment %} 홈페이지 모집 공고(_data/home.yml)와 같은 문구 {% endcomment %}{% assign contact_href = 'href="' | append: site.baseurl | append: '/ko/contact/"' %}{% for item in site.data.home.notice.items_ko %}{{ item | markdownify | remove: "<p>" | remove: "</p>" | replace: 'href="contact/"', contact_href | replace: '<a href=', '<a class="wiki-link" href=' | strip }} {% endfor %}</div>
       </div>
+
+      <h3>우리가 추구하는 연구</h3>
+      <ul class="wiki-list">
+        <li>로봇 팔 + 이동형 플랫폼(바퀴형 로봇, 휴머노이드) 결합 이동형 조작 시스템과 동적 상황 대응</li>
+        <li>강화학습·모방학습 기반 로봇 학습 알고리즘 개발</li>
+        <li>효율적 데이터 수집 방법 및 범용 하드웨어 최적화</li>
+      </ul>
+
+      <h3>연구실 문화</h3>
+      <ul class="wiki-list">
+        <li>수평적 소통: 교수님과 학생 모두 열린 토론 환경</li>
+        <li>자기 주도 연구: 주제 선정에서 구성원의 의견을 적극 반영</li>
+        <li>협업 강조: 개인 연구보다 팀으로 더 큰 문제 해결 지향</li>
+        <li>글로벌 지향: 영어 논문 작성 및 국제 학회 발표 지원</li>
+      </ul>
 
       <!-- ───── RESEARCH DOMAINS ───── -->
       <h3>연구 분야</h3>
@@ -1275,9 +1146,32 @@ permalink: /intern_info/
       {%- endif %}
       {%- endfor %}
 
-      <div class="callout info">
-        <span class="callout-icon">🔗</span>
-        <div class="callout-body">전체 논문 목록은 <a href="{{ '/ko/publications/' | relative_url }}" class="wiki-link">홈페이지 논문 페이지</a>에서 확인하세요.</div>
+      <h3>더 알아보기</h3>
+      <div class="ref-list">
+        <a class="ref-item" href="{{ '/ko/research/#projects' | relative_url }}" target="_blank">
+          <span class="ref-item-icon">🔬</span>
+          <div class="ref-item-body">
+            <div class="ref-item-title">연구 과제</div>
+            <div class="ref-item-url">홈페이지 · 연구 — 진행 중인 국가 과제와 산학 과제</div>
+          </div>
+          <span class="ref-item-arrow">↗</span>
+        </a>
+        <a class="ref-item" href="{{ '/ko/news/' | relative_url }}" target="_blank">
+          <span class="ref-item-icon">🏆</span>
+          <div class="ref-item-body">
+            <div class="ref-item-title">수상 · 소식 · 언론 보도</div>
+            <div class="ref-item-url">홈페이지 · 소식 — 수상 실적, 연구실 소식, 관련 기사와 로봇 산업·연구 동향</div>
+          </div>
+          <span class="ref-item-arrow">↗</span>
+        </a>
+        <a class="ref-item" href="{{ '/ko/publications/' | relative_url }}" target="_blank">
+          <span class="ref-item-icon">📄</span>
+          <div class="ref-item-body">
+            <div class="ref-item-title">전체 논문</div>
+            <div class="ref-item-url">홈페이지 · 논문</div>
+          </div>
+          <span class="ref-item-arrow">↗</span>
+        </a>
       </div>
     </div>
 
@@ -2826,82 +2720,6 @@ permalink: /intern_info/
       </div>
     </div>
 
-    <!-- PRESS -->
-    <div class="page" id="page-press">
-      <div class="page-header">
-        <div class="breadcrumb">연구실 안내 / 관련 기사</div>
-
-      {%- comment %} 관련 기사 — _data/press.yml 에서 불러옵니다 (scope: lab 은 홈페이지 News 페이지에도 표시) {% endcomment %}
-      {%- assign groups = "lab|🏫 연구실 관련,industry|🇰🇷 국내 로봇 산업 & 정책 동향,research|🔬 연구 분야 기술 동향" | split: "," %}
-      {%- for grp in groups %}
-      {%- assign parts = grp | split: "|" %}
-      {%- assign items = site.data.press | where: "scope", parts[0] | sort: "date" | reverse %}
-      {%- if items.size > 0 %}
-      <h3>{{ parts[1] }}</h3>
-      <div class="ref-list">
-        {%- for it in items %}
-        <a class="ref-item" href="{{ it.url }}" target="_blank">
-          <span class="ref-item-icon">{% if it.kind == "video" %}📺{% else %}📰{% endif %}</span>
-          <div class="ref-item-body">
-            <div class="ref-item-title">{{ it.title }}</div>
-            <div class="ref-item-url">{{ it.outlet_ko }} · {{ it.date | replace: "-", "." }}{% if it.kind == "interview" %} · 인터뷰{% endif %}{% if it.note %} · {{ it.note }}{% endif %}</div>
-          </div>
-          <span class="ref-item-arrow">↗</span>
-        </a>
-        {%- endfor %}
-      </div>
-      {%- endif %}
-      {%- endfor %}
-      <div class="callout info">
-        <span class="callout-icon">📌</span>
-        <div class="callout-body">관련 기사를 발견하면 슬랙 <code>#general</code>에 공유해 주세요. 정기적으로 업데이트합니다.</div>
-      </div>
-    </div>
-
-    <!-- RECRUIT INTRO -->
-    <div class="page" id="page-recruit-intro">
-      <div class="page-header">
-        <div class="breadcrumb">관심 학생 안내 / 연구실 소개</div>
-        <h2>연구실 소개</h2>
-        <p>DREAM Lab에 관심을 가져주셔서 감사합니다.</p>
-      </div>
-
-      <div class="callout tip">
-        <span class="callout-icon">🌟</span>
-        <div class="callout-body">우리 연구실은 <strong>동적 로봇 시스템과 자율 조작</strong>을 연구합니다. 로봇 팔, 이동형 플랫폼, 휴머노이드를 활용해 실환경에서 작동하는 로봇 시스템을 만드는 것을 목표로 합니다.</div>
-      </div>
-
-      <h3>현재 모집 중</h3>
-      <div class="callout info">
-        <span class="callout-icon">📢</span>
-        <div class="callout-body">{%- comment %} 홈페이지 모집 공고(_data/home.yml)와 같은 문구 {% endcomment %}{% assign contact_href = 'href="' | append: site.baseurl | append: '/ko/contact/"' %}{% for item in site.data.home.notice.items_ko %}{{ item | markdownify | remove: "<p>" | remove: "</p>" | replace: 'href="contact/"', contact_href | strip }} {% endfor %}</div>
-      </div>
-
-      <h3>우리가 추구하는 연구</h3>
-      <ul class="wiki-list">
-        <li>로봇 팔 + 이동형 플랫폼(바퀴형 로봇, 휴머노이드) 결합 이동형 조작 시스템</li>
-        <li>정적 조작뿐 아니라 식탁 닦기, 유연체 조립 등 동적 상황 대응 연구</li>
-        <li>강화학습·모방학습 기반 로봇 학습 알고리즘 개발</li>
-        <li>효율적 데이터 수집 방법 및 범용 하드웨어 최적화</li>
-      </ul>
-
-      <h3>연구실 문화</h3>
-      <ul class="wiki-list">
-        <li>수평적 소통: 교수님과 학생 모두 열린 토론 환경</li>
-        <li>자기 주도 연구: 주제 선정에서 구성원의 의견을 적극 반영</li>
-        <li>협업 강조: 개인 연구보다 팀으로 더 큰 문제 해결 지향</li>
-        <li>글로벌 지향: 영어 논문 작성 및 국제 학회 발표 지원</li>
-      </ul>
-
-      <h3>더 알아보기</h3>
-      <p>연구 프로젝트, 출판 목록, 구성원 소개는 공식 홈페이지를 방문해 주세요.</p>
-      <div class="callout info">
-        <span class="callout-icon">🔗</span>
-        <div class="callout-body">공식 홈페이지: <a href="{{ '/ko/' | relative_url }}" class="wiki-link" target="_blank">{{ site.url | remove: 'https://' | remove: 'http://' }}</a></div>
-      </div>
-    </div>
-
-    <!-- UNDERGRAD PROGRAM -->
     <div class="page" id="page-recruit-undergrad">
       <div class="page-header">
         <div class="breadcrumb">관심 학생 안내 / 학부연구생</div>
@@ -3061,7 +2879,9 @@ permalink: /intern_info/
     });
 
     // 초기 진입
-    const hash = location.hash.replace('#', '');
+    const aliases = { 'recruit-intro': 'lab-intro', press: 'lab-intro', projects: 'lab-intro', awards: 'lab-intro' };
+    const rawHash = location.hash.replace('#', '');
+    const hash = aliases[rawHash] || rawHash;
     const startPage = (hash && document.getElementById('page-' + hash)) ? hash : 'home';
     try { history.replaceState({ page: startPage }, '', '#' + startPage); } catch(e) {}
     showPage(startPage, false);

@@ -1,5 +1,5 @@
 # ─────────────────────────────────────────────────────────────
-#  Projects  (Research 페이지 하단 + 신입생 가이드 '수행 과제'에 함께 표시)
+#  Projects  (Research 페이지 하단 '연구 과제'에 표시)
 #
 #  title / title_ko : 과제 약칭 (홈페이지 카드 제목)
 #  sponsors         : 기관/기업 이름 목록
@@ -10,7 +10,7 @@
 #  agency_ko / agency_en : 재원 (지원 기관)
 #  period      : 수행 기간 (예: 2025.09.01 ~ 2028.12.31)
 #  description_ko / description_en : 과제 설명
-#  tags        : 키워드          icon : 신입생 가이드에서 쓰는 이모지
+#  tags        : 키워드 (언어별로 다르면 tags_ko / tags_en)
 # ─────────────────────────────────────────────────────────────
 
 - title: Auto-bagger Automation
@@ -19,7 +19,6 @@
   status: ongoing
   image: /assets/img/photos/igris-autobagger.jpg
   members: [Dongwoo Son, Junho An, Chanwoo Seon, Jinwoo Lee]
-  icon: 🦾
   official_title_ko: AI 이족 보행 휴머노이드의 초기 실증 및 상용화 가능성 연구
   official_title_en: Early Demonstration and Commercialization Study of AI Bipedal Humanoids
   agency_ko: 한국로봇산업진흥원 (KIRIA) · 산업통상자원부
@@ -34,14 +33,14 @@
     AI bipedal humanoids were deployed to three universities, each running field demonstrations built around a
     partner company's work environment to validate early performance and safety, assess commercialization
     potential, and derive implications for safety regulation.
-  tags: [IGRIS C, 실증, Sim-to-Real, 상용화 검증]
+  tags_ko: [IGRIS C, 실증, Sim-to-Real, 상용화 검증]
+  tags_en: [IGRIS C, Field Demonstration, Sim-to-Real, Commercialization]
 
 - title: BGF Logistics Automation
   title_ko: BGF 물류 자동화
   sponsors: [ROBOTIS, MOTIR]
   status: ongoing
   members: [Chanwoo Seon, Dongwoo Son, Gahyun Oh]
-  icon: 🤖
   official_title_ko: AI 파운데이션 모델 기반 유통 공정 특화 휴머노이드 로봇 개발
   official_title_en: Development of AI Foundation Model-Based Humanoid Robots Specialized for Distribution Processes
   agency_ko: 한국산업기술기획평가원 (KEIT) · 산업통상자원부
@@ -53,14 +52,14 @@
   description_en: >-
     Developing a humanoid system (AI Worker) specialized for distribution processes on top of AI foundation models,
     and applying VLA and Physical AI to automate manual work in real distribution centers.
-  tags: [VLA, Physical AI, AI Worker, 물류 자동화]
+  tags_ko: [VLA, Physical AI, AI Worker, 물류 자동화]
+  tags_en: [VLA, Physical AI, AI Worker, Logistics Automation]
 
 - title: Swarm Humanoid
   title_ko: 군집 휴머노이드
   sponsors: [NRF]
   status: ongoing
   members: [Junho An, Dongwoo Son, Gahyun Oh, Chanwoo Seon]
-  icon: 🦿
   official_title_ko: 다중 이기종 휴머노이드 군집 자율 작업 프레임워크 개발
   official_title_en: Development of Autonomous Task Distribution and Physical Collaboration Framework for Multi Heterogeneous Humanoid Robots
   agency_ko: 한국연구재단 (NRF)

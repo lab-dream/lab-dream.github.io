@@ -190,6 +190,8 @@ html[lang="ko"] .section-head h2, html[lang="ko"] .h2 { font-weight: 600; letter
   font-size: 13.5px; font-weight: 500; color: var(--ink-soft);
   background: #fff; border: 1px solid var(--champagne-line); border-radius: 999px; padding: 5px 13px;
 }
+.chip-list--sm { gap: 6px; margin-top: 4px; }
+.chip-list--sm li { font-size: 12.5px; padding: 3px 10px; background: var(--ivory); }
 
 .badge {
   display: inline-block; font-size: 11.5px; font-weight: 700; letter-spacing: .04em; line-height: 1;
@@ -503,6 +505,12 @@ html[lang="ko"] .award-card h3 { font-weight: 700; letter-spacing: -.03em; }
 .press-item__title:hover { color: var(--burgundy); }
 .press-item__title::after { content: " ↗"; color: var(--champagne-ink); font-weight: 500; }
 .press-item__outlet { font-size: 13.5px; color: var(--stone); white-space: nowrap; }
+.press-item__main { display: grid; gap: 3px; }
+.press-item__note { font-size: 13.5px; color: var(--stone); }
+.press-group + .press-group { margin-top: 40px; }
+.press-group__title { font-size: 15px; font-weight: 700; color: var(--champagne-ink); margin-bottom: 12px; }
+.section--ivory .press-list { border-top-color: var(--champagne-line); }
+.section--ivory .press-item { border-bottom-color: var(--champagne-line); }
 
 /* ---------- Guide link (contact page) ---------- */
 .guide-card { display: grid; grid-template-columns: 1fr auto; gap: 16px 32px; align-items: center; background: var(--wine); color: #fff; border-radius: var(--radius-lg); padding: 32px 36px; }

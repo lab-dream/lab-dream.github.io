@@ -1,0 +1,11 @@
+{%- comment %} 언론 보도 한 줄 — include.item 에 press.yml 항목, include.t 에 i18n {% endcomment -%}
+{%- assign p = include.item %}
+{%- capture p_note %}{% include tr.html obj=p key="note" %}{% endcapture %}
+<li class="press-item">
+  <time class="press-item__date">{{ p.date | replace: "-", "." }}</time>
+  <span class="press-item__main">
+    <a class="press-item__title" href="{{ p.url }}">{{ p.title }}</a>
+    {%- if p_note != "" %}<span class="press-item__note">{{ p_note }}</span>{% endif %}
+  </span>
+  <span class="press-item__outlet">{% include tr.html obj=p key="outlet" %}{% if p.kind and p.kind != "article" %} · {{ include.t.news.kinds[p.kind] }}{% endif %}</span>
+</li>

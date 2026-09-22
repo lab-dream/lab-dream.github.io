@@ -1,5 +1,5 @@
 # ─────────────────────────────────────────────────────────────
-#  Awards — 연구실 수상 실적  (홈페이지 News 페이지 + 신입생 가이드 '수상 실적'에 함께 표시)
+#  Awards — 연구실 수상 실적  (홈페이지 News 페이지 맨 위에 표시)
 #  RO:BIT 동아리 수상은 robit.yml 에 따로 있습니다.
 #
 #  date    : "YYYY-MM-DD"
@@ -8,7 +8,8 @@
 #  organizer_ko / _en  : 주관 기관          place : (선택) 장소
 #  highlight_ko / _en  : (선택) 한 줄 강조 문구
 #  description_ko / _en: (선택) 설명
-#  members : 참여 구성원 (members.yml 의 name)     tags : 키워드
+#  members : 참여 구성원 (members.yml 의 name)
+#  tags    : 키워드 (언어별로 다르면 tags_ko / tags_en)
 #  image   : (선택) 사진 경로       url : (선택) 관련 기사
 # ─────────────────────────────────────────────────────────────
 
@@ -32,6 +33,7 @@
     Lotte Global Logistics site — a representative case of a humanoid carrying out unstructured manipulation
     in a real industrial setting.
   members: [Dongwoo Son, Junho An, Chanwoo Seon, Jinwoo Lee]
-  tags: [ROBROS IGRIS C, 롯데글로벌로지스, 의류 포장 자동화, Manipulation]
+  tags_ko: [ROBROS IGRIS C, 롯데글로벌로지스, 의류 포장 자동화, Manipulation]
+  tags_en: [ROBROS IGRIS C, Lotte Global Logistics, Garment-Packing Automation, Manipulation]
   image: /images/award_kiria.jpg
   url: https://www.irobotnews.com/news/articleView.html?idxno=45849

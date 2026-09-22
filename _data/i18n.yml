@@ -57,6 +57,11 @@ ko:
     timeline_title: 소식
     press_eyebrow: Press
     press_title: 언론 보도
+    trends_eyebrow: Further Reading
+    trends_title: 로봇 산업·연구 동향
+    scopes:
+      industry: 국내 로봇 산업 & 정책
+      research: 연구 분야 기술 동향
     members: 참여
     kinds:
       article: 기사
@@ -187,6 +192,11 @@ en:
     timeline_title: Updates
     press_eyebrow: Press
     press_title: In the Press
+    trends_eyebrow: Further Reading
+    trends_title: Industry & Research Trends
+    scopes:
+      industry: Korean Robotics Industry & Policy
+      research: Research Trends
     members: Team
     kinds:
       article: Article

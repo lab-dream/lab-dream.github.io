@@ -3,8 +3,8 @@ layout: page
 ---
 {%- assign t = site.data.i18n[page.lang] | default: site.data.i18n.en -%}
 {%- assign members_url = t.prefix | append: '/members/' | relative_url -%}
-{%- assign member_names = site.data.members | map: "name" -%}
 
+{%- assign tag_key = "tags_" | append: page.lang %}
 {%- assign awards = site.data.awards | sort: "date" | reverse %}
 {%- if awards.size > 0 %}
 <section class="section section--tight" aria-labelledby="awards-title">
@@ -22,17 +22,24 @@ layout: page
       <article class="award-card{% if a.image %} award-card--media{% endif %}">
         {%- if a.image %}<div class="award-card__media"><img src="{{ a.image | relative_url }}" alt="" loading="lazy"></div>{% endif %}
         <div class="award-card__body">
-          <p class="award-card__meta">{% include tr.html obj=a key="organizer" %} · {{ a.date | replace: "-", "." }}</p>
+          {%- capture a_place %}{% include tr.html obj=a key="place" %}{% endcapture %}
+          <p class="award-card__meta">{% include tr.html obj=a key="organizer" %}{% if a_place != "" %} · {{ a_place }}{% endif %} · {{ a.date | replace: "-", "." }}</p>
           <h3><span class="award-card__rank">{% include tr.html obj=a key="rank" %}</span> {% include tr.html obj=a key="title" %}</h3>
           {%- if a_hl != "" %}<p class="award-card__highlight">{{ a_hl }}</p>{% endif %}
           {%- if a_desc != "" %}<p class="award-card__desc">{{ a_desc }}</p>{% endif %}
           {%- if a.members %}
           <p class="award-card__team"><b>{{ t.news.members }}</b>
             {%- for name in a.members -%}
-              {%- if member_names contains name %} <a href="{{ members_url }}#{{ name | slugify }}">{{ name }}</a>{% else %} {{ name }}{% endif -%}
+              {%- assign mm = site.data.members | where: "name", name | first -%}
+              {%- if page.lang == "ko" and mm.name_ko %}{% assign shown = mm.name_ko %}{% else %}{% assign shown = name %}{% endif -%}
+              {%- if mm %} <a href="{{ members_url }}#{{ name | slugify }}">{{ shown }}</a>{% else %} {{ shown }}{% endif -%}
               {%- unless forloop.last %},{% endunless -%}
             {%- endfor -%}
           </p>
+          {%- endif %}
+          {%- assign a_tags = a[tag_key] | default: a.tags %}
+          {%- if a_tags %}
+          <ul class="chip-list chip-list--sm">{% for tg in a_tags %}<li>{{ tg }}</li>{% endfor %}</ul>
           {%- endif %}
           {%- if a.url %}<p class="pub__links"><a class="pill" href="{{ a.url }}">{{ t.news.kinds.article }} ↗</a></p>{% endif %}
         </div>
@@ -78,13 +85,38 @@ layout: page
     </div>
     <ul class="press-list">
       {%- for p in press %}
-      <li class="press-item">
-        <time class="press-item__date">{{ p.date | replace: "-", "." }}</time>
-        <a class="press-item__title" href="{{ p.url }}">{{ p.title }}</a>
-        <span class="press-item__outlet">{% include tr.html obj=p key="outlet" %}{% if p.kind and p.kind != "article" %} · {{ t.news.kinds[p.kind] }}{% endif %}</span>
-      </li>
+      {% include press-item.html item=p t=t %}
       {%- endfor %}
     </ul>
+  </div>
+</section>
+{%- endif %}
+
+{%- comment %} 로봇 산업·연구 동향 — press.yml 의 scope: industry / research {% endcomment %}
+{%- assign trends = site.data.press | where_exp: "p", "p.scope != 'lab'" %}
+{%- if trends.size > 0 %}
+<section class="section section--tight section--ivory" aria-labelledby="trends-title">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">{{ t.news.trends_eyebrow }}</p>
+        <h2 id="trends-title">{{ t.news.trends_title }}</h2>
+      </div>
+    </div>
+    {%- assign scopes = "industry,research" | split: "," %}
+    {%- for scope in scopes %}
+    {%- assign items = site.data.press | where: "scope", scope | sort: "date" | reverse %}
+    {%- if items.size > 0 %}
+    <section class="press-group" aria-label="{{ t.news.scopes[scope] }}">
+      <h3 class="press-group__title">{{ t.news.scopes[scope] }}</h3>
+      <ul class="press-list">
+        {%- for p in items %}
+        {% include press-item.html item=p t=t %}
+        {%- endfor %}
+      </ul>
+    </section>
+    {%- endif %}
+    {%- endfor %}
   </div>
 </section>
 {%- endif %}

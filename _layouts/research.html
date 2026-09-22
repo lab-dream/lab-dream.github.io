@@ -42,7 +42,7 @@ layout: page
         <h2 id="projects-title">{{ t.research.projects_title }}</h2>
       </div>
     </div>
-    {%- assign member_names = site.data.members | map: "name" %}
+    {%- assign tag_key = "tags_" | append: page.lang %}
     {%- assign members_url = t.prefix | append: '/members/' | relative_url %}
     <div class="project-grid">
       {%- for pr in site.data.projects %}
@@ -69,10 +69,16 @@ layout: page
           {%- if pr.members %}
           <p class="project__members">
             {%- for name in pr.members -%}
-              {%- if member_names contains name -%}<a href="{{ members_url }}#{{ name | slugify }}">{{ name }}</a>{%- else -%}{{ name }}{%- endif -%}
+              {%- assign mm = site.data.members | where: "name", name | first -%}
+              {%- if page.lang == "ko" and mm.name_ko %}{% assign shown = mm.name_ko %}{% else %}{% assign shown = name %}{% endif -%}
+              {%- if mm -%}<a href="{{ members_url }}#{{ name | slugify }}">{{ shown }}</a>{%- else -%}{{ shown }}{%- endif -%}
               {%- unless forloop.last %}, {% endunless -%}
             {%- endfor -%}
           </p>
+          {%- endif %}
+          {%- assign pr_tags = pr[tag_key] | default: pr.tags %}
+          {%- if pr_tags %}
+          <ul class="chip-list chip-list--sm">{% for tg in pr_tags %}<li>{{ tg }}</li>{% endfor %}</ul>
           {%- endif %}
         </div>
       </article>

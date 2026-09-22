@@ -1,15 +1,15 @@
 # ─────────────────────────────────────────────────────────────
-#  Press — 언론 보도  (홈페이지 News 페이지 + 신입생 가이드 '관련 기사'에 함께 표시)
+#  Press — 언론 보도  (홈페이지 News 페이지에 표시)
 #
 #  date     : "YYYY-MM-DD" (따옴표 포함, 날짜를 모르면 "YYYY" 만 적어도 됩니다)
 #  title    : 기사 원제목 (번역하지 않음)
 #  outlet_ko / outlet_en : 매체 이름
 #  url      : 기사 주소
 #  kind     : article | video | interview
-#  scope    : lab      — 우리 연구실이 직접 나온 기사 (홈페이지에도 표시)
-#             industry — 국내 로봇 산업·정책 동향 (신입생 가이드에만 표시)
-#             research — 연구 분야 기술 동향 (신입생 가이드에만 표시)
-#  note     : (선택) 한 줄 메모
+#  scope    : lab      — 우리 연구실이 직접 나온 기사 → '언론 보도'
+#             industry — 국내 로봇 산업·정책 동향 → '로봇 산업·연구 동향'
+#             research — 연구 분야 기술 동향   → '로봇 산업·연구 동향'
+#  note / note_en : (선택) 한 줄 메모 (한국어 / 영어)
 # ─────────────────────────────────────────────────────────────
 
 # ── 연구실 관련 ────────────────────────────────────────────────
@@ -21,6 +21,7 @@
   kind: article
   scope: lab
   note: 박수한 교수 '강화학습' 수업 — 주간 AI 퀴즈
+  note_en: "Prof. Suhan Park's Reinforcement Learning course — weekly AI quizzes"
 
 - date: "2026-09-17"
   title: "'젊은 로봇 공학자' (92) 광운대 박수한 교수"
@@ -38,6 +39,7 @@
   kind: article
   scope: lab
   note: 오토배거 원격조작 학습 현장
+  note_en: "Teleoperation training for the auto-bagger"
 
 - date: "2026-04-14"
   title: "로브로스, '휴머노이드 리얼-월드 챌린지'서 두각"
@@ -47,6 +49,7 @@
   kind: article
   scope: lab
   note: KIRIA 주관 실환경 챌린지 1위
+  note_en: "1st place in KIRIA's real-world challenge"
 
 - date: "2026-03-02"
   title: "[포커스] 야간근로부터 투입…현장 배치 앞두고 훈련 한창인 로봇들"
@@ -72,6 +75,7 @@
   kind: article
   scope: lab
   note: 비정형 물체 조작·물류 자동화
+  note_en: "Unstructured object manipulation and logistics automation"
 
 - date: "2026-01-30"
   title: "\"물류 휴머노이드 온다…데이터 확보는 숙제\""
@@ -129,6 +133,7 @@
   kind: article
   scope: lab
   note: IGRIS C 연구실 보급
+  note_en: "IGRIS C humanoids deployed to university labs"
 
 - date: "2025-11-26"
   title: 로보티즈, CU 물류센터 휴머노이드 투입 협력
@@ -138,6 +143,7 @@
   kind: article
   scope: lab
   note: AI Worker 실증 과제
+  note_en: "AI Worker field demonstration project"
 
 - date: "2025-11-26"
   title: 로보티즈, CU 물류센터서 AI 휴머노이드 실증
@@ -147,6 +153,7 @@
   kind: article
   scope: lab
   note: BGF로지스 협력, 비정형 입출고 자동화
+  note_en: "With BGF Logistics — automating unstructured inbound/outbound handling"
 
 - date: "2025-03-17"
   title: "[광운 Hot Issue] 로봇게임단 단원에서 이제는 교수로, 박수한 교수"
@@ -156,7 +163,7 @@
   kind: interview
   scope: lab
 
-# ── 국내 로봇 산업 & 정책 동향 (신입생 가이드용) ──────────────────
+# ── 국내 로봇 산업 & 정책 동향 ───────────────────────────────────
 - date: "2026-04-28"
   title: "롯데글로벌로지스, AX·DX 발판으로 '스마트 물류' 가속"
   outlet_ko: 전자신문
@@ -165,6 +172,7 @@
   kind: article
   scope: industry
   note: 물류 현장 로봇 자동화 가속
+  note_en: "Accelerating robot automation in logistics"
 
 - date: "2026-04-08"
   title: "\"올해 휴머노이드 로봇 상용화 원년…한국 골든타임은 2030년까지\""
@@ -174,6 +182,7 @@
   kind: article
   scope: industry
   note: AI 휴머노이드 얼라이언스, 현대차·LG전자 등 실증 계획
+  note_en: "AI Humanoid Alliance — demonstration plans from Hyundai, LG Electronics, and others"
 
 - date: "2026"
   title: "휴머노이드 로봇 상용화, 대규모 확산은 2032년 이후 — Interact Analysis 보고서"
@@ -183,8 +192,9 @@
   kind: article
   scope: industry
   note: 현실적 시장 전망 분석
+  note_en: "A realistic market outlook"
 
-# ── 연구 분야 기술 동향 (신입생 가이드용) ─────────────────────────
+# ── 연구 분야 기술 동향 ──────────────────────────────────────────
 - date: "2026-02-05"
   title: "[KRoC 2026] VLA를 다시 생각하다… \"조작 격차 메우려면 계층 아키텍처부터 바꿔야\""
   outlet_ko: 로봇신문
@@ -193,6 +203,7 @@
   kind: article
   scope: research
   note: 서울대 박종우 교수 기조강연 — VLA와 로봇 조작 격차 문제
+  note_en: "SNU keynote on VLA and the robot manipulation gap"
 
 - date: "2025-11-20"
   title: "삼성, 독자 VLA 모델로 휴머노이드 로봇 '난제' 해결"
@@ -202,6 +213,7 @@
   kind: article
   scope: research
   note: 삼성리서치 E2E VLA 모델 접근법
+  note_en: "Samsung Research's end-to-end VLA approach"
 
 - date: "2025"
   title: 인간-로봇 공존을 위한 휴머노이드 인공지능 기술 동향
@@ -211,3 +223,4 @@
   kind: article
   scope: research
   note: 로봇 정책·VLA·RFM 개념 정리 리뷰
+  note_en: "A review of robot policy, VLA, and RFM concepts"
