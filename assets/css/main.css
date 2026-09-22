@@ -90,7 +90,7 @@ button { font: inherit; }
 }
 .site-header__inner { display: flex; align-items: center; gap: 24px; height: var(--header-h); }
 .brand { flex: none; margin-right: auto; }
-.brand img { width: 156px; height: auto; }
+.brand img { width: 184px; height: auto; }
 .brand__light { display: none; }
 .site-nav ul { list-style: none; display: flex; gap: 2px; }
 .site-nav a {
@@ -655,7 +655,7 @@ html[lang="ko"] .award__result { letter-spacing: .02em; font-size: 13.5px; }
 @media (max-width: 600px) {
   :root { --gutter: 16px; }
   body { font-size: 15.5px; }
-  .brand img { width: 136px; }
+  .brand img { width: 156px; }
   .site-header__inner { gap: 12px; }
   .page-head { padding: 52px 0 36px; }
   .notice__inner { flex-direction: column; gap: 10px; }

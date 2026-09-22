@@ -16,7 +16,7 @@
 - title: Auto-bagger Automation
   title_ko: 오토배거 자동화
   sponsors: [ROBROS]
-  status: ongoing
+  status: completed
   image: /assets/img/photos/igris-autobagger.jpg
   members: [Dongwoo Son, Junho An, Chanwoo Seon, Jinwoo Lee]
   official_title_ko: AI 이족 보행 휴머노이드의 초기 실증 및 상용화 가능성 연구
@@ -36,11 +36,35 @@
   tags_ko: [IGRIS C, 실증, Sim-to-Real, 상용화 검증]
   tags_en: [IGRIS C, Field Demonstration, Sim-to-Real, Commercialization]
 
+- title: Humanoid Package Handling
+  title_ko: 휴머노이드 포장체 이송
+  sponsors: [ROBROS]
+  status: ongoing
+  members: [Dongwoo Son, Chanwoo Seon, Junho An, Gahyun Oh, Jinwoo Lee]
+  official_title_ko: 다양한 포장체 이송 작업을 위한 휴머노이드 Physical AI 자율조작 기술 개발 및 실증
+  official_title_en: Development of Humanoid Physical AI for Autonomous Handling of Diverse Packages
+  agency_ko: 서울특별시 (인공지능 기술사업화 지원사업)
+  agency_en: Seoul Metropolitan Government (AI Technology Commercialization Program)
+  period: 2026.07.01 ~ 2027.06.30
+  description_ko: >-
+    6kg 이하의 혼재·비정형 포장체(Box, Fresh Tote, Soft Bag 등)를 휴머노이드가 작업대에서 컨베이어로 옮기는 작업을
+    60분 이상 사람 개입 없이 안정적으로 수행할 수 있는 Physical AI 자율조작 기술을 개발합니다. IGRIS C 휴머노이드 플랫폼
+    고도화, 강화학습 기반 전신 균형 제어, 제약 기반 양팔 모션 플래닝, 학습 기반 파지·조작 기술을 통합하고, 신규 포장체에도
+    추가 학습 없이 일반화되는 조작 정책을 확보합니다. 실제 물류 환경을 모사한 테스트베드와 실환경 PoC를 통해 반복 이송
+    작업의 안정성과 사업화 가능성을 실증하고, 도심 물류 거점의 출고·집하 자동화로 확산 가능한 기술 레퍼런스를 마련합니다.
+  description_en: >-
+    Physical AI that lets a humanoid move mixed, irregular packages (boxes, fresh totes, and soft bags up to 6 kg) from a
+    workbench to a conveyor for over 60 minutes without human intervention. The project integrates an upgraded IGRIS C
+    platform, RL-based whole-body balance control, constraint-based bimanual motion planning, and learned grasping that
+    generalizes to unseen packages, validated on a logistics testbed and in real-world PoCs.
+  tags_ko: [IGRIS C, Physical AI, 양팔 조작, 전신 제어, 물류 자동화]
+  tags_en: [IGRIS C, Physical AI, Bimanual Manipulation, Whole-body Control, Logistics Automation]
+
 - title: BGF Logistics Automation
   title_ko: BGF 물류 자동화
   sponsors: [ROBOTIS, MOTIR]
   status: ongoing
-  members: [Chanwoo Seon, Dongwoo Son, Gahyun Oh]
+  members: [Chanwoo Seon, Jinwoo Lee, Gahyun Oh, Dongwoo Son, Hwang Young Sang]
   official_title_ko: AI 파운데이션 모델 기반 유통 공정 특화 휴머노이드 로봇 개발
   official_title_en: Development of AI Foundation Model-Based Humanoid Robots Specialized for Distribution Processes
   agency_ko: 한국산업기술기획평가원 (KEIT) · 산업통상자원부
@@ -59,7 +83,7 @@
   title_ko: 군집 휴머노이드
   sponsors: [NRF]
   status: ongoing
-  members: [Junho An, Dongwoo Son, Gahyun Oh, Chanwoo Seon]
+  members: [Junho An, Gahyun Oh, Jinwoo Lee, Dongwoo Son, Chanwoo Seon]
   official_title_ko: 다중 이기종 휴머노이드 군집 자율 작업 프레임워크 개발
   official_title_en: Development of Autonomous Task Distribution and Physical Collaboration Framework for Multi Heterogeneous Humanoid Robots
   agency_ko: 한국연구재단 (NRF)
@@ -79,4 +103,25 @@
   title_ko: 제약 인지 VLA
   sponsors: [NRF]
   status: ongoing
-  members: [Gahyun Oh, Junho An, Dongwoo Son]
+  members: [Junho An, Gahyun Oh, Dongwoo Son]
+  official_title_ko: 고정밀 로봇 조작 작업을 위한 제약 인지 시각-언어-행동 모델 개발
+  official_title_en: Development of a Constraint-Aware Vision-Language-Action Model for High-Precision Robotic Manipulation
+  agency_ko: 한국연구재단 (NRF) · 과학기술정보통신부
+  agency_en: NRF · Ministry of Science and ICT
+  period: 2026.09.01 ~ 2029.08.31
+  description_ko: >-
+    자연어 지시와 시각 정보를 이해하고 작업에 내재된 제약 조건을 명시적으로 추론하는 제약 추론 기반 시각-언어-행동 모델(CA-VLA)을
+    개발합니다. 조작 작업을 이동·정렬·접촉·삽입 구간으로 분해해 각 구간의 기하·접촉·힘/토크·순서·안전 제약을 계산 가능한 형태로
+    구조화하고, 이를 로봇 좌표계의 접촉점·정렬축·허용 공차·금지 영역으로 변환합니다. 모델 기반 제어·계획 모듈로 VLA가 생성한 행동을
+    보정하여 펙인홀, 회전 조립, 양팔 협동 조작 등 고정밀 작업의 성공률과 안정성을 높이는 것을 목표로 합니다. 개발된 제약 추론·행동
+    보정 모듈은 기존 VLA 모델에 플러그인 형태로 결합되어 반도체·배터리·정밀 조립 현장과 협동로봇·휴머노이드 등 다양한 플랫폼으로
+    확장할 수 있습니다.
+  description_en: >-
+    A constraint-reasoning Vision-Language-Action model (CA-VLA) that understands language instructions and visual input
+    while explicitly reasoning about the constraints a task imposes. Manipulation is decomposed into approach, alignment,
+    contact, and insertion phases whose geometric, contact, force/torque, ordering, and safety constraints are mapped to
+    contact points, alignment axes, tolerances, and keep-out regions in the robot frame; model-based control and planning
+    then correct the VLA's actions to improve success and stability in high-precision tasks such as peg-in-hole,
+    rotational assembly, and bimanual manipulation.
+  tags_ko: [VLA, Physical AI, 제약 추론, 고정밀 조작]
+  tags_en: [VLA, Physical AI, Constraint Reasoning, High-Precision Manipulation]
