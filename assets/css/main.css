@@ -78,11 +78,15 @@ button { font: inherit; }
 /* ---------- Header ---------- */
 .site-header {
   position: sticky; top: 0; z-index: 50;
-  background: rgba(255, 255, 255, .92);
-  backdrop-filter: saturate(1.4) blur(12px);
-  -webkit-backdrop-filter: saturate(1.4) blur(12px);
-  border-bottom: 1px solid var(--line);
+  background: rgba(255, 255, 255, .55);
+  backdrop-filter: saturate(1.6) blur(20px);
+  -webkit-backdrop-filter: saturate(1.6) blur(20px);
+  border-bottom: 1px solid rgba(233, 226, 214, .65);
   transition: background .3s var(--ease), border-color .3s var(--ease);
+}
+/* 흐림 효과를 지원하지 않는 브라우저에서는 글자가 비치지 않도록 불투명하게 */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .site-header { background: rgba(255, 255, 255, .96); }
 }
 .site-header__inner { display: flex; align-items: center; gap: 24px; height: var(--header-h); }
 .brand { flex: none; margin-right: auto; }
@@ -264,16 +268,22 @@ html[lang="ko"] .page-head h1 { font-weight: 600; letter-spacing: -.035em; }
 .gallery__slide img { width: 100%; height: 100%; aspect-ratio: auto; object-fit: cover; border-radius: 0; box-shadow: none; }
 .gallery__bar {
   position: absolute; left: 0; right: 0; bottom: 0; z-index: 2;
-  display: flex; align-items: flex-end; justify-content: space-between; gap: 16px;
-  padding: 48px 18px 16px; background: linear-gradient(180deg, transparent 0%, rgba(20, 6, 10, .72) 100%);
-  color: #fff;
+  display: flex; align-items: flex-end; justify-content: space-between; gap: 12px;
+  padding: 0 16px 16px; color: #fff;
 }
-.gallery__caption { font-size: 13.5px; font-weight: 500; line-height: 1.45; color: rgba(255, 255, 255, .92); text-shadow: 0 1px 8px rgba(0, 0, 0, .35); }
+/* 캡션과 버튼 — 뒤 사진이 흐릿하게 비치는 반투명 유리 */
+.gallery__caption,
 .gallery__controls {
-  flex: none; display: inline-flex; align-items: center; gap: 6px; padding: 5px 6px; border-radius: 999px;
-  background: rgba(42, 12, 20, .55); border: 1px solid rgba(230, 214, 179, .28);
-  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  background: rgba(42, 12, 20, .42); border: 1px solid rgba(230, 214, 179, .22);
+  backdrop-filter: blur(14px) saturate(1.3) brightness(.85);
+  -webkit-backdrop-filter: blur(14px) saturate(1.3) brightness(.85);
 }
+.gallery__caption {
+  padding: 9px 16px; border-radius: 20px;
+  font-size: 13.5px; font-weight: 500; line-height: 1.45; color: rgba(255, 255, 255, .95);
+}
+.gallery__caption:empty { visibility: hidden; }
+.gallery__controls { flex: none; display: inline-flex; align-items: center; gap: 6px; padding: 5px 6px; border-radius: 999px; }
 .gallery__btn {
   width: 28px; height: 28px; border-radius: 50%; border: 0; background: transparent; cursor: pointer;
   color: var(--champagne-light); font-size: 20px; line-height: 1; display: grid; place-items: center; padding: 0 0 2px;
@@ -682,8 +692,11 @@ html[lang="ko"] .award__result { letter-spacing: .02em; font-size: 13.5px; }
 }
 
 @media (max-width: 600px) {
-  .gallery__caption { font-size: 12.5px; }
-  .gallery__bar { padding: 40px 12px 12px; }
+  .gallery__caption { font-size: 12.5px; padding: 7px 12px; }
+  .gallery__bar { padding: 0 10px 10px; gap: 8px; }
+  /* 좁은 화면: 화살표 대신 밀어서 넘기고, 점만 남겨 캡션 자리를 넓힘 */
+  .gallery__btn { display: none; }
+  .gallery__controls { padding: 11px 10px; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; }
