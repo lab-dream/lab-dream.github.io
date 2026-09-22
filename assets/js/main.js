@@ -94,6 +94,35 @@
     });
   });
 
+  // 과제 영상 — 화면에 보일 때만 재생(데이터 절약), 모션 줄이기 설정이면 자동재생 안 함
+  document.querySelectorAll("video[data-autoplay]").forEach(function (video) {
+    var btn = video.parentElement.querySelector(".media-toggle");
+    var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var userPaused = reduce;
+    function sync() {
+      if (!btn) return;
+      var paused = video.paused;
+      btn.classList.toggle("is-paused", paused);
+      btn.setAttribute("aria-label", paused ? btn.dataset.labelPlay : btn.dataset.labelPause);
+    }
+    function play() { var p = video.play(); if (p && p.catch) p.catch(function () {}); }
+    if (btn) {
+      btn.hidden = false;
+      btn.addEventListener("click", function () {
+        if (video.paused) { userPaused = false; play(); } else { userPaused = true; video.pause(); }
+      });
+    }
+    video.addEventListener("play", sync);
+    video.addEventListener("pause", sync);
+    sync();
+    if (!("IntersectionObserver" in window)) { if (!userPaused) play(); return; }
+    new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (en.isIntersecting) { if (!userPaused) play(); } else if (!video.paused) video.pause();
+      });
+    }, { threshold: 0.35 }).observe(video);
+  });
+
   // Publication filters (type chips + text search)
   var list = document.querySelector("[data-pub-list]");
   if (list) {

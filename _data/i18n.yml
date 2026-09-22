@@ -93,6 +93,8 @@ ko:
     topics: 연구 주제
     projects_eyebrow: Projects
     projects_title: 연구 과제
+    video_play: 영상 재생
+    video_pause: 영상 일시정지
     status:
       ongoing: 진행 중
       completed: 완료
@@ -228,6 +230,8 @@ en:
     topics: Research Topics
     projects_eyebrow: Projects
     projects_title: Funded Projects
+    video_play: Play video
+    video_pause: Pause video
     status:
       ongoing: Ongoing
       completed: Completed

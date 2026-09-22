@@ -7,6 +7,8 @@
 #  status           : ongoing | completed
 #  image            : (선택) 사진 경로 — 있으면 카드가 가로 전체 폭으로 크게 표시됩니다
 #  image_layout     : (선택) banner — 가로로 긴 사진을 카드 위쪽에 넓게 (기본은 사진 왼쪽·글 오른쪽)
+#  video            : (선택) 짧은 영상(mp4). 화면에 보일 때만 소리 없이 반복 재생되고, image 는 재생 전 표시 사진이 됩니다.
+#                     용량을 줄여서 넣으세요: ffmpeg -i 원본.mp4 -an -vf scale=1280:-2 -c:v libx264 -crf 28 -preset slow -movflags +faststart 결과.mp4
 #  ── 국가 과제 상세 (있으면 표시) ──
 #  official_title_ko / official_title_en : 공식 과제명
 #  agency_ko / agency_en : 재원 (지원 기관)
@@ -68,6 +70,9 @@
   title_ko: BGF 물류 자동화
   sponsors: [ROBOTIS, MOTIR]
   status: ongoing
+  image: /assets/img/photos/bgf-aiworker.jpg
+  video: /assets/video/bgf-aiworker-pnp.mp4
+  image_layout: banner
   members: [Chanwoo Seon, Jinwoo Lee, Gahyun Oh, Dongwoo Son, Hwang Young Sang]
   official_title_ko: AI 파운데이션 모델 기반 유통 공정 특화 휴머노이드 로봇 개발
   official_title_en: Development of AI Foundation Model-Based Humanoid Robots Specialized for Distribution Processes
