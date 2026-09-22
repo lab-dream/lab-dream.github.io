@@ -56,6 +56,15 @@ layout: page
             {%- for s in pr.sponsors %}<span class="project__sponsor">{{ s }}</span>{% endfor %}
           </div>
           <h3>{% include tr.html obj=pr key="title" %}</h3>
+          {%- capture pr_official %}{% include tr.html obj=pr key="official_title" %}{% endcapture %}
+          {%- if pr_official != "" %}<p class="project__official">{{ pr_official }}</p>{% endif %}
+          {%- if pr.period or pr.agency_ko or pr.agency_en %}
+          <p class="project__facts">
+            {%- capture pr_agency %}{% include tr.html obj=pr key="agency" %}{% endcapture %}
+            {%- if pr_agency != "" %}<span><b>{{ t.research.agency }}</b>{{ pr_agency }}</span>{% endif %}
+            {%- if pr.period %}<span><b>{{ t.research.period }}</b>{{ pr.period }}</span>{% endif %}
+          </p>
+          {%- endif %}
           {%- if pr_desc != "" %}<p class="project__desc">{{ pr_desc }}</p>{% endif %}
           {%- if pr.members %}
           <p class="project__members">

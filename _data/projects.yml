@@ -1,11 +1,16 @@
 # ─────────────────────────────────────────────────────────────
-#  Projects  (Research 페이지 하단)
+#  Projects  (Research 페이지 하단 + 신입생 가이드 '수행 과제'에 함께 표시)
 #
-#  title / title_ko : 과제 이름 (title_ko 가 있으면 한국어 페이지에서 사용)
+#  title / title_ko : 과제 약칭 (홈페이지 카드 제목)
 #  sponsors         : 기관/기업 이름 목록
 #  members          : members.yml의 name 과 같게 적으면 구성원 페이지로 링크됩니다.
 #  status           : ongoing | completed
-#  description_ko / description_en : (선택) 한두 줄 설명
+#  ── 국가 과제 상세 (있으면 표시) ──
+#  official_title_ko / official_title_en : 공식 과제명
+#  agency_ko / agency_en : 재원 (지원 기관)
+#  period      : 수행 기간 (예: 2025.09.01 ~ 2028.12.31)
+#  description_ko / description_en : 과제 설명
+#  tags        : 키워드          icon : 신입생 가이드에서 쓰는 이모지
 # ─────────────────────────────────────────────────────────────
 
 - title: Auto-bagger Automation
@@ -14,18 +19,62 @@
   status: ongoing
   image: /assets/img/photos/igris-autobagger.jpg
   members: [Dongwoo Son, Junho An, Chanwoo Seon, Jinwoo Lee]
+  icon: 🦾
+  official_title_ko: AI 이족 보행 휴머노이드의 초기 실증 및 상용화 가능성 연구
+  official_title_en: Early Demonstration and Commercialization Study of AI Bipedal Humanoids
+  agency_ko: 한국로봇산업진흥원 (KIRIA) · 산업통상자원부
+  agency_en: KIRIA · Ministry of Trade, Industry and Energy
+  period: 2025.09.01 ~ 2025.12.31
+  description_ko: >-
+    AI 기반 이족보행 휴머노이드 로봇을 3개 대학에 보급하고, 각 대학이 수요기업의 작업 환경과 요구사항에 기반한
+    실증을 수행하여 초기 성능·안전성을 검증합니다. 실증 과정에서 수집된 데이터를 분석해 상용화 가능성을 평가하고,
+    안전 규제 관련 시사점을 도출합니다. 이를 통해 국내 AI 휴머노이드 기술의 신뢰성을 확보하고, 대학·기업 간 협력 기반
+    실증 연구 모델 구축 및 기술 표준화 논의의 기반을 마련합니다.
+  description_en: >-
+    AI bipedal humanoids were deployed to three universities, each running field demonstrations built around a
+    partner company's work environment to validate early performance and safety, assess commercialization
+    potential, and derive implications for safety regulation.
+  tags: [IGRIS C, 실증, Sim-to-Real, 상용화 검증]
 
 - title: BGF Logistics Automation
   title_ko: BGF 물류 자동화
   sponsors: [ROBOTIS, MOTIR]
   status: ongoing
   members: [Chanwoo Seon, Dongwoo Son, Gahyun Oh]
+  icon: 🤖
+  official_title_ko: AI 파운데이션 모델 기반 유통 공정 특화 휴머노이드 로봇 개발
+  official_title_en: Development of AI Foundation Model-Based Humanoid Robots Specialized for Distribution Processes
+  agency_ko: 한국산업기술기획평가원 (KEIT) · 산업통상자원부
+  agency_en: KEIT · Ministry of Trade, Industry and Energy
+  period: 2025.09.01 ~ 2028.12.31
+  description_ko: >-
+    AI 파운데이션 모델 기반 유통 공정 특화 휴머노이드 로봇 시스템(AI Worker) 개발 및 Vision-Language-Action(VLA)·Physical AI
+    기술 적용을 통해, 실제 유통 물류센터 환경의 수작업 공정 자동화를 실증합니다.
+  description_en: >-
+    Developing a humanoid system (AI Worker) specialized for distribution processes on top of AI foundation models,
+    and applying VLA and Physical AI to automate manual work in real distribution centers.
+  tags: [VLA, Physical AI, AI Worker, 물류 자동화]
 
 - title: Swarm Humanoid
   title_ko: 군집 휴머노이드
   sponsors: [NRF]
   status: ongoing
   members: [Junho An, Dongwoo Son, Gahyun Oh, Chanwoo Seon]
+  icon: 🦿
+  official_title_ko: 다중 이기종 휴머노이드 군집 자율 작업 프레임워크 개발
+  official_title_en: Development of Autonomous Task Distribution and Physical Collaboration Framework for Multi Heterogeneous Humanoid Robots
+  agency_ko: 한국연구재단 (NRF)
+  agency_en: National Research Foundation of Korea (NRF)
+  period: 2026.04.01 ~ 2030.12.31
+  description_ko: >-
+    다중 휴머노이드 로봇이 물류·제조·재난 등 인간 중심의 복합 환경에서 LLM 기반 자연어 명령을 스스로 해석·이해하고,
+    실시간 센서 데이터 공유 기반 집단 지각(Swarm Perception) 및 에이전틱 AI(Agentic AI) 기술을 활용해 자율적으로
+    임무를 분해·배분·행동하는 지각-이해-협업 연계형 군집 로봇 자율 제어 지능 플랫폼 개발 및 실현장 실증을 목표로 합니다.
+  description_en: >-
+    A perception–understanding–collaboration platform in which multiple humanoids interpret natural-language (LLM)
+    commands, share sensor data for swarm perception, and use agentic AI to decompose, distribute, and execute tasks
+    in logistics, manufacturing, and disaster settings — validated in the field.
+  tags: [Swarm Robotics, Agentic AI, LLM, Humanoid]
 
 - title: Constraint-aware VLA
   title_ko: 제약 인지 VLA

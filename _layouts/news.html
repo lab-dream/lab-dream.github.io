@@ -1,17 +1,90 @@
 ---
 layout: page
 ---
+{%- assign t = site.data.i18n[page.lang] | default: site.data.i18n.en -%}
+{%- assign members_url = t.prefix | append: '/members/' | relative_url -%}
+{%- assign member_names = site.data.members | map: "name" -%}
+
+{%- assign awards = site.data.awards | sort: "date" | reverse %}
+{%- if awards.size > 0 %}
+<section class="section section--tight" aria-labelledby="awards-title">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">{{ t.news.awards_eyebrow }}</p>
+        <h2 id="awards-title">{{ t.news.awards_title }}</h2>
+      </div>
+    </div>
+    <div class="award-cards">
+      {%- for a in awards %}
+      {%- capture a_desc %}{% include tr.html obj=a key="description" %}{% endcapture %}
+      {%- capture a_hl %}{% include tr.html obj=a key="highlight" %}{% endcapture %}
+      <article class="award-card{% if a.image %} award-card--media{% endif %}">
+        {%- if a.image %}<div class="award-card__media"><img src="{{ a.image | relative_url }}" alt="" loading="lazy"></div>{% endif %}
+        <div class="award-card__body">
+          <p class="award-card__meta">{% include tr.html obj=a key="organizer" %} · {{ a.date | replace: "-", "." }}</p>
+          <h3><span class="award-card__rank">{% include tr.html obj=a key="rank" %}</span> {% include tr.html obj=a key="title" %}</h3>
+          {%- if a_hl != "" %}<p class="award-card__highlight">{{ a_hl }}</p>{% endif %}
+          {%- if a_desc != "" %}<p class="award-card__desc">{{ a_desc }}</p>{% endif %}
+          {%- if a.members %}
+          <p class="award-card__team"><b>{{ t.news.members }}</b>
+            {%- for name in a.members -%}
+              {%- if member_names contains name %} <a href="{{ members_url }}#{{ name | slugify }}">{{ name }}</a>{% else %} {{ name }}{% endif -%}
+              {%- unless forloop.last %},{% endunless -%}
+            {%- endfor -%}
+          </p>
+          {%- endif %}
+          {%- if a.url %}<p class="pub__links"><a class="pill" href="{{ a.url }}">{{ t.news.kinds.article }} ↗</a></p>{% endif %}
+        </div>
+      </article>
+      {%- endfor %}
+    </div>
+  </div>
+</section>
+{%- endif %}
+
 {%- assign news = site.data.news | sort: "date" | reverse -%}
 {%- assign by_year = news | group_by_exp: "n", "n.date | date: '%Y'" -%}
-<div class="section--tight"><div class="wrap">
-  {%- for g in by_year %}
-  <section class="news-year" aria-label="{{ g.name }}">
-    <h2 class="news-year__label">{{ g.name }}</h2>
-    <ul class="news-list">
-      {%- for n in g.items %}
-      {% include news-item.html item=n short=true %}
+<section class="section section--tight section--ivory" aria-labelledby="timeline-title">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">{{ t.news.timeline_eyebrow }}</p>
+        <h2 id="timeline-title">{{ t.news.timeline_title }}</h2>
+      </div>
+    </div>
+    {%- for g in by_year %}
+    <section class="news-year" aria-label="{{ g.name }}">
+      <h3 class="news-year__label">{{ g.name }}</h3>
+      <ul class="news-list">
+        {%- for n in g.items %}
+        {% include news-item.html item=n short=true %}
+        {%- endfor %}
+      </ul>
+    </section>
+    {%- endfor %}
+  </div>
+</section>
+
+{%- assign press = site.data.press | where: "scope", "lab" | sort: "date" | reverse %}
+{%- if press.size > 0 %}
+<section class="section section--tight" aria-labelledby="press-title">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <p class="eyebrow">{{ t.news.press_eyebrow }}</p>
+        <h2 id="press-title">{{ t.news.press_title }}</h2>
+      </div>
+    </div>
+    <ul class="press-list">
+      {%- for p in press %}
+      <li class="press-item">
+        <time class="press-item__date">{{ p.date | replace: "-", "." }}</time>
+        <a class="press-item__title" href="{{ p.url }}">{{ p.title }}</a>
+        <span class="press-item__outlet">{% include tr.html obj=p key="outlet" %}{% if p.kind and p.kind != "article" %} · {{ t.news.kinds[p.kind] }}{% endif %}</span>
+      </li>
       {%- endfor %}
     </ul>
-  </section>
-  {%- endfor %}
-</div></div>
+  </div>
+</section>
+{%- endif %}

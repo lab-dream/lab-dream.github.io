@@ -3,8 +3,29 @@
 # ─────────────────────────────────────────────────────────────
 
 hero:
-  image: /assets/img/photos/igris-autobagger.jpg
-  image_alt: Humanoid robot operating an auto-bagger machine in the lab
+  # 첫 화면 사진 슬라이드 (위에서부터 순서대로 넘어갑니다. 5.5초 간격, 마우스를 올리면 멈춤)
+  #   image    : 사진 경로 (가로 사진 권장 — 4:3 비율로 잘라서 보여줍니다)
+  #   position : (선택) 잘릴 때 보여줄 위치. 예) "center top", "center 30%"
+  #   caption_ko / caption_en : 사진 설명
+  slides:
+    - image: /assets/img/photos/igris-autobagger.jpg
+      caption_ko: 휴머노이드 IGRIS의 오토배거 포장 실증
+      caption_en: Humanoid IGRIS operating an auto-bagger
+    - image: /assets/img/hero/award-kiria.jpg
+      caption_ko: 휴머노이드 리얼-월드 챌린지 1위 (2026)
+      caption_en: 1st place, Humanoid Real-World Challenge (2026)
+    - image: /images/aiworker.jpg
+      position: center 12%
+      caption_ko: 세미 휴머노이드 AI Worker
+      caption_en: Semi-humanoid AI Worker
+    - image: /images/omy.jpg
+      position: center 60%
+      caption_ko: 모방학습 데이터 수집용 매니퓰레이터 OMY
+      caption_en: OMY manipulator for imitation-learning data collection
+    - image: /images/openarm.jpg
+      position: center 35%
+      caption_ko: 오픈소스 7-DOF 로봇 팔 OpenArm
+      caption_en: OpenArm, an open-source 7-DOF robot arm
   lead_ko: >-
     로봇 팔부터 이동형 매니퓰레이터, 휴머노이드까지 — 동적인 환경에서 스스로 작업하는 로봇을 연구합니다.
   lead_en: >-

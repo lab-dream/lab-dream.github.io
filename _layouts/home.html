@@ -23,8 +23,33 @@ layout: default
           <a class="btn btn--line" href="{{ t.prefix | append: '/contact/' | relative_url }}">{{ t.home.cta_join }}</a>
         </div>
       </div>
-      <figure class="hero__media">
-        <img src="{{ h.hero.image | relative_url }}" alt="{{ h.hero.image_alt }}" width="2000" height="1500" fetchpriority="high">
+      {%- assign slides = h.hero.slides %}
+      <figure class="hero__media gallery" data-gallery aria-roledescription="carousel" aria-label="{{ t.home.gallery_label }}">
+        <div class="gallery__viewport">
+          {%- for sl in slides %}
+          {%- capture cap %}{% include tr.html obj=sl key="caption" %}{% endcapture %}
+          <div class="gallery__slide{% if forloop.first %} is-active{% endif %}" role="group" aria-roledescription="slide"
+               aria-label="{{ t.home.gallery_photo }} {{ forloop.index }} / {{ slides.size }}" data-caption="{{ cap | strip | escape }}"{% unless forloop.first %} aria-hidden="true"{% endunless %}>
+            <img src="{{ sl.image | relative_url }}" alt="{{ cap | strip | escape }}" style="object-position: {{ sl.position | default: 'center' }}"
+                 {% if forloop.first %}fetchpriority="high"{% else %}loading="lazy"{% endif %}>
+          </div>
+          {%- endfor %}
+          {%- if slides.size > 1 %}
+          {%- capture first_cap %}{% include tr.html obj=slides.first key="caption" %}{% endcapture %}
+          <figcaption class="gallery__bar">
+            <span class="gallery__caption" aria-live="polite">{{ first_cap | strip }}</span>
+            <span class="gallery__controls">
+              <button class="gallery__btn" type="button" data-prev aria-label="{{ t.home.gallery_prev }}">‹</button>
+              <span class="gallery__dots">
+                {%- for sl in slides %}
+                <button class="gallery__dot" type="button" data-go="{{ forloop.index0 }}" aria-label="{{ t.home.gallery_photo }} {{ forloop.index }}"{% if forloop.first %} aria-current="true"{% endif %}></button>
+                {%- endfor %}
+              </span>
+              <button class="gallery__btn" type="button" data-next aria-label="{{ t.home.gallery_next }}">›</button>
+            </span>
+          </figcaption>
+          {%- endif %}
+        </div>
       </figure>
     </div>
   </div>

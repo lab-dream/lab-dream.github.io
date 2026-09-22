@@ -16,10 +16,12 @@ GitHub Pages가 기본 제공하는 Jekyll로 빌드되므로 **별도 빌드 �
 | 논문 목록 | `_data/publications.yml` |
 | 구성원 (입학·졸업 포함) | `_data/members.yml` |
 | 뉴스 | `_data/news.yml` |
+| 언론 보도 | `_data/press.yml` |
+| 연구실 수상 실적 | `_data/awards.yml` |
 | 연구 주제 / 과제 | `_data/research.yml`, `_data/projects.yml` |
 | 세미나·행사 | `_data/events.yml` |
 | 유튜브 영상 | `_data/videos.yml` |
-| 홈 화면 문구, 모집 공고, 연구 분야 | `_data/home.yml` |
+| 홈 화면 문구, 첫 화면 사진 슬라이드, 모집 공고, 연구 분야 | `_data/home.yml` |
 | 모집 분야, 지원 방법 | `_data/contact.yml` |
 | RO:BIT 페이지 문구 | `_data/robit.yml` |
 | 구성원 그룹 제목·순서 | `_data/member_groups.yml` |
@@ -29,6 +31,12 @@ GitHub Pages가 기본 제공하는 Jekyll로 빌드되므로 **별도 빌드 �
 | 브랜드 컬러·폰트 | `assets/css/main.css` 맨 위 `:root` |
 
 이미지는 `assets/img/` 아래 폴더(`members/`, `pubs/`, `research/`, `photos/`)에 넣고 YAML에 경로를 적습니다.
+
+### 신입생·인턴 가이드 (`/intern_info/`)
+
+가이드는 자체 디자인을 쓰는 별도 페이지(`intern_info/index.html`)입니다.
+**수상 실적 · 수행 과제 · 관련 기사 · 구성원 · 주요 논문 · 모집 공고**는 위 `_data/` 파일에서 자동으로 불러오므로
+홈페이지와 한 번에 갱신됩니다. 생활 규칙, 연구장비, 연구 방법 같은 가이드 전용 내용은 이 파일에서 직접 고칩니다.
 
 ---
 

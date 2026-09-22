@@ -252,6 +252,35 @@ html[lang="ko"] .page-head h1 { font-weight: 600; letter-spacing: -.035em; }
   border-radius: 18px; box-shadow: 0 30px 80px rgba(0, 0, 0, .45);
 }
 
+/* hero gallery — 사진이 겹쳐 있다가 크로스페이드로 넘어갑니다 */
+.gallery__viewport {
+  position: relative; aspect-ratio: 4 / 3; border-radius: 18px; overflow: hidden;
+  background: var(--wine); box-shadow: 0 30px 80px rgba(0, 0, 0, .45);
+}
+.gallery__slide { position: absolute; inset: 0; opacity: 0; transition: opacity .9s var(--ease); }
+.gallery__slide.is-active { opacity: 1; }
+.gallery__slide img { width: 100%; height: 100%; aspect-ratio: auto; object-fit: cover; border-radius: 0; box-shadow: none; }
+.gallery__bar {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 2;
+  display: flex; align-items: flex-end; justify-content: space-between; gap: 16px;
+  padding: 48px 18px 16px; background: linear-gradient(180deg, transparent 0%, rgba(20, 6, 10, .72) 100%);
+  color: #fff;
+}
+.gallery__caption { font-size: 13.5px; font-weight: 500; line-height: 1.45; color: rgba(255, 255, 255, .92); text-shadow: 0 1px 8px rgba(0, 0, 0, .35); }
+.gallery__controls {
+  flex: none; display: inline-flex; align-items: center; gap: 6px; padding: 5px 6px; border-radius: 999px;
+  background: rgba(42, 12, 20, .55); border: 1px solid rgba(230, 214, 179, .28);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+}
+.gallery__btn {
+  width: 28px; height: 28px; border-radius: 50%; border: 0; background: transparent; cursor: pointer;
+  color: var(--champagne-light); font-size: 20px; line-height: 1; display: grid; place-items: center; padding: 0 0 2px;
+}
+.gallery__btn:hover { background: rgba(230, 214, 179, .15); }
+.gallery__dots { display: inline-flex; gap: 6px; padding: 0 2px; }
+.gallery__dot { width: 7px; height: 7px; padding: 0; border: 0; border-radius: 999px; cursor: pointer; background: rgba(230, 214, 179, .45); transition: width .3s var(--ease), background .3s; }
+.gallery__dot[aria-current="true"] { width: 20px; background: var(--champagne); }
+
 /* ---------- Home: notice ---------- */
 .notice { background: var(--ivory); border-bottom: 1px solid var(--champagne-line); }
 .notice__inner { display: flex; gap: 22px; align-items: flex-start; padding-top: 22px; padding-bottom: 22px; }
@@ -445,6 +474,42 @@ html[lang="ko"] .prof__cols h3 { letter-spacing: .04em; font-size: 13px; }
 .project__desc { color: var(--ink-soft); font-size: 15px; }
 .project__members { font-size: 14.5px; color: var(--stone); }
 .project__members a { color: var(--ink-soft); font-weight: 600; }
+.project__official { font-size: 14.5px; font-weight: 600; color: var(--ink-soft); line-height: 1.5; }
+.project__facts { display: flex; flex-wrap: wrap; gap: 4px 18px; font-size: 13.5px; color: var(--stone); }
+.project__facts b { color: var(--champagne-ink); font-weight: 700; margin-right: 6px; }
+.project__desc { font-size: 14.5px; line-height: 1.7; }
+
+/* ---------- Awards & press (News page) ---------- */
+.award-cards { display: grid; gap: 24px; }
+.award-card { background: #fff; border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow); border: 1px solid var(--champagne-line); }
+.award-card--media { display: grid; grid-template-columns: 1.1fr 1fr; }
+.award-card__media img { width: 100%; height: 100%; min-height: 280px; object-fit: cover; }
+.award-card__body { padding: 32px 36px; display: grid; gap: 10px; align-content: center; }
+.award-card__meta { font-size: 12.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--champagne-ink); }
+html[lang="ko"] .award-card__meta { letter-spacing: .02em; font-size: 13px; }
+.award-card h3 { font-family: var(--font-display); font-size: 28px; font-weight: 500; line-height: 1.25; }
+html[lang="ko"] .award-card h3 { font-weight: 700; letter-spacing: -.03em; }
+.award-card__rank { display: inline-block; font-family: var(--font-sans); font-size: 14px; font-weight: 800; letter-spacing: .04em; color: var(--wine); background: var(--champagne-grad); padding: 5px 10px; border-radius: 6px; vertical-align: 5px; margin-right: 6px; }
+.award-card__highlight { font-weight: 600; color: var(--burgundy); }
+.award-card__desc { color: var(--ink-soft); font-size: 15px; }
+.award-card__team { font-size: 14.5px; color: var(--stone); }
+.award-card__team b { color: var(--champagne-ink); margin-right: 4px; }
+.award-card__team a { color: var(--ink-soft); font-weight: 600; }
+
+.press-list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
+.press-item { display: grid; grid-template-columns: 110px 1fr auto; gap: 4px 24px; align-items: baseline; padding: 15px 0; border-bottom: 1px solid var(--line); }
+.press-item__date { font-size: 14px; color: var(--stone); font-variant-numeric: tabular-nums; }
+.press-item__title { font-weight: 600; color: var(--ink); }
+.press-item__title:hover { color: var(--burgundy); }
+.press-item__title::after { content: " ↗"; color: var(--champagne-ink); font-weight: 500; }
+.press-item__outlet { font-size: 13.5px; color: var(--stone); white-space: nowrap; }
+
+/* ---------- Guide link (contact page) ---------- */
+.guide-card { display: grid; grid-template-columns: 1fr auto; gap: 16px 32px; align-items: center; background: var(--wine); color: #fff; border-radius: var(--radius-lg); padding: 32px 36px; }
+.guide-card .eyebrow { color: var(--champagne); }
+.guide-card h2 { color: #fff; font-family: var(--font-display); font-size: 28px; font-weight: 500; }
+html[lang="ko"] .guide-card h2 { font-weight: 700; letter-spacing: -.03em; }
+.guide-card p { color: rgba(255, 255, 255, .75); margin-top: 8px; }
 
 /* ---------- Videos ---------- */
 .video-feature { display: grid; grid-template-columns: 1.4fr 1fr; gap: 40px; align-items: center; margin-bottom: 40px; }
@@ -597,11 +662,21 @@ html[lang="ko"] .award__result { letter-spacing: .02em; font-size: 13.5px; }
   .contact-rows li { grid-template-columns: 1fr; gap: 0; }
   .cv-list li { grid-template-columns: 1fr; gap: 0; }
   .award { grid-template-columns: 1fr; gap: 6px; }
+  .award-card--media { grid-template-columns: 1fr; }
+  .award-card__media img { min-height: 0; aspect-ratio: 16 / 9; }
+  .award-card__body { padding: 24px; }
+  .press-item { grid-template-columns: 1fr; gap: 2px; }
+  .press-item__outlet { white-space: normal; }
+  .guide-card { grid-template-columns: 1fr; padding: 26px 24px; }
   .award__links { justify-content: flex-start; }
   .section-head { flex-direction: column; align-items: flex-start; }
   .card { padding: 24px; }
 }
 
+@media (max-width: 600px) {
+  .gallery__caption { font-size: 12.5px; }
+  .gallery__bar { padding: 40px 12px 12px; }
+}
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; }
 }

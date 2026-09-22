@@ -2,31 +2,13 @@
 #  News  —  날짜순으로 자동 정렬되므로 어디에 추가해도 됩니다. (맨 위 추가 권장)
 #
 #  date    : YYYY-MM-DD (따옴표 없이)
-#  tag     : paper | grant | member | award | event | media | etc
+#  tag     : paper | grant | member | award | event | etc
+#            (언론 보도는 press.yml, 수상 상세는 awards.yml 에 적습니다)
 #  text_ko : 한국어 페이지 문구     text_en : 영어 페이지 문구
 #            (한쪽만 적으면 두 페이지 모두 그 문구를 씁니다)
 #            마크다운 사용 가능 → [링크 글자](https://...), **굵게**, *강조*
 #            사이트 안 페이지는 /로 시작해서 적습니다 → [안내 페이지](/ros2_special_lecture/)
 # ─────────────────────────────────────────────────────────────
-
-- date: 2026-09-18
-  tag: media
-  text_ko: >-
-    박수한 교수의 '강화학습' 수업(매주 AI 퀴즈를 운영하고 학생 질문을 다음 수업에 반영)이 광운대 AI 활용 수업 혁신 사례로
-    소개되었습니다. [서울신문](https://www.seoul.co.kr/news/society/2026/09/18/20260918500070)
-  text_en: >-
-    Prof. Suhan Park's Reinforcement Learning course, which runs weekly AI quizzes and feeds students' questions into the
-    next lecture, was featured as one of Kwangwoon's innovative AI-enabled courses.
-    [Seoul Shinmun](https://www.seoul.co.kr/news/society/2026/09/18/20260918500070)
-
-- date: 2026-09-17
-  tag: media
-  text_ko: >-
-    로봇신문 '젊은 로봇 공학자' 시리즈에 박수한 교수와 DREAM Lab.의 연구가 소개되었습니다.
-    [로봇신문](https://www.irobotnews.com/news/articleView.html?idxno=48517)
-  text_en: >-
-    Prof. Suhan Park and DREAM Lab.'s research were featured in The Robot Times' “Young Robot Engineers” series.
-    [The Robot Times](https://www.irobotnews.com/news/articleView.html?idxno=48517)
 
 - date: 2026-09-07
   tag: event
@@ -37,32 +19,14 @@
     Invited talk for our internship program: “Reproducible ROS 2 Systems — From Trial and Error to Research”
     (Sanghoon Lee, Ph.D., DGIST). [Event page](/ros2_special_lecture/)
 
-- date: 2026-06-10
-  tag: media
+- date: 2026-04-10
+  tag: award
   text_ko: >-
-    Korea JoongAng Daily가 원격조작으로 휴머노이드에게 오토배거 작업을 학습시키는 연구실 현장을 보도했습니다.
-    [Korea JoongAng Daily](https://www.koreajoongangdaily.com/business/humanoid-robots-clock-in-at-korean-warehouses/12697218)
+    한국로봇산업진흥원(KIRIA) **휴머노이드 리얼-월드 챌린지 1위**를 차지했습니다 — 롯데글로벌로지스 현장에서
+    휴머노이드 '이그리스'로 의류 포장을 자동화한 실증입니다. 🏆 [로봇신문](https://www.irobotnews.com/news/articleView.html?idxno=45849)
   text_en: >-
-    Korea JoongAng Daily covered our lab training a humanoid to run an auto-bagger via VR teleoperation.
-    [Korea JoongAng Daily](https://www.koreajoongangdaily.com/business/humanoid-robots-clock-in-at-korean-warehouses/12697218)
-
-- date: 2026-02-01
-  tag: media
-  text_ko: >-
-    ZDNet Korea 인터뷰 — 물류 휴머노이드 실증의 의미와 로봇 행동 데이터 확보 과제에 대해 박수한 교수가 이야기했습니다.
-    [ZDNet Korea](https://zdnet.co.kr/view/?no=20260130175034)
-  text_en: >-
-    ZDNet Korea interview — Prof. Park on what the logistics humanoid demonstration means and the challenge of
-    collecting robot behavior data. [ZDNet Korea](https://zdnet.co.kr/view/?no=20260130175034)
-
-- date: 2026-01-29
-  tag: media
-  text_ko: >-
-    연구실에서 진행한 휴머노이드 의류 포장(오토배거) 실증이 보도되었습니다.
-    [ZDNet Korea](https://zdnet.co.kr/view/?no=20260129112257)
-  text_en: >-
-    Our humanoid garment-packing (auto-bagger) demonstration was covered by the press.
-    [ZDNet Korea](https://zdnet.co.kr/view/?no=20260129112257)
+    DREAM Lab. won **1st place at the KIRIA Humanoid Real-World Challenge** for automating garment packing with
+    the humanoid IGRIS at a Lotte Global Logistics site. 🏆 [The Robot Times](https://www.irobotnews.com/news/articleView.html?idxno=45849)
 
 - date: 2026-01-22
   tag: event
@@ -73,17 +37,6 @@
     **ROSCon Korea 2026**, Korea's first official ROS developer conference, chaired by Prof. Suhan Park, was held at
     Kwangwoon University's Pangyo Campus.
     [The Korea Times](https://www.koreatimes.co.kr/southkorea/20260129/kwangwoon-university-hosts-robot-developer-conference)
-
-- date: 2026-01-14
-  tag: media
-  text_ko: >-
-    롯데글로벌로지스·로브로스와 함께하는 이족보행 AI 휴머노이드 물류 실증이 공개되었습니다. DREAM Lab.은 물류 현장 맞춤
-    행동 조작을 맡아, 휴머노이드가 오토배거로 의류를 포장하는 작업을 수행했습니다.
-    [머니투데이](https://www.mt.co.kr/industry/2026/01/14/2026011414554852105)
-  text_en: >-
-    The bipedal AI humanoid logistics demonstration with Lotte Global Logistics and ROBROS was unveiled. DREAM Lab. leads
-    logistics-specific manipulation, with the humanoid packing garments using an auto-bagger.
-    [Money Today](https://www.mt.co.kr/industry/2026/01/14/2026011414554852105)
 
 - date: 2025-11-26
   tag: grant
@@ -184,15 +137,6 @@
   tag: member
   text_ko: 손동우 학생이 연구실에 합류했습니다! 👋
   text_en: Dongwoo Son joined our lab! 👋
-
-- date: 2025-03-17
-  tag: media
-  text_ko: >-
-    광운대 소식지에 인터뷰 “로봇게임단 단원에서 이제는 교수로, 박수한 교수”가 실렸습니다.
-    [광운대학교](https://www.kw.ac.kr/ko/life/newsletter.jsp?BoardMode=view&DUID=49635)
-  text_en: >-
-    Kwangwoon University's newsletter interviewed Prof. Park: “From RO:BIT member to professor.”
-    [Kwangwoon University](https://www.kw.ac.kr/ko/life/newsletter.jsp?BoardMode=view&DUID=49635)
 
 - date: 2025-03-01
   tag: etc

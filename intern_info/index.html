@@ -1,3 +1,12 @@
+---
+# 신입생·인턴 가이드 — 자체 디자인을 쓰므로 사이트 레이아웃은 쓰지 않습니다 (layout: null).
+# 수상 실적 / 수행 과제 / 관련 기사 / 구성원 / 주요 논문 / 모집 공고는 _data/ 파일에서 불러옵니다.
+# 나머지(생활 규칙, 연구장비, 연구 방법 등)는 이 파일에서 직접 수정하세요.
+layout: null
+lang: ko
+title: 신입생 가이드
+permalink: /intern_info/
+---
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -737,7 +746,7 @@
   <button class="hamburger" id="menuBtn" aria-label="메뉴 열기">
     <span></span><span></span><span></span>
   </button>
-  <div class="logo">LAB<span>://</span>DREAM</div>
+  <a class="logo" href="{{ '/ko/' | relative_url }}" style="text-decoration:none;" title="DREAM Lab. 홈페이지로">LAB<span>://</span>DREAM</a>
   <div class="header-divider"></div>
   <div class="header-title">신입생 연구실 가이드</div>
   <button class="theme-toggle" id="themeToggle" aria-label="테마 전환">🌙</button>
@@ -834,7 +843,7 @@
         <h1>연구실에 오신 것을<br /><em>환영합니다</em></h1>
         <p>이 Wiki는 로보틱스 연구실에서의 첫 발걸음을 돕기 위해 만들어졌습니다. 연구실 생활부터 논문 작성까지, 필요한 모든 정보를 한 곳에서 찾아보세요.</p>
         <div class="hero-meta">
-          <div class="hero-chip">🌐 <strong>www.lab-dream.xyz</strong></div>
+          <div class="hero-chip">🌐 <strong>{{ site.url | remove: 'https://' | remove: 'http://' }}</strong></div>
           <div class="hero-chip">📍 <strong>로보틱스 연구실</strong></div>
           <div class="hero-chip">🔖 <strong>신입 대학원생 가이드</strong></div>
         </div>
@@ -949,206 +958,109 @@
     <div class="page" id="page-awards">
       <div class="page-header">
         <div class="breadcrumb">연구실 안내 / 수상 실적</div>
-        <h2>수상 실적</h2>
-        <p>DREAM Lab의 대회 수상 및 주요 성과 기록입니다.</p>
-      </div>
 
-      <!-- ── 1위 카드 ── -->
-      <div style="
-        background: linear-gradient(135deg, var(--surface) 0%, var(--surface2) 100%);
-        border: 2px solid var(--accent);
-        border-radius: 14px;
-        overflow: hidden;
-        margin-bottom: 24px;
-        box-shadow: var(--shadow-lg);
-        position: relative;
-      ">
-        <!-- 트로피 배지 -->
-        <div style="
-          position: absolute;
-          top: 20px; right: 24px;
-          font-size: 56px;
-          opacity: 0.15;
-          user-select: none;
-          pointer-events: none;
-        ">🏆</div>
-
-        <!-- 1위 배너 -->
-        <div style="
-          background: var(--accent);
-          padding: 10px 24px;
-          display: flex;
-          align-items: center;
-          gap: 12px;
-        ">
-          <span style="font-family:var(--mono); font-size:13px; font-weight:700; color:var(--bg); letter-spacing:.06em;">🥇 1ST PLACE</span>
-          <span style="font-family:var(--mono); font-size:11px; color:var(--bg); opacity:.75;">2026.04.10 · 서울 명동</span>
+      {%- comment %} 수상 실적 — _data/awards.yml 에서 불러옵니다 (홈페이지 News 페이지와 공유) {% endcomment %}
+      {%- assign awards = site.data.awards | sort: "date" | reverse %}
+      {%- for a in awards %}
+      <div style="background: linear-gradient(135deg, var(--surface) 0%, var(--surface2) 100%); border: 2px solid var(--accent); border-radius: 14px; overflow: hidden; margin-bottom: 24px; box-shadow: var(--shadow-lg); position: relative;">
+        <div style="position: absolute; top: 20px; right: 24px; font-size: 56px; opacity: 0.15; user-select: none; pointer-events: none;">🏆</div>
+        <div style="background: var(--accent); padding: 10px 24px; display: flex; align-items: center; gap: 12px;">
+          <span style="font-family:var(--mono); font-size:13px; font-weight:700; color:var(--bg); letter-spacing:.06em;">🥇 {{ a.rank_en | upcase }}</span>
+          <span style="font-family:var(--mono); font-size:11px; color:var(--bg); opacity:.75;">{{ a.date | replace: "-", "." }}{% if a.place_ko %} · {{ a.place_ko }}{% endif %}</span>
         </div>
-
         <div style="padding: 28px 28px 24px;">
-          <div style="font-family:var(--mono); font-size:11px; color:var(--accent); letter-spacing:.1em; margin-bottom:10px; text-transform:uppercase;">KIRIA · 한국로봇산업진흥원</div>
-          <div style="font-family:var(--head); font-size:22px; font-weight:700; color:var(--text); line-height:1.3; margin-bottom:6px;">
-            휴머노이드 리얼-월드 챌린지 <span style="color:var(--accent);">1위</span>
+          <div style="font-family:var(--mono); font-size:11px; color:var(--accent); letter-spacing:.1em; margin-bottom:10px; text-transform:uppercase;">{{ a.organizer_ko }}</div>
+          <div style="font-family:var(--head); font-size:22px; font-weight:700; color:var(--text); line-height:1.3; margin-bottom:6px;">{{ a.title_ko }} <span style="color:var(--accent);">{{ a.rank_ko }}</span></div>
+          <div style="font-family:var(--mono); font-size:12px; color:var(--text-muted); margin-bottom:6px;">{{ a.title_en }} · 광운대학교 DREAM Lab. 연구실 팀</div>
+          {%- if a.highlight_ko %}
+          <div style="font-size:13.5px; color:var(--accent); font-weight:600; margin-bottom:20px;">🌍 {{ a.highlight_ko }}</div>
+          {%- endif %}
+          {%- if a.image %}
+          <div style="width:100%; aspect-ratio:16/9; border-radius:10px; overflow:hidden; margin-bottom:22px;">
+            <img src="{{ a.image | relative_url }}" alt="{{ a.title_ko }} 수상" style="display:block; width:100%; height:100%; object-fit:cover;" loading="lazy">
           </div>
-          <div style="font-family:var(--mono); font-size:12px; color:var(--text-muted); margin-bottom:6px;">Humanoid Real-World Challenge · 광운대학교 DREAM Lab. 연구실 팀</div>
-          <div style="font-size:13.5px; color:var(--accent); font-weight:600; margin-bottom:20px;">🌍 세계 최초로 공개된 이족 보행 및 Physical AI 기반 의류 포장 자동화 사례</div>
-
-          <!-- 사진 placeholder -->
-          <div id="award-photo-wrap" style="
-            width: 100%;
-            aspect-ratio: 16/9;
-            background: var(--surface2);
-            border: 1px dashed var(--border);
-            border-radius: 10px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            margin-bottom: 22px;
-            color: var(--text-muted);
-            font-size: 13px;
-            overflow: hidden;
-            position: relative;
-          ">
-            <img src="images/award_kiria.jpg"
-              alt="휴머노이드 리얼-월드 챌린지 수상"
-              id="award-photo"
-              style="display:none; width:100%; height:100%; object-fit:cover; border-radius:10px;"
-              onload="
-                this.style.display='block';
-                document.getElementById('award-photo-placeholder').style.display='none';
-                var w=document.getElementById('award-photo-wrap');
-                w.style.background='none';
-                w.style.border='none';
-              "
-            />
-            <div id="award-photo-placeholder" style="display:flex; flex-direction:column; align-items:center; gap:8px;">
-              <span style="font-size:32px;">📷</span>
-              <span style="font-family:var(--mono); font-size:11px;">images/award_kiria.jpg</span>
-            </div>
-          </div>
-
-          <p style="font-size:14.5px; color:var(--text-dim); line-height:1.85; margin:0;">
-            한국로봇산업진흥원(KIRIA)이 주관한 '휴머노이드 리얼-월드 챌린지'에서 광운대 DREAM Lab 팀이 <strong style="color:var(--text);">1위</strong>를 차지했습니다. 롯데글로벌로지스 물류 현장에서 ROBROS 휴머노이드 로봇 '이그리스'를 활용해 의류 포장 작업을 수행한 실증 사례로 높은 평가를 받았습니다. 실제 산업 현장에서 휴머노이드 로봇이 비정형 조작 작업을 수행한 대표적인 사례입니다.
-          </p>
-
+          {%- endif %}
+          {%- if a.description_ko %}
+          <p style="font-size:14.5px; color:var(--text-dim); line-height:1.85; margin:0;">{{ a.description_ko }}</p>
+          {%- endif %}
+          {%- if a.members %}
           <div style="margin-top:16px; background:var(--surface2); border:1px solid var(--border-light); border-radius:8px; padding:14px 18px;">
             <div style="font-family:var(--mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--text-muted); margin-bottom:8px;">참여 학생</div>
             <div style="display:flex; flex-wrap:wrap; gap:8px;">
-              <span class="tag green">손동우</span>
-              <span class="tag green">안준호</span>
-              <span class="tag green">선찬우</span>
-              <span class="tag green">이진우</span>
+              {%- for name in a.members %}{% assign mm = site.data.members | where: "name", name | first %}
+              <span class="tag green">{{ mm.name_ko | default: name }}</span>
+              {%- endfor %}
             </div>
           </div>
-
+          {%- endif %}
           <div style="margin-top:18px; display:flex; flex-wrap:wrap; gap:8px;">
-            <span class="tag green">🥇 1위</span>
-            <span class="tag blue">ROBROS IGRIS C</span>
-            <span class="tag blue">롯데글로벌로지스</span>
-            <span class="tag blue">의류 포장 자동화</span>
-            <span class="tag blue">Manipulation</span>
+            <span class="tag green">🥇 {{ a.rank_ko }}</span>
+            {%- for tg in a.tags %}
+            <span class="tag blue">{{ tg }}</span>
+            {%- endfor %}
           </div>
-
-          <div style="margin-top:18px;">
-            <a class="equip-card-link" href="https://www.irobotnews.com/news/articleView.html?idxno=45849" target="_blank" style="font-size:12px;">📰 관련 기사 (로봇신문)</a>
-          </div>
+          {%- if a.url %}
+          <div style="margin-top:18px;"><a class="equip-card-link" href="{{ a.url }}" target="_blank" style="font-size:12px;">📰 관련 기사</a></div>
+          {%- endif %}
         </div>
       </div>
-
+      {%- endfor %}
     </div>
 
     <div class="page" id="page-projects">
       <div class="page-header">
         <div class="breadcrumb">연구실 안내 / 수행 과제</div>
-        <h2>수행 과제</h2>
-        <p>DREAM Lab에서 현재 진행 중이거나 완료한 국가 연구 과제입니다.</p>
-      </div>
 
-      <!-- ── 과제 1 ── -->
+      {%- comment %} 수행 과제 — _data/projects.yml 에서 불러옵니다 (홈페이지 Research 페이지와 공유) {% endcomment %}
+      {%- for pr in site.data.projects %}
       <div class="equip-card" style="margin-bottom:20px;">
         <div class="equip-card-body">
           <div class="equip-card-header">
-            <div class="equip-card-title">🦿 다중 이기종 휴머노이드 군집 자율 작업 프레임워크 개발</div>
-            <span class="tag green">진행 중</span>
-          </div>
-          <div style="margin-bottom:12px;">
-            <div style="font-size:12.5px; color:var(--text-muted); font-family:var(--mono); margin-bottom:4px;">Development of Autonomous Task Distribution and Physical Collaboration Framework for Multi Heterogeneous Humanoid Robots</div>
-          </div>
-          <table class="wiki-table" style="margin:0 0 14px;">
-            <tbody>
-              <tr><td style="width:110px; font-family:var(--mono); font-size:12px; color:var(--text-muted);">재원</td><td>한국연구재단 (NRF)</td></tr>
-              <tr><td style="font-family:var(--mono); font-size:12px; color:var(--text-muted);">기간</td><td>2026.04.01 ~ 2030.12.31</td></tr>
-            </tbody>
-          </table>
-          <div class="equip-card-desc">
-            다중 휴머노이드 로봇이 물류·제조·재난 등 인간 중심의 복합 환경에서 LLM 기반 자연어 명령을 스스로 해석·이해하고, 실시간 센서 데이터 공유 기반 집단 지각(Swarm Perception) 및 에이전틱 AI(Agentic AI) 기술을 활용해 자율적으로 임무를 분해·배분·행동하는 지각-이해-협업 연계형 군집 로봇 자율 제어 지능 플랫폼 개발 및 실현장 실증을 목표로 합니다.
-          </div>
-          <div class="equip-card-tags">
-            <span class="tag blue">Swarm Robotics</span>
-            <span class="tag blue">Agentic AI</span>
-            <span class="tag blue">LLM</span>
-            <span class="tag blue">Humanoid</span>
-            <span class="tag green">2026~2030</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- ── 과제 2 ── -->
-      <div class="equip-card" style="margin-bottom:20px;">
-        <div class="equip-card-body">
-          <div class="equip-card-header">
-            <div class="equip-card-title">🤖 AI 파운데이션 모델 기반 유통 공정 특화 휴머노이드 로봇 개발</div>
-            <span class="tag green">진행 중</span>
-          </div>
-          <div style="margin-bottom:12px;">
-            <div style="font-size:12.5px; color:var(--text-muted); font-family:var(--mono); margin-bottom:4px;">Development of AI Foundation Model-Based Humanoid Robots Specialized for Distribution Processes</div>
-          </div>
-          <table class="wiki-table" style="margin:0 0 14px;">
-            <tbody>
-              <tr><td style="width:110px; font-family:var(--mono); font-size:12px; color:var(--text-muted);">재원</td><td>한국산업기술기획평가원 (KEIT) · 산업통상자원부</td></tr>
-              <tr><td style="font-family:var(--mono); font-size:12px; color:var(--text-muted);">기간</td><td>2025.09.01 ~ 2028.12.31</td></tr>
-            </tbody>
-          </table>
-          <div class="equip-card-desc">
-            AI 파운데이션 모델 기반 유통 공정 특화 휴머노이드 로봇 시스템(AI Worker) 개발 및 Vision-Language-Action(VLA)·Physical AI 기술 적용을 통해, 실제 유통 물류센터 환경의 수작업 공정 자동화를 실증합니다.
-          </div>
-          <div class="equip-card-tags">
-            <span class="tag blue">VLA</span>
-            <span class="tag blue">Physical AI</span>
-            <span class="tag blue">AI Worker</span>
-            <span class="tag blue">물류 자동화</span>
-            <span class="tag green">2025~2028</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- ── 과제 3 ── -->
-      <div class="equip-card" style="margin-bottom:20px;">
-        <div class="equip-card-body">
-          <div class="equip-card-header">
-            <div class="equip-card-title">🦾 AI 이족 보행 휴머노이드의 초기 실증 및 상용화 가능성 연구</div>
+            <div class="equip-card-title">{% if pr.icon %}{{ pr.icon }} {% endif %}{{ pr.official_title_ko | default: pr.title_ko | default: pr.title }}</div>
+            {%- if pr.status == "completed" %}
             <span class="tag blue">완료</span>
+            {%- else %}
+            <span class="tag green">진행 중</span>
+            {%- endif %}
           </div>
-          <table class="wiki-table" style="margin:12px 0 14px;">
+          {%- if pr.official_title_en %}
+          <div style="margin-bottom:12px;">
+            <div style="font-size:12.5px; color:var(--text-muted); font-family:var(--mono); margin-bottom:4px;">{{ pr.official_title_en }}</div>
+          </div>
+          {%- endif %}
+          <table class="wiki-table" style="margin:0 0 14px;">
             <tbody>
-              <tr><td style="width:110px; font-family:var(--mono); font-size:12px; color:var(--text-muted);">재원</td><td>한국로봇산업진흥원 (KIRIA) · 산업통상자원부</td></tr>
-              <tr><td style="font-family:var(--mono); font-size:12px; color:var(--text-muted);">기간</td><td>2025.09.01 ~ 2025.12.31</td></tr>
+              {%- if pr.agency_ko %}
+              <tr><td style="width:110px; font-family:var(--mono); font-size:12px; color:var(--text-muted);">재원</td><td>{{ pr.agency_ko }}</td></tr>
+              {%- else %}
+              <tr><td style="width:110px; font-family:var(--mono); font-size:12px; color:var(--text-muted);">지원</td><td>{{ pr.sponsors | join: ", " }}</td></tr>
+              {%- endif %}
+              {%- if pr.period %}
+              <tr><td style="font-family:var(--mono); font-size:12px; color:var(--text-muted);">기간</td><td>{{ pr.period }}</td></tr>
+              {%- endif %}
+              {%- if pr.members %}
+              <tr><td style="font-family:var(--mono); font-size:12px; color:var(--text-muted);">참여</td><td>
+                {%- for name in pr.members %}{% assign mm = site.data.members | where: "name", name | first %}{{ mm.name_ko | default: name }}{% unless forloop.last %}, {% endunless %}{% endfor -%}
+              </td></tr>
+              {%- endif %}
             </tbody>
           </table>
-          <div class="equip-card-desc">
-            AI 기반 이족보행 휴머노이드 로봇을 3개 대학에 보급하고, 각 대학이 수요기업의 작업 환경과 요구사항에 기반한 실증을 수행하여 초기 성능·안전성을 검증합니다. 실증 과정에서 수집된 데이터를 분석해 상용화 가능성을 평가하고, 안전 규제 관련 시사점을 도출합니다. 이를 통해 국내 AI 휴머노이드 기술의 신뢰성을 확보하고, 대학·기업 간 협력 기반 실증 연구 모델 구축 및 기술 표준화 논의의 기반을 마련합니다.
-          </div>
+          {%- if pr.description_ko %}
+          <div class="equip-card-desc">{{ pr.description_ko }}</div>
+          {%- endif %}
+          {%- if pr.tags or pr.period %}
           <div class="equip-card-tags">
-            <span class="tag blue">IGRIS C</span>
-            <span class="tag blue">실증</span>
-            <span class="tag blue">Sim-to-Real</span>
-            <span class="tag blue">상용화 검증</span>
+            {%- for tg in pr.tags %}
+            <span class="tag blue">{{ tg }}</span>
+            {%- endfor %}
+            {%- if pr.period %}{% assign y0 = pr.period | slice: 0, 4 %}{% assign y1 = pr.period | split: "~" | last | strip | slice: 0, 4 %}
+            <span class="tag green">{{ y0 }}{% if y1 != y0 %}~{{ y1 }}{% endif %}</span>
+            {%- endif %}
           </div>
+          {%- endif %}
         </div>
       </div>
-
+      {%- endfor %}
       <div class="callout info">
         <span class="callout-icon">ℹ️</span>
         <div class="callout-body">과제 참여나 세부 내용 문의는 교수님 또는 담당 선배에게 연락하세요.</div>
@@ -1167,7 +1079,7 @@
 
       <div class="callout tip">
         <span class="callout-icon">🌐</span>
-        <div class="callout-body">공식 홈페이지: <a href="http://www.lab-dream.xyz" class="wiki-link" target="_blank">www.lab-dream.xyz</a></div>
+        <div class="callout-body">공식 홈페이지: <a href="{{ '/ko/' | relative_url }}" class="wiki-link" target="_blank">{{ site.url | remove: 'https://' | remove: 'http://' }}</a></div>
       </div>
 
       <!-- ───── RESEARCH DOMAINS ───── -->
@@ -1306,242 +1218,66 @@
         </div>
       </div>
 
-      <!-- Members -->
+      <!-- Members — _data/members.yml / member_groups.yml 에서 불러옵니다 -->
       <h3>교수</h3>
+      {%- assign profs = site.data.members | where: "group", "professor" %}
+      {%- for m in profs %}
       <div class="profile-strip">
         <div class="profile-avatar">👨‍🔬</div>
         <div class="profile-info">
-          <strong>박수한 (Suhan Park)</strong>
-          <span>지도교수 · <a href="https://sites.google.com/view/suhan-park/" class="wiki-link" target="_blank">개인 홈페이지</a></span>
+          <strong>{{ m.name_ko }} ({{ m.name }})</strong>
+          <span>지도교수{% if m.homepage %} · <a href="{{ m.homepage }}" class="wiki-link" target="_blank">개인 홈페이지</a>{% endif %}</span>
         </div>
       </div>
-
-      <h3>대학원생</h3>
+      {%- endfor %}
+      {%- for g in site.data.member_groups %}
+      {%- assign people = site.data.members | where: "group", g.id %}
+      {%- if people.size > 0 %}
+      <h3>{{ g.title_ko }}</h3>
+      {%- for m in people %}
       <div class="profile-strip">
-        <div class="profile-avatar">🤖</div>
+        <div class="profile-avatar">{% if g.id == "undergraduate" %}🎓{% else %}🤖{% endif %}</div>
         <div class="profile-info">
-          <strong>손동우 (Dongwoo Son)</strong>
-          <span>Imitation Learning · Manipulation · <a href="https://github.com/son-dongwoo" class="wiki-link" target="_blank">GitHub</a></span>
+          <strong>{% if m.name_ko %}{{ m.name_ko }} ({{ m.name }}){% else %}{{ m.name }}{% endif %}</strong>
+          <span>{{ m.interests | join: " · " }}{% if m.github %} · <a href="{{ m.github }}" class="wiki-link" target="_blank">GitHub</a>{% endif %}</span>
         </div>
       </div>
-      <div class="profile-strip">
-        <div class="profile-avatar">🤖</div>
-        <div class="profile-info">
-          <strong>이진우 (Jinwoo Lee)</strong>
-          <span>Model Predictive Control · Whole Body Control · <a href="https://github.com/jinw00-1" class="wiki-link" target="_blank">GitHub</a></span>
-        </div>
-      </div>
-      <div class="profile-strip">
-        <div class="profile-avatar">🤖</div>
-        <div class="profile-info">
-          <strong>선찬우 (Chanwoo Seon)</strong>
-          <span>Reinforcement Learning · Imitation Learning</span>
-        </div>
-      </div>
-      <div class="profile-strip">
-        <div class="profile-avatar">🤖</div>
-        <div class="profile-info">
-          <strong>안준호 (Junho An)</strong>
-          <span>Imitation Learning · Constrained Motion Planning · <a href="https://github.com/AnJunHo98" class="wiki-link" target="_blank">GitHub</a></span>
-        </div>
-      </div>
-      <div class="profile-strip">
-        <div class="profile-avatar">🤖</div>
-        <div class="profile-info">
-          <strong>황영상 (Hwang Young Sang)</strong>
-          <span>Social Robotics · Safe Learning-based Control</span>
-        </div>
-      </div>
-
-      <h3>학부연구생</h3>
-      <div class="profile-strip">
-        <div class="profile-avatar">🎓</div>
-        <div class="profile-info">
-          <strong>오가현 (Gahyun Oh)</strong>
-          <span>Manipulator · Planning &amp; Control · <a href="https://github.com/gahyun0425" class="wiki-link" target="_blank">GitHub</a></span>
-        </div>
-      </div>
-      <div class="profile-strip">
-        <div class="profile-avatar">🎓</div>
-        <div class="profile-info">
-          <strong>문상훈 (Sanghun Moon)</strong>
-          <span>Reinforcement Learning · Robot Locomotion · <a href="https://github.com/moon0108" class="wiki-link" target="_blank">GitHub</a></span>
-        </div>
-      </div>
-      <div class="profile-strip">
-        <div class="profile-avatar">🎓</div>
-        <div class="profile-info">
-          <strong>오서현 (Seohyun Oh)</strong>
-          <span>Model Predictive Control · Human-Robot Interaction · <a href="https://github.com/ohseohyune" class="wiki-link" target="_blank">GitHub</a></span>
-        </div>
-      </div>
+      {%- endfor %}
+      {%- endif %}
+      {%- endfor %}
 
       <div class="callout info">
         <span class="callout-icon">ℹ️</span>
-        <div class="callout-body">최신 구성원 정보는 <a href="https://www.lab-dream.xyz/members" class="wiki-link" target="_blank">공식 홈페이지 Members 페이지</a>를 참조하세요.</div>
+        <div class="callout-body">구성원 사진과 졸업생 정보는 <a href="{{ '/ko/members/' | relative_url }}" class="wiki-link">홈페이지 구성원 페이지</a>를 참조하세요.</div>
       </div>
 
+      <!-- Papers — _data/publications.yml 에서 불러옵니다 (2022년 이후) -->
       <h3>주요 논문</h3>
+      {%- assign pubs_by_year = site.data.publications | group_by: "year" | sort: "name" | reverse %}
+      {%- for yg in pubs_by_year %}
+      {%- assign yr = yg.name | plus: 0 %}
+      {%- if yr >= 2022 %}
 
-      <h4>2026</h4>
+      <h4>{{ yg.name }}</h4>
       <div class="ref-list">
-        <a class="ref-item" href="https://arxiv.org/abs/2603.25298" target="_blank">
+        {%- for pb in yg.items %}
+        {%- assign plink = pb.links.paper | default: pb.links.arxiv | default: pb.links.pdf | default: pb.links.project %}
+        <a class="ref-item" href="{{ plink }}" target="_blank">
           <span class="ref-item-icon">📄</span>
           <div class="ref-item-body">
-            <div class="ref-item-title">Connectivity-Aware Representations for Constrained Motion Planning via Multi-Scale Contrastive Learning</div>
-            <div class="ref-item-url">S Jeon, Y Lim, WJ Baek, H Kim, S Park, J Park · arXiv 2603.25298</div>
+            <div class="ref-item-title">{{ pb.title }}</div>
+            <div class="ref-item-url">{{ pb.authors }} · {{ pb.venue_full | default: pb.venue }} {{ pb.year }}</div>
           </div>
           <span class="ref-item-arrow">↗</span>
         </a>
-        <a class="ref-item" href="https://ieeexplore.ieee.org/" target="_blank">
-          <span class="ref-item-icon">📄</span>
-          <div class="ref-item-body">
-            <div class="ref-item-title">SNU-Avatar Haptic Arm: A Hybrid QDD/DD Operator Interface for Teleoperation</div>
-            <div class="ref-item-url">E Sung, S You, J Shin, S Park, et al. · IEEE Access 2026</div>
-          </div>
-          <span class="ref-item-arrow">↗</span>
-        </a>
-        <a class="ref-item" href="https://www.worldscientific.com/worldscinet/ijhr" target="_blank">
-          <span class="ref-item-icon">📄</span>
-          <div class="ref-item-body">
-            <div class="ref-item-title">Mechanical Design of a Giant Human Riding Biped Humanoid Robot, Method II</div>
-            <div class="ref-item-url">IW Park, J Oh, S Park · International Journal of Humanoid Robotics 2026</div>
-          </div>
-          <span class="ref-item-arrow">↗</span>
-        </a>
+        {%- endfor %}
       </div>
-
-      <h4>2025</h4>
-      <div class="ref-list">
-        <a class="ref-item" href="https://link.springer.com/journal/12555" target="_blank">
-          <span class="ref-item-icon">📄</span>
-          <div class="ref-item-body">
-            <div class="ref-item-title">LiPo: A Lightweight Post-optimization Framework for Smoothing Action Chunks Generated by Learned Policies</div>
-            <div class="ref-item-url">D Son, S Park · International Journal of Control, Automation and Systems 23(11) 2025</div>
-          </div>
-          <span class="ref-item-arrow">↗</span>
-        </a>
-        <a class="ref-item" href="https://arxiv.org/abs/2509.23312" target="_blank">
-          <span class="ref-item-icon">📄</span>
-          <div class="ref-item-body">
-            <div class="ref-item-title">GUARD: Toward a Compromise between Traditional Control and Learning for Safe Robot Systems</div>
-            <div class="ref-item-url">JA Gaus, J Yoon, WJ Baek, S Choi, S Park, J Park · arXiv 2509.23312</div>
-          </div>
-          <span class="ref-item-arrow">↗</span>
-        </a>
-        <a class="ref-item" href="https://link.springer.com/article/10.1007/s12369-024-00182-6" target="_blank">
-          <span class="ref-item-icon">📄</span>
-          <div class="ref-item-body">
-            <div class="ref-item-title">Intuitive and Interactive Robotic Avatar System for Tele-Existence: TEAM SNU in the ANA Avatar XPRIZE Finals</div>
-            <div class="ref-item-url">B Park, D Kim, D Lim, S Park, et al. · International Journal of Social Robotics 17(3) 2025</div>
-          </div>
-          <span class="ref-item-arrow">↗</span>
-        </a>
-      </div>
-
-      <h4>2024</h4>
-      <div class="ref-list">
-        <a class="ref-item" href="https://ieeexplore.ieee.org/document/10423228" target="_blank">
-          <span class="ref-item-icon">📄</span>
-          <div class="ref-item-body">
-            <div class="ref-item-title">A Constrained Motion Planning Method Exploiting Learned Latent Space for High-Dimensional State and Constraint Spaces</div>
-            <div class="ref-item-url">S Park, S Jeon, J Park · IEEE/ASME Transactions on Mechatronics 29(4) 2024</div>
-          </div>
-          <span class="ref-item-arrow">↗</span>
-        </a>
-        <a class="ref-item" href="https://www.kros.org/journal/" target="_blank">
-          <span class="ref-item-icon">📄</span>
-          <div class="ref-item-body">
-            <div class="ref-item-title">Performance Evaluation of Robotic Physics Engine for Mobile Manipulator Simulation</div>
-            <div class="ref-item-url">K Lee, J Yoon, S Park, J Park · Journal of Korea Robotics Society 19(1) 2024</div>
-          </div>
-          <span class="ref-item-arrow">↗</span>
-        </a>
-      </div>
-
-      <h4>2023</h4>
-      <div class="ref-list">
-        <a class="ref-item" href="https://ieeexplore.ieee.org/document/10189633" target="_blank">
-          <span class="ref-item-icon">📄</span>
-          <div class="ref-item-body">
-            <div class="ref-item-title">Dual-channel EtherCAT control system for 33-DOF humanoid robot TOCABI</div>
-            <div class="ref-item-url">J Ahn, S Park, J Sim, J Park · IEEE Access 11 2023</div>
-          </div>
-          <span class="ref-item-arrow">↗</span>
-        </a>
-        <a class="ref-item" href="https://ieeexplore.ieee.org/document/10316896" target="_blank">
-          <span class="ref-item-icon">📄</span>
-          <div class="ref-item-body">
-            <div class="ref-item-title">Virtual Reality Based Intuitive Spatial Visual Interface for Avatar Robot System</div>
-            <div class="ref-item-url">J Shin, J Ahn, S Park, B Park, J Cha, J Park · ICCAS 2023</div>
-          </div>
-          <span class="ref-item-arrow">↗</span>
-        </a>
-        <a class="ref-item" href="https://ieeexplore.ieee.org/" target="_blank">
-          <span class="ref-item-icon">📄</span>
-          <div class="ref-item-body">
-            <div class="ref-item-title">Operator-Avatar Texture Feedback Approach using Hand-eye Camera and Force Sensor</div>
-            <div class="ref-item-url">S Park, J Cha, J Park · Workshop Toward Robot Avatars, ICRA 2023</div>
-          </div>
-          <span class="ref-item-arrow">↗</span>
-        </a>
-      </div>
-
-      <h4>2022</h4>
-      <div class="ref-list">
-        <a class="ref-item" href="https://ieeexplore.ieee.org/document/9968173" target="_blank">
-          <span class="ref-item-icon">📄</span>
-          <div class="ref-item-body">
-            <div class="ref-item-title">Scalable Learned Geometric Feasibility for Cooperative Grasp and Motion Planning</div>
-            <div class="ref-item-url">S Park, HC Kim, J Baek, J Park · IEEE Robotics and Automation Letters 7(4) 2022</div>
-          </div>
-          <span class="ref-item-arrow">↗</span>
-        </a>
-        <a class="ref-item" href="https://ieeexplore.ieee.org/document/9756325" target="_blank">
-          <span class="ref-item-icon">📄</span>
-          <div class="ref-item-body">
-            <div class="ref-item-title">Motion Planning for Closed-Chain Constraints Based on Probabilistic Roadmap With Improved Connectivity</div>
-            <div class="ref-item-url">K Jang, J Baek, S Park, J Park · IEEE/ASME Transactions on Mechatronics 27(4) 2022</div>
-          </div>
-          <span class="ref-item-arrow">↗</span>
-        </a>
-        <a class="ref-item" href="https://ieeexplore.ieee.org/document/9695238" target="_blank">
-          <span class="ref-item-icon">📄</span>
-          <div class="ref-item-body">
-            <div class="ref-item-title">Contact State Estimation for Peg-in-Hole Assembly Using Gaussian Mixture Model</div>
-            <div class="ref-item-url">H Lee, S Park, K Jang, S Kim, J Park · IEEE Robotics and Automation Letters 7(2) 2022</div>
-          </div>
-          <span class="ref-item-arrow">↗</span>
-        </a>
-        <a class="ref-item" href="https://link.springer.com/article/10.1007/s11370-022-00425-3" target="_blank">
-          <span class="ref-item-icon">📄</span>
-          <div class="ref-item-body">
-            <div class="ref-item-title">Robotic Furniture Assembly: Task Abstraction, Motion Planning, and Control</div>
-            <div class="ref-item-url">S Park, H Lee, S Kim, J Baek, K Jang, HC Kim, M Kim, J Park · Intelligent Service Robotics 15(4) 2022</div>
-          </div>
-          <span class="ref-item-arrow">↗</span>
-        </a>
-        <a class="ref-item" href="https://link.springer.com/article/10.1007/s11370-022-00427-1" target="_blank">
-          <span class="ref-item-icon">📄</span>
-          <div class="ref-item-body">
-            <div class="ref-item-title">Weighted Hierarchical Quadratic Programming: Assigning Individual Joint Weights for Each Task Priority</div>
-            <div class="ref-item-url">K Jang, S Kim, S Park, J Kim, J Park · Intelligent Service Robotics 15(4) 2022</div>
-          </div>
-          <span class="ref-item-arrow">↗</span>
-        </a>
-        <a class="ref-item" href="https://ieeexplore.ieee.org/document/9980481" target="_blank">
-          <span class="ref-item-icon">📄</span>
-          <div class="ref-item-body">
-            <div class="ref-item-title">NODEIK: Solving Inverse Kinematics with Neural Ordinary Differential Equations for Path Planning</div>
-            <div class="ref-item-url">S Park, M Schwartz, J Park · ICCAS 2022</div>
-          </div>
-          <span class="ref-item-arrow">↗</span>
-        </a>
-      </div>
+      {%- endif %}
+      {%- endfor %}
 
       <div class="callout info">
         <span class="callout-icon">🔗</span>
-        <div class="callout-body">전체 논문 목록은 <a href="https://www.lab-dream.xyz" class="wiki-link" target="_blank">공식 홈페이지</a>에서 확인하세요.</div>
+        <div class="callout-body">전체 논문 목록은 <a href="{{ '/ko/publications/' | relative_url }}" class="wiki-link">홈페이지 논문 페이지</a>에서 확인하세요.</div>
       </div>
     </div>
 
@@ -1644,7 +1380,7 @@
       <div class="equip-grid">
       <div class="equip-card">
         <img class="equip-card-img"
-          src="images/omy.jpg"
+          src="{{ '/images/omy.jpg' | relative_url }}"
           alt="ROBOTIS Open Manipulator Y"
           onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
         <div class="equip-card-img-placeholder" style="display:none">🦾</div>
@@ -1670,7 +1406,7 @@
 
       <div class="equip-card">
          <img class="equip-card-img"
-          src="images/openarm.jpg"
+          src="{{ '/images/openarm.jpg' | relative_url }}"
           alt="Open Arm"
           onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
         <div class="equip-card-img-placeholder" style="display:none">🦾</div>
@@ -1700,7 +1436,7 @@
 
         <div class="equip-card">
           <img class="equip-card-img"
-            src="images/aiworker.jpg"
+            src="{{ '/images/aiworker.jpg' | relative_url }}"
             alt="ROBOTIS AI Worker FFW-SG2"
             style="object-position: top;"
             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
@@ -1725,7 +1461,7 @@
 
         <div class="equip-card">
           <img class="equip-card-img"
-            src="images/igris.jpg"
+            src="{{ '/images/igris.jpg' | relative_url }}"
             alt="ROBROS IGRIS-C"
             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
           <div class="equip-card-img-placeholder" style="display:none">🦿</div>
@@ -1765,7 +1501,7 @@
       <div class="equip-grid">
         <div class="equip-card">
           <img class="equip-card-img"
-            src="images/rtx_pro6000.jpg"
+            src="{{ '/images/rtx_pro6000.jpg' | relative_url }}"
             alt="NVIDIA RTX PRO 6000"
             onerror="this.style.display='none';this.nextElementSibling.style.display='flex'" />
           <div class="equip-card-img-placeholder" style="display:none">⚡</div>
@@ -3094,153 +2830,28 @@
     <div class="page" id="page-press">
       <div class="page-header">
         <div class="breadcrumb">연구실 안내 / 관련 기사</div>
-        <h2>관련 기사</h2>
-        <p>우리 연구실 및 연구 분야(휴머노이드·로봇 조작·Physical AI)와 관련된 국내 언론 보도를 모아둔 페이지입니다.</p>
-      </div>
 
-      <!-- ── 연구실 직접 관련 ── -->
-      <h3>🏫 연구실 관련</h3>
+      {%- comment %} 관련 기사 — _data/press.yml 에서 불러옵니다 (scope: lab 은 홈페이지 News 페이지에도 표시) {% endcomment %}
+      {%- assign groups = "lab|🏫 연구실 관련,industry|🇰🇷 국내 로봇 산업 & 정책 동향,research|🔬 연구 분야 기술 동향" | split: "," %}
+      {%- for grp in groups %}
+      {%- assign parts = grp | split: "|" %}
+      {%- assign items = site.data.press | where: "scope", parts[0] | sort: "date" | reverse %}
+      {%- if items.size > 0 %}
+      <h3>{{ parts[1] }}</h3>
       <div class="ref-list">
-        <a class="ref-item" href="https://zdnet.co.kr/view/?no=20260122091108" target="_blank">
-          <span class="ref-item-icon">📰</span>
+        {%- for it in items %}
+        <a class="ref-item" href="{{ it.url }}" target="_blank">
+          <span class="ref-item-icon">{% if it.kind == "video" %}📺{% else %}📰{% endif %}</span>
           <div class="ref-item-body">
-            <div class="ref-item-title">광운대, 로봇 상용화 걸림돌 '동작 끊김' 해법 내놨다</div>
-            <div class="ref-item-url">지디넷코리아 · 2026.01.22</div>
+            <div class="ref-item-title">{{ it.title }}</div>
+            <div class="ref-item-url">{{ it.outlet_ko }} · {{ it.date | replace: "-", "." }}{% if it.kind == "interview" %} · 인터뷰{% endif %}{% if it.note %} · {{ it.note }}{% endif %}</div>
           </div>
           <span class="ref-item-arrow">↗</span>
         </a>
-        <a class="ref-item" href="https://zdnet.co.kr/view/?no=20260130175034" target="_blank">
-          <span class="ref-item-icon">📰</span>
-          <div class="ref-item-body">
-            <div class="ref-item-title">"물류 휴머노이드 온다…데이터 확보는 숙제"</div>
-            <div class="ref-item-url">지디넷코리아 · 2026.01.30 · 인터뷰</div>
-          </div>
-          <span class="ref-item-arrow">↗</span>
-        </a>
-        <a class="ref-item" href="https://www.joongangenews.com/news/articleView.html?idxno=490974" target="_blank">
-          <span class="ref-item-icon">📰</span>
-          <div class="ref-item-body">
-            <div class="ref-item-title">광운대 판교캠퍼스에서 열린 국내 첫 공식 ROS 개발자 컨퍼런스 'ROSCon Korea 2026' 성료</div>
-            <div class="ref-item-url">중앙이코노미뉴스 · 2026.01.29</div>
-          </div>
-          <span class="ref-item-arrow">↗</span>
-        </a>
-        <a class="ref-item" href="https://news.tvchosun.com/site/data/html_dir/2026/03/02/2026030290099.html" target="_blank">
-          <span class="ref-item-icon">📺</span>
-          <div class="ref-item-body">
-            <div class="ref-item-title">[포커스] 야간근로부터 투입…현장 배치 앞두고 훈련 한창인 로봇들</div>
-            <div class="ref-item-url">TV조선 · 2026.03.02</div>
-          </div>
-          <span class="ref-item-arrow">↗</span>
-        </a>
-        <a class="ref-item" href="https://news.tvchosun.com/site/data/html_dir/2026/03/01/2026030190148.html" target="_blank">
-          <span class="ref-item-icon">📺</span>
-          <div class="ref-item-body">
-            <div class="ref-item-title">[포커스] 야간근로부터 투입…현장 배치 앞두고 훈련 한창인 로봇들</div>
-            <div class="ref-item-url">TV조선 · 2026.03.01</div>
-          </div>
-          <span class="ref-item-arrow">↗</span>
-        </a>
-        <a class="ref-item" href="https://news.naver.com/article/023/0003959031?sid=101" target="_blank">
-          <span class="ref-item-icon">📰</span>
-          <div class="ref-item-body">
-            <div class="ref-item-title">로봇이 옷 봉투 집어 비닐백에 쏙… 택배포장 '열공'</div>
-            <div class="ref-item-url">조선일보 · 비정형 물체 조작·물류 자동화 적용 사례</div>
-          </div>
-          <span class="ref-item-arrow">↗</span>
-        </a>
-        <a class="ref-item" href="https://zdnet.co.kr/view/?no=20251220152929" target="_blank">
-          <span class="ref-item-icon">📰</span>
-          <div class="ref-item-body">
-            <div class="ref-item-title">국산 휴머노이드 '이그리스' 대학 연구실로</div>
-            <div class="ref-item-url">지디넷코리아 · 2025.12.20 · IGRIS C 연구실 보급</div>
-          </div>
-          <span class="ref-item-arrow">↗</span>
-        </a>
-        <a class="ref-item" href="https://zdnet.co.kr/view/?no=20251126093456" target="_blank">
-          <span class="ref-item-icon">📰</span>
-          <div class="ref-item-body">
-            <div class="ref-item-title">로보티즈, CU 물류센터 휴머노이드 투입 협력</div>
-            <div class="ref-item-url">지디넷코리아 · 2025.11.26 · AI Worker 실증 배경</div>
-          </div>
-          <span class="ref-item-arrow">↗</span>
-        </a>
-        <a class="ref-item" href="https://www.klnews.co.kr/news/articleView.html?idxno=318906" target="_blank">
-          <span class="ref-item-icon">📰</span>
-          <div class="ref-item-body">
-            <div class="ref-item-title">로보티즈, CU 물류센터서 AI 휴머노이드 실증</div>
-            <div class="ref-item-url">물류신문 · 2025.11.26 · BGF로지스 협력, 비정형 입출고 자동화</div>
-          </div>
-          <span class="ref-item-arrow">↗</span>
-        </a>
-        <a class="ref-item" href="https://www.irobotnews.com/news/articleView.html?idxno=45849" target="_blank">
-          <span class="ref-item-icon">📰</span>
-          <div class="ref-item-body">
-            <div class="ref-item-title">로브로스, '휴머노이드 리얼-월드 챌린지'서 두각</div>
-            <div class="ref-item-url">로봇신문 · 2026.04.14 · KIRIA 주관 실환경 챌린지</div>
-          </div>
-          <span class="ref-item-arrow">↗</span>
-        </a>
+        {%- endfor %}
       </div>
-
-      <!-- ── 국내 로봇 산업 & 정책 ── -->
-      <h3>🇰🇷 국내 로봇 산업 & 정책 동향</h3>
-      <div class="ref-list">
-        <a class="ref-item" href="https://www.etnews.com/20260424000151" target="_blank">
-          <span class="ref-item-icon">📰</span>
-          <div class="ref-item-body">
-            <div class="ref-item-title">롯데글로벌로지스, AX·DX 발판으로 '스마트 물류' 가속</div>
-            <div class="ref-item-url">전자신문 · 2026.04.28 · 물류 현장 로봇 자동화 가속</div>
-          </div>
-          <span class="ref-item-arrow">↗</span>
-        </a>
-        <a class="ref-item" href="https://v.daum.net/v/20260408104202830" target="_blank">
-          <span class="ref-item-icon">📰</span>
-          <div class="ref-item-body">
-            <div class="ref-item-title">"올해 휴머노이드 로봇 상용화 원년…한국 골든타임은 2030년까지"</div>
-            <div class="ref-item-url">다음 뉴스 · 2026.04.08 · AI 휴머노이드 얼라이언스, 현대차·LG전자 등 실증 계획</div>
-          </div>
-          <span class="ref-item-arrow">↗</span>
-        </a>
-        <a class="ref-item" href="https://www.irobotnews.com/news/articleView.html?idxno=46601" target="_blank">
-          <span class="ref-item-icon">📰</span>
-          <div class="ref-item-body">
-            <div class="ref-item-title">휴머노이드 로봇 상용화, 대규모 확산은 2032년 이후 — Interact Analysis 보고서</div>
-            <div class="ref-item-url">로봇신문 · 2026 · 현실적 시장 전망 분석</div>
-          </div>
-          <span class="ref-item-arrow">↗</span>
-        </a>
-      </div>
-
-      <!-- ── 연구 분야 기술 동향 ── -->
-      <h3>🔬 연구 분야 기술 동향</h3>
-      <div class="ref-list">
-        <a class="ref-item" href="https://www.irobotnews.com/news/articleView.html?idxno=44785" target="_blank">
-          <span class="ref-item-icon">📰</span>
-          <div class="ref-item-body">
-            <div class="ref-item-title">[KRoC 2026] VLA를 다시 생각하다… "조작 격차 메우려면 계층 아키텍처부터 바꿔야"</div>
-            <div class="ref-item-url">로봇신문 · 2026.02.05 · 서울대 박종우 교수 기조강연 — VLA와 로봇 조작 격차 문제</div>
-          </div>
-          <span class="ref-item-arrow">↗</span>
-        </a>
-        <a class="ref-item" href="https://www.thelec.kr/news/articleView.html?idxno=44186" target="_blank">
-          <span class="ref-item-icon">📰</span>
-          <div class="ref-item-body">
-            <div class="ref-item-title">삼성, 독자 VLA 모델로 휴머노이드 로봇 '난제' 해결</div>
-            <div class="ref-item-url">디일렉 · 2025.11.20 · 삼성리서치 E2E VLA 모델 접근법</div>
-          </div>
-          <span class="ref-item-arrow">↗</span>
-        </a>
-        <a class="ref-item" href="https://ettrends.etri.re.kr/ettrends/217/0905217020/" target="_blank">
-          <span class="ref-item-icon">📄</span>
-          <div class="ref-item-body">
-            <div class="ref-item-title">인간-로봇 공존을 위한 휴머노이드 인공지능 기술 동향</div>
-            <div class="ref-item-url">ETRI 전자통신동향분석 · 로봇 정책·VLA·RFM 개념 정리 리뷰</div>
-          </div>
-          <span class="ref-item-arrow">↗</span>
-        </a>
-      </div>
-
+      {%- endif %}
+      {%- endfor %}
       <div class="callout info">
         <span class="callout-icon">📌</span>
         <div class="callout-body">관련 기사를 발견하면 슬랙 <code>#general</code>에 공유해 주세요. 정기적으로 업데이트합니다.</div>
@@ -3263,7 +2874,7 @@
       <h3>현재 모집 중</h3>
       <div class="callout info">
         <span class="callout-icon">📢</span>
-        <div class="callout-body"><strong>학부연구생 / 석사 / 박사 / 석박통합과정</strong> 학생을 모집 중입니다. 특히 <strong>군집 휴머노이드, VLA 모델</strong>에 관심 있는 학생들을 환영합니다.</div>
+        <div class="callout-body">{%- comment %} 홈페이지 모집 공고(_data/home.yml)와 같은 문구 {% endcomment %}{% assign contact_href = 'href="' | append: site.baseurl | append: '/ko/contact/"' %}{% for item in site.data.home.notice.items_ko %}{{ item | markdownify | remove: "<p>" | remove: "</p>" | replace: 'href="contact/"', contact_href | strip }} {% endfor %}</div>
       </div>
 
       <h3>우리가 추구하는 연구</h3>
@@ -3286,7 +2897,7 @@
       <p>연구 프로젝트, 출판 목록, 구성원 소개는 공식 홈페이지를 방문해 주세요.</p>
       <div class="callout info">
         <span class="callout-icon">🔗</span>
-        <div class="callout-body">공식 홈페이지: <a href="http://www.lab-dream.xyz" class="wiki-link" target="_blank">www.lab-dream.xyz</a></div>
+        <div class="callout-body">공식 홈페이지: <a href="{{ '/ko/' | relative_url }}" class="wiki-link" target="_blank">{{ site.url | remove: 'https://' | remove: 'http://' }}</a></div>
       </div>
     </div>
 
@@ -3410,8 +3021,8 @@
       </div>
 
       <div class="page-footer">
-        <span>© 2025 DREAM Lab</span>
-        <a href="http://www.lab-dream.xyz" target="_blank" class="footer-btn">🌐 lab-dream.xyz</a>
+        <span>© {{ site.time | date: "%Y" }} DREAM Lab.</span>
+        <a href="{{ '/ko/' | relative_url }}" target="_blank" class="footer-btn">🌐 {{ site.url | remove: 'https://' | remove: 'http://' }}</a>
       </div>
     </div>
 

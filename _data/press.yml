@@ -1,0 +1,213 @@
+# ─────────────────────────────────────────────────────────────
+#  Press — 언론 보도  (홈페이지 News 페이지 + 신입생 가이드 '관련 기사'에 함께 표시)
+#
+#  date     : "YYYY-MM-DD" (따옴표 포함, 날짜를 모르면 "YYYY" 만 적어도 됩니다)
+#  title    : 기사 원제목 (번역하지 않음)
+#  outlet_ko / outlet_en : 매체 이름
+#  url      : 기사 주소
+#  kind     : article | video | interview
+#  scope    : lab      — 우리 연구실이 직접 나온 기사 (홈페이지에도 표시)
+#             industry — 국내 로봇 산업·정책 동향 (신입생 가이드에만 표시)
+#             research — 연구 분야 기술 동향 (신입생 가이드에만 표시)
+#  note     : (선택) 한 줄 메모
+# ─────────────────────────────────────────────────────────────
+
+# ── 연구실 관련 ────────────────────────────────────────────────
+- date: "2026-09-18"
+  title: 광운대, AI 활용 수업 혁신 사례 7건 공개
+  outlet_ko: 서울신문
+  outlet_en: Seoul Shinmun
+  url: https://www.seoul.co.kr/news/society/2026/09/18/20260918500070
+  kind: article
+  scope: lab
+  note: 박수한 교수 '강화학습' 수업 — 주간 AI 퀴즈
+
+- date: "2026-09-17"
+  title: "'젊은 로봇 공학자' (92) 광운대 박수한 교수"
+  outlet_ko: 로봇신문
+  outlet_en: The Robot Times
+  url: https://www.irobotnews.com/news/articleView.html?idxno=48517
+  kind: interview
+  scope: lab
+
+- date: "2026-06-10"
+  title: Humanoid robots clock in at Korean warehouses
+  outlet_ko: 코리아중앙데일리
+  outlet_en: Korea JoongAng Daily
+  url: https://www.koreajoongangdaily.com/business/humanoid-robots-clock-in-at-korean-warehouses/12697218
+  kind: article
+  scope: lab
+  note: 오토배거 원격조작 학습 현장
+
+- date: "2026-04-14"
+  title: "로브로스, '휴머노이드 리얼-월드 챌린지'서 두각"
+  outlet_ko: 로봇신문
+  outlet_en: The Robot Times
+  url: https://www.irobotnews.com/news/articleView.html?idxno=45849
+  kind: article
+  scope: lab
+  note: KIRIA 주관 실환경 챌린지 1위
+
+- date: "2026-03-02"
+  title: "[포커스] 야간근로부터 투입…현장 배치 앞두고 훈련 한창인 로봇들"
+  outlet_ko: TV조선
+  outlet_en: TV Chosun
+  url: https://news.tvchosun.com/site/data/html_dir/2026/03/02/2026030290099.html
+  kind: video
+  scope: lab
+
+- date: "2026-03-01"
+  title: "[포커스] 야간근로부터 투입…현장 배치 앞두고 훈련 한창인 로봇들"
+  outlet_ko: TV조선
+  outlet_en: TV Chosun
+  url: https://news.tvchosun.com/site/data/html_dir/2026/03/01/2026030190148.html
+  kind: video
+  scope: lab
+
+- date: "2026-02-13"
+  title: "로봇이 옷 봉투 집어 비닐백에 쏙… 택배포장 '열공'"
+  outlet_ko: 조선일보
+  outlet_en: Chosun Ilbo
+  url: https://news.naver.com/article/023/0003959031?sid=101
+  kind: article
+  scope: lab
+  note: 비정형 물체 조작·물류 자동화
+
+- date: "2026-01-30"
+  title: "\"물류 휴머노이드 온다…데이터 확보는 숙제\""
+  outlet_ko: 지디넷코리아
+  outlet_en: ZDNet Korea
+  url: https://zdnet.co.kr/view/?no=20260130175034
+  kind: interview
+  scope: lab
+
+- date: "2026-01-29"
+  title: 휴머노이드가 의류 포장…사람 공정에 그대로
+  outlet_ko: 지디넷코리아
+  outlet_en: ZDNet Korea
+  url: https://zdnet.co.kr/view/?no=20260129112257
+  kind: article
+  scope: lab
+
+- date: "2026-01-29"
+  title: "광운대 판교캠퍼스에서 열린 국내 첫 공식 ROS 개발자 컨퍼런스 'ROSCon Korea 2026' 성료"
+  outlet_ko: 중앙이코노미뉴스
+  outlet_en: Joongang Economy News
+  url: https://www.joongangenews.com/news/articleView.html?idxno=490974
+  kind: article
+  scope: lab
+
+- date: "2026-01-29"
+  title: Kwangwoon University hosts robot developer conference
+  outlet_ko: 코리아타임스
+  outlet_en: The Korea Times
+  url: https://www.koreatimes.co.kr/southkorea/20260129/kwangwoon-university-hosts-robot-developer-conference
+  kind: article
+  scope: lab
+
+- date: "2026-01-22"
+  title: "광운대, 로봇 상용화 걸림돌 '동작 끊김' 해법 내놨다"
+  outlet_ko: 지디넷코리아
+  outlet_en: ZDNet Korea
+  url: https://zdnet.co.kr/view/?no=20260122091108
+  kind: article
+  scope: lab
+
+- date: "2026-01-14"
+  title: "\"사람처럼 물건 집어 포장\"…롯데글로벌로지스, 로봇 물류현장 실증"
+  outlet_ko: 머니투데이
+  outlet_en: Money Today
+  url: https://www.mt.co.kr/industry/2026/01/14/2026011414554852105
+  kind: article
+  scope: lab
+
+- date: "2025-12-20"
+  title: "국산 휴머노이드 '이그리스' 대학 연구실로"
+  outlet_ko: 지디넷코리아
+  outlet_en: ZDNet Korea
+  url: https://zdnet.co.kr/view/?no=20251220152929
+  kind: article
+  scope: lab
+  note: IGRIS C 연구실 보급
+
+- date: "2025-11-26"
+  title: 로보티즈, CU 물류센터 휴머노이드 투입 협력
+  outlet_ko: 지디넷코리아
+  outlet_en: ZDNet Korea
+  url: https://zdnet.co.kr/view/?no=20251126093456
+  kind: article
+  scope: lab
+  note: AI Worker 실증 과제
+
+- date: "2025-11-26"
+  title: 로보티즈, CU 물류센터서 AI 휴머노이드 실증
+  outlet_ko: 물류신문
+  outlet_en: Korea Logistics News
+  url: https://www.klnews.co.kr/news/articleView.html?idxno=318906
+  kind: article
+  scope: lab
+  note: BGF로지스 협력, 비정형 입출고 자동화
+
+- date: "2025-03-17"
+  title: "[광운 Hot Issue] 로봇게임단 단원에서 이제는 교수로, 박수한 교수"
+  outlet_ko: 광운대학교
+  outlet_en: Kwangwoon University
+  url: https://www.kw.ac.kr/ko/life/newsletter.jsp?BoardMode=view&DUID=49635
+  kind: interview
+  scope: lab
+
+# ── 국내 로봇 산업 & 정책 동향 (신입생 가이드용) ──────────────────
+- date: "2026-04-28"
+  title: "롯데글로벌로지스, AX·DX 발판으로 '스마트 물류' 가속"
+  outlet_ko: 전자신문
+  outlet_en: Electronic Times
+  url: https://www.etnews.com/20260424000151
+  kind: article
+  scope: industry
+  note: 물류 현장 로봇 자동화 가속
+
+- date: "2026-04-08"
+  title: "\"올해 휴머노이드 로봇 상용화 원년…한국 골든타임은 2030년까지\""
+  outlet_ko: 다음 뉴스
+  outlet_en: Daum News
+  url: https://v.daum.net/v/20260408104202830
+  kind: article
+  scope: industry
+  note: AI 휴머노이드 얼라이언스, 현대차·LG전자 등 실증 계획
+
+- date: "2026"
+  title: "휴머노이드 로봇 상용화, 대규모 확산은 2032년 이후 — Interact Analysis 보고서"
+  outlet_ko: 로봇신문
+  outlet_en: The Robot Times
+  url: https://www.irobotnews.com/news/articleView.html?idxno=46601
+  kind: article
+  scope: industry
+  note: 현실적 시장 전망 분석
+
+# ── 연구 분야 기술 동향 (신입생 가이드용) ─────────────────────────
+- date: "2026-02-05"
+  title: "[KRoC 2026] VLA를 다시 생각하다… \"조작 격차 메우려면 계층 아키텍처부터 바꿔야\""
+  outlet_ko: 로봇신문
+  outlet_en: The Robot Times
+  url: https://www.irobotnews.com/news/articleView.html?idxno=44785
+  kind: article
+  scope: research
+  note: 서울대 박종우 교수 기조강연 — VLA와 로봇 조작 격차 문제
+
+- date: "2025-11-20"
+  title: "삼성, 독자 VLA 모델로 휴머노이드 로봇 '난제' 해결"
+  outlet_ko: 디일렉
+  outlet_en: TheElec
+  url: https://www.thelec.kr/news/articleView.html?idxno=44186
+  kind: article
+  scope: research
+  note: 삼성리서치 E2E VLA 모델 접근법
+
+- date: "2025"
+  title: 인간-로봇 공존을 위한 휴머노이드 인공지능 기술 동향
+  outlet_ko: ETRI 전자통신동향분석
+  outlet_en: ETRI Electronics and Telecommunications Trends
+  url: https://ettrends.etri.re.kr/ettrends/217/0905217020/
+  kind: article
+  scope: research
+  note: 로봇 정책·VLA·RFM 개념 정리 리뷰

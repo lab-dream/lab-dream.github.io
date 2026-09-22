@@ -26,6 +26,58 @@
     onScroll();
   }
 
+  // Home hero gallery — 5.5초마다 크로스페이드, 마우스/포커스 시 멈춤, 모션 줄이기 설정 존중
+  document.querySelectorAll("[data-gallery]").forEach(function (gal) {
+    var slides = gal.querySelectorAll(".gallery__slide");
+    if (slides.length < 2) return;
+    var dots = gal.querySelectorAll("[data-go]");
+    var caption = gal.querySelector(".gallery__caption");
+    var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var index = 0, timer = null, paused = false;
+
+    var show = function (i) {
+      index = (i + slides.length) % slides.length;
+      slides.forEach(function (sl, k) {
+        var on = k === index;
+        sl.classList.toggle("is-active", on);
+        if (on) sl.removeAttribute("aria-hidden"); else sl.setAttribute("aria-hidden", "true");
+      });
+      dots.forEach(function (d, k) {
+        if (k === index) d.setAttribute("aria-current", "true"); else d.removeAttribute("aria-current");
+      });
+      if (caption) caption.textContent = slides[index].dataset.caption || "";
+    };
+    var stop = function () { if (timer) { clearInterval(timer); timer = null; } };
+    var start = function () {
+      stop();
+      if (!reduce && !paused && !document.hidden) timer = setInterval(function () { show(index + 1); }, 5500);
+    };
+
+    gal.querySelector("[data-prev]").addEventListener("click", function () { show(index - 1); start(); });
+    gal.querySelector("[data-next]").addEventListener("click", function () { show(index + 1); start(); });
+    dots.forEach(function (d) {
+      d.addEventListener("click", function () { show(parseInt(d.dataset.go, 10)); start(); });
+    });
+    gal.addEventListener("mouseenter", function () { paused = true; stop(); });
+    gal.addEventListener("mouseleave", function () { paused = false; start(); });
+    gal.addEventListener("focusin", function () { paused = true; stop(); });
+    gal.addEventListener("focusout", function () { paused = false; start(); });
+    gal.addEventListener("keydown", function (e) {
+      if (e.key === "ArrowLeft") { show(index - 1); }
+      if (e.key === "ArrowRight") { show(index + 1); }
+    });
+    // 터치 스와이프
+    var x0 = null;
+    gal.addEventListener("touchstart", function (e) { x0 = e.touches[0].clientX; }, { passive: true });
+    gal.addEventListener("touchend", function (e) {
+      if (x0 === null) return;
+      var dx = e.changedTouches[0].clientX - x0; x0 = null;
+      if (Math.abs(dx) > 40) { show(index + (dx < 0 ? 1 : -1)); start(); }
+    });
+    document.addEventListener("visibilitychange", start);
+    start();
+  });
+
   // Click-to-load YouTube (가벼운 썸네일 → 클릭 시 플레이어 로드)
   document.querySelectorAll("[data-yt]").forEach(function (btn) {
     btn.addEventListener("click", function (e) {

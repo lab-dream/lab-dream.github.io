@@ -14,6 +14,10 @@ ko:
   home:
     cta_research: 연구 분야 보기
     cta_join: 연구실 지원하기
+    gallery_label: 연구실 사진
+    gallery_prev: 이전 사진
+    gallery_next: 다음 사진
+    gallery_photo: 사진
     about_eyebrow: About
     about_title: 연구실 소개
     keywords: 키워드
@@ -46,6 +50,19 @@ ko:
     copy: 복사
     copied: 복사됨
 
+  news:
+    awards_eyebrow: Awards
+    awards_title: 수상
+    timeline_eyebrow: News
+    timeline_title: 소식
+    press_eyebrow: Press
+    press_title: 언론 보도
+    members: 참여
+    kinds:
+      article: 기사
+      video: 방송
+      interview: 인터뷰
+
   news_tags:
     paper: 논문
     grant: 과제
@@ -66,6 +83,8 @@ ko:
     now_at: 현재
 
   research:
+    period: 기간
+    agency: 재원
     topics: 연구 주제
     projects_eyebrow: Projects
     projects_title: 연구 과제
@@ -101,6 +120,13 @@ ko:
     contact: 연락처
     links: 바로가기
     join: 연구실 지원
+    guide: 신입생 가이드
+
+  guide:
+    eyebrow: For new members
+    title: 신입생 · 인턴 가이드
+    text: 연구실 생활 규칙, 연구장비 사용법, 연구 방법, 학부연구생 프로그램 안내를 한곳에 정리했습니다.
+    button: 가이드 열기
 
   not_found:
     text: 요청하신 페이지를 찾을 수 없습니다.
@@ -118,6 +144,10 @@ en:
   home:
     cta_research: Our Research
     cta_join: Join Us
+    gallery_label: Lab photos
+    gallery_prev: Previous photo
+    gallery_next: Next photo
+    gallery_photo: Photo
     about_eyebrow: About
     about_title: Introduction
     keywords: Keywords
@@ -150,6 +180,19 @@ en:
     copy: Copy
     copied: Copied
 
+  news:
+    awards_eyebrow: Awards
+    awards_title: Awards
+    timeline_eyebrow: News
+    timeline_title: Updates
+    press_eyebrow: Press
+    press_title: In the Press
+    members: Team
+    kinds:
+      article: Article
+      video: Broadcast
+      interview: Interview
+
   news_tags:
     paper: Paper
     grant: Grant
@@ -170,6 +213,8 @@ en:
     now_at: Now at
 
   research:
+    period: Period
+    agency: Funding
     topics: Research Topics
     projects_eyebrow: Projects
     projects_title: Funded Projects
@@ -205,6 +250,13 @@ en:
     contact: Contact
     links: Links
     join: Join us
+    guide: New member guide
+
+  guide:
+    eyebrow: For new members
+    title: New Member & Intern Guide
+    text: Lab rules, equipment, research methods, and the undergraduate research program — in one place (Korean).
+    button: Open the guide
 
   not_found:
     text: The page you are looking for doesn't exist.
