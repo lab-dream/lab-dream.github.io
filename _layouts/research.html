@@ -8,9 +8,7 @@ layout: page
     {%- for tp in site.data.research %}
     {%- assign related = site.data.publications | where_exp: "p", "p.topics contains tp.id" %}
     <article class="topic" id="{{ tp.id }}">
-      <div class="topic__media">
-        {%- if tp.image %}<img src="{{ tp.image | relative_url }}" alt="{{ tp.title }}" loading="lazy">{% endif %}
-      </div>
+      {% include media.html item=tp class="topic__media" alt=tp.title t=t %}
       <div>
         <p class="topic__num">0{{ forloop.index }}</p>
         <h2>{% include tr.html obj=tp key="title" %}</h2>
@@ -59,14 +57,7 @@ layout: page
         {%- if odd == 1 %}{% if next == nil or next.image %}{% assign wide = true %}{% endif %}{% endif %}
       {%- endif %}
       <article class="project{{ card_cls }}{% if wide %} project--wide{% endif %}">
-        {%- if pr.video %}
-        <div class="project__media project__media--video">
-          <video muted loop playsinline preload="none" data-autoplay poster="{{ pr.image | relative_url }}" aria-label="{{ pr.title }}">
-            <source src="{{ pr.video | relative_url }}" type="video/mp4">
-          </video>
-          <button class="media-toggle" type="button" hidden data-label-pause="{{ t.research.video_pause }}" data-label-play="{{ t.research.video_play }}" aria-label="{{ t.research.video_play }}"></button>
-        </div>
-        {%- elsif pr.image %}<div class="project__media"><img src="{{ pr.image | relative_url }}" alt="{{ pr.title }}" loading="lazy"></div>{% endif %}
+        {%- if pr.image or pr.video %}{% include media.html item=pr class="project__media" alt=pr.title t=t %}{% endif %}
         <div class="project__body">
           <div class="project__head">
           <div class="project__top">

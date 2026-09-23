@@ -71,17 +71,23 @@ intro:
       To support this research, we also work on **efficient data collection** and **optimal
       general-purpose hardware**.
 
+# media: 카드 안에 1~3칸으로 배치됩니다. 사진은 image, 영상은 video + image(재생 전 사진).
+# 영상은 화면에 보일 때만 소리 없이 반복 재생됩니다.
 domains:
   - title: Humanoids
     items: [Mobile Manipulation, Whole-body Manipulation]
-    images:
-      - /assets/img/research/domain-humanoid-2.gif
-      - /assets/img/research/domain-humanoid-3.gif
-      - /assets/img/research/domain-humanoid-1.gif
+    media:
+      - video: /assets/video/research-humanoids.mp4
+        image: /assets/img/research/humanoids.jpg
+      - image: /assets/img/research/domain-humanoid-3.gif
+      - image: /assets/img/research/domain-humanoid-1.gif
   - title: Manipulation
     items: [Cooperative Manipulation, Motion Planning and Control, Imitation Learning, Reinforcement Learning, Physical AI]
-    images:
-      - /assets/img/research/domain-manipulation.gif
+    media:
+      - video: /assets/video/pub-lipo-toss.mp4
+        image: /assets/img/research/ball-toss.jpg
+      - video: /assets/video/research-towel-folding.mp4
+        image: /assets/img/research/towel-folding.jpg
 
 keywords: >-
   Robots, Artificial Intelligence, Physical AI, Embodied AI, Digital Twin, Manipulation,

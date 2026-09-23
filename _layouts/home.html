@@ -98,9 +98,9 @@ layout: default
     <div class="domains">
       {%- for d in h.domains %}
       <article class="domain">
-        <div class="domain__media domain__media--{{ d.images.size }}">
-          {%- for img in d.images %}
-          <img src="{{ img | relative_url }}" alt="{{ d.title }} research" loading="lazy">
+        <div class="domain__media domain__media--{{ d.media.size }}">
+          {%- for m in d.media %}
+          {% include media.html item=m class="domain__cell" alt=d.title t=t %}
           {%- endfor %}
         </div>
         <div class="domain__body">

@@ -1,0 +1,17 @@
+{%- comment -%}
+  사진 또는 짧은 영상. 영상은 화면에 보일 때만 소리 없이 반복 재생됩니다 (동작은 main.js).
+  사용: {% include media.html item=tp class="topic__media" t=t %}
+{%- endcomment -%}
+{%- assign m = include.item -%}
+{%- if m.video -%}
+<div class="{{ include.class }} media--video">
+  <video muted loop playsinline preload="none" data-autoplay{% if m.image %} poster="{{ m.image | relative_url }}"{% endif %} aria-label="{{ include.alt | default: m.title }}">
+    <source src="{{ m.video | relative_url }}" type="video/mp4">
+  </video>
+  <button class="media-toggle" type="button" hidden data-label-pause="{{ include.t.research.video_pause }}" data-label-play="{{ include.t.research.video_play }}" aria-label="{{ include.t.research.video_play }}"></button>
+</div>
+{%- elsif m.image -%}
+<div class="{{ include.class }}"><img src="{{ m.image | relative_url }}" alt="{{ include.alt | default: m.title }}" loading="lazy"></div>
+{%- else -%}
+<div class="{{ include.class }}"></div>
+{%- endif -%}

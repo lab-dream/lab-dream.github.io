@@ -3,7 +3,9 @@
 #
 #  id         : publications.yml의 topics 값과 연결됩니다. (영문 소문자-하이픈)
 #  summary_ko : 한국어 소개      summary_en : 영어 소개
-#  image      : 대표 이미지
+#  image      : 대표 이미지 (video 가 있으면 재생 전에 보이는 사진)
+#  video      : (선택) 짧은 영상(mp4). 화면에 보일 때만 소리 없이 반복 재생됩니다.
+#               용량을 줄여서 넣으세요: ffmpeg -i 원본.mp4 -an -vf "crop=…,scale=1280:720" -c:v libx264 -crf 28 -preset slow -movflags +faststart 결과.mp4
 # ─────────────────────────────────────────────────────────────
 
 - id: motion-planning
@@ -14,7 +16,8 @@
   summary_en: >-
     Planning feasible grasps and motions under kinematic, closed-chain, and task constraints —
     from single arms to whole-body systems.
-  image: /assets/img/pubs/park2024ljcmp.gif
+  image: /assets/img/research/motion-planning.jpg
+  video: /assets/video/research-motion-planning.mp4
   items:
     - Grasp Planning
     - Whole-body Motion Planning
@@ -28,7 +31,8 @@
   summary_en: >-
     Learning manipulation skills from data — imitation learning, vision-language-action models,
     teleoperation for data collection, and post-optimization of learned policies.
-  image: /assets/img/research/domain-manipulation.gif
+  image: /assets/img/research/physical-ai.jpg
+  video: /assets/video/research-physical-ai.mp4
   items:
     - Post-optimization Algorithm
     - Vision-Language-Action Models
@@ -42,7 +46,8 @@
     실제 환경에서 일하는 휴머노이드 로봇의 전신 조작과 이족 보행을 연구합니다.
   summary_en: >-
     Whole-body manipulation and bipedal walking for humanoid robots working in real environments.
-  image: /assets/img/research/domain-humanoid-3.gif
+  image: /assets/img/research/humanoids.jpg
+  video: /assets/video/research-humanoids.mp4
   items:
     - Whole-body Manipulation
     - Bipedal Walking

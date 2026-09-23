@@ -316,11 +316,15 @@ html[lang="ko"] .page-head h1 { font-weight: 600; letter-spacing: -.035em; }
 .domains { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; }
 .domain { background: #fff; border-radius: var(--radius-lg); overflow: hidden; display: flex; flex-direction: column; box-shadow: var(--shadow); }
 .domain__media { display: grid; gap: 3px; background: var(--ivory); height: 260px; }
-.domain__media img { width: 100%; height: 100%; min-height: 0; object-fit: cover; }
-.domain__media--1 img { object-position: center bottom; }
+.domain__cell { position: relative; overflow: hidden; min-height: 0; }
+.domain__cell img, .domain__cell video { display: block; width: 100%; height: 100%; min-height: 0; object-fit: cover; }
+.domain__media--1 .domain__cell img { object-position: center bottom; }
 .domain__media--2 { grid-template-columns: 1fr 1fr; }
 .domain__media--3 { grid-template-columns: 1.6fr 1fr; grid-template-rows: 1fr 1fr; }
-.domain__media--3 img:first-child { grid-row: span 2; }
+.domain__media--3 .domain__cell:first-child { grid-row: span 2; }
+.domain__cell .media-toggle { width: 30px; height: 30px; left: 10px; bottom: 10px; }
+.domain__cell .media-toggle::before { width: 9px; height: 11px; border-left-width: 3px; border-right-width: 3px; }
+.domain__cell .media-toggle.is-paused::before { border-width: 6px 0 6px 10px; margin-left: 2px; }
 .domain__body { padding: 28px 30px 32px; }
 .domain__num { font-family: var(--font-serif); font-size: 15px; color: var(--champagne-ink); margin-bottom: 4px; }
 .domain__body h3 { font-family: var(--font-display); font-size: 27px; font-weight: 500; margin-bottom: 16px; }
@@ -372,7 +376,11 @@ html[lang="ko"] .news-item__tag { letter-spacing: .02em; font-size: 12.5px; }
   background: var(--ivory); border-radius: var(--radius); overflow: hidden;
   aspect-ratio: 16 / 10; display: grid; place-items: center; border: 1px solid var(--line);
 }
-.pub__thumb img { width: 100%; height: 100%; object-fit: contain; }
+.pub__thumb img, .pub__thumb video { width: 100%; height: 100%; object-fit: contain; }
+.pub__thumb.media--video { position: relative; }
+.pub__thumb .media-toggle { width: 30px; height: 30px; left: 8px; right: auto; bottom: 8px; }
+.pub__thumb .media-toggle::before { width: 9px; height: 11px; border-left-width: 3px; border-right-width: 3px; }
+.pub__thumb .media-toggle.is-paused::before { border-width: 6px 0 6px 10px; margin-left: 2px; }
 .pub__thumb-ph { font-family: var(--font-serif); color: var(--champagne-ink); font-size: 18px; padding: 8px; text-align: center; }
 .pub__title { font-size: 17px; font-weight: 700; line-height: 1.45; letter-spacing: -.005em; }
 .pub__authors { margin-top: 6px; font-size: 14.5px; color: var(--stone); line-height: 1.6; }
@@ -462,7 +470,9 @@ html[lang="ko"] .prof__cols h3 { letter-spacing: .04em; font-size: 13px; }
 .topic { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; align-items: center; padding: 56px 0; border-bottom: 1px solid var(--line); }
 .topic:last-child { border-bottom: 0; }
 .topic:nth-child(even) .topic__media { order: 2; }
-.topic__media img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border-radius: var(--radius-lg); background: var(--ivory); }
+.topic__media img, .topic__media video { display: block; width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border-radius: var(--radius-lg); background: var(--ivory); }
+.topic__media video { aspect-ratio: 16 / 9; }  /* 영상은 원본 비율 그대로 (글자가 잘리지 않게) */
+.topic__media.media--video { position: relative; border-radius: var(--radius-lg); overflow: hidden; }
 .topic__num { font-family: var(--font-serif); color: var(--champagne-ink); font-size: 16px; margin-bottom: 6px; }
 .topic h2 { font-family: var(--font-display); font-size: 34px; font-weight: 500; letter-spacing: -.015em; }
 .topic__summary { margin-top: 12px; color: var(--ink-soft); }
@@ -482,8 +492,9 @@ html[lang="ko"] .prof__cols h3 { letter-spacing: .04em; font-size: 13px; }
 .project--wide .project__body { grid-template-columns: 1fr 1.35fr; gap: 10px 44px; padding: 32px 40px 34px; }
 .project--banner h3 { font-size: 26px; }
 /* 과제 영상 — 화면에 보일 때만 소리 없이 반복 재생 (main.js) */
-.project__media--video { position: relative; background: var(--wine); }
+.project__media.media--video { position: relative; background: var(--wine); }
 .project__media video { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
+.project--media .project__media video { height: 100%; aspect-ratio: auto; min-height: 280px; }
 .media-toggle {
   position: absolute; left: 16px; bottom: 16px; width: 40px; height: 40px; border-radius: 50%; cursor: pointer;
   display: grid; place-items: center; padding: 0; color: var(--champagne-light);
@@ -747,6 +758,9 @@ html[lang="ko"] .award__result { letter-spacing: .02em; font-size: 13.5px; }
   .member__name { font-size: 16px; }
   .member__name-sub { display: block; margin-left: 0; }
   .domain__media { height: 210px; }
+  /* 좁은 화면: 2칸은 옆으로 자르지 말고 위아래로 쌓기 */
+  .domain__media--2 { grid-template-columns: 1fr; height: auto; }
+  .domain__media--2 .domain__cell { aspect-ratio: 16 / 9; }
   .event { grid-template-columns: 1fr; gap: 14px; padding: 20px; }
   .event__date { display: flex; gap: 8px; align-items: baseline; justify-content: flex-start; padding: 8px 14px; }
   .event__day { font-size: 22px; }

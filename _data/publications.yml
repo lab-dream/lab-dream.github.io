@@ -15,6 +15,7 @@
 #      selected   (선택) true 이면 홈 화면 "Selected Publications"에 표시
 #      topics     (선택) research.yml의 id 목록 → Research 페이지의 관련 논문에 자동 표시
 #      image      (선택) 썸네일 경로 (assets/img/pubs/ 에 파일을 넣고 경로를 적습니다)
+#      video      (선택) 짧은 영상(mp4). 화면에 보일 때만 소리 없이 반복 재생되고, image 는 재생 전 사진이 됩니다.
 #      links      (선택) paper, pdf, arxiv, project, code, video, slides, poster, dataset
 #      bibtex     (선택) BibTeX 원문. 있으면 "BibTeX" 버튼이 생깁니다.
 #
@@ -76,7 +77,8 @@
   note: SCIE
   selected: true
   topics: [physical-ai]
-  image: /assets/img/pubs/son2025lipo.gif
+  image: /assets/img/pubs/son2025lipo-toss.png
+  video: /assets/video/pub-lipo-toss.mp4
   links:
     paper: https://doi.org/10.1007/s12555-025-0537-0
     arxiv: https://arxiv.org/abs/2506.05165
@@ -100,7 +102,8 @@
   type: journal
   selected: true
   topics: [motion-planning]
-  image: /assets/img/pubs/park2024ljcmp.gif
+  image: /assets/img/pubs/park2024ljcmp.jpg
+  video: /assets/video/research-motion-planning.mp4
   links:
     paper: https://ieeexplore.ieee.org/document/10538476/
     project: https://sites.google.com/view/ljcmp
@@ -175,7 +178,8 @@
   type: journal
   selected: true
   topics: [motion-planning]
-  image: /assets/img/pubs/park2022feasibility.gif
+  image: /assets/img/pubs/park2022feasibility.jpg
+  video: /assets/video/pub-grasp-planning.mp4
   links:
     paper: https://ieeexplore.ieee.org/document/9869726
     code: https://github.com/psh117/learned_geometric_feasibility

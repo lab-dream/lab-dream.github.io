@@ -18,13 +18,11 @@
 </li>
 {%- else -%}
 <article class="pub" data-type="{{ p.type }}" data-search="{{ search_text | downcase | strip_newlines | escape }}">
-  <div class="pub__thumb">
-    {%- if p.image -%}
-    <img src="{{ p.image | relative_url }}" alt="" loading="lazy">
-    {%- else -%}
-    <span class="pub__thumb-ph" aria-hidden="true">{{ p.venue }}</span>
-    {%- endif -%}
-  </div>
+  {%- if p.image or p.video -%}
+  {% include media.html item=p class="pub__thumb" alt="" t=t %}
+  {%- else -%}
+  <div class="pub__thumb"><span class="pub__thumb-ph" aria-hidden="true">{{ p.venue }}</span></div>
+  {%- endif -%}
   <div class="pub__body">
     <h3 class="pub__title">{{ p.title }}</h3>
     <p class="pub__authors">{% include authors.html authors=p.authors %}</p>
