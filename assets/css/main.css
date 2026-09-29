@@ -564,6 +564,13 @@ html[lang="ko"] .prof__cols h3 { letter-spacing: .04em; font-size: 13px; }
 .project__status { font-size: 11.5px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--wine); background: var(--champagne-grad); padding: 5px 9px; border-radius: 5px; }
 .project__status--completed { color: var(--stone); background: var(--ivory); }
 .project__sponsor { font-size: 12px; font-weight: 700; color: var(--burgundy); border: 1px solid #ecd6db; padding: 4px 8px; border-radius: 5px; }
+/* 강조 배지 (예: K-문샷 프로젝트) */
+.project__badge {
+  font-size: 12px; font-weight: 800; letter-spacing: .04em; color: var(--champagne-light);
+  background: var(--wine); padding: 5px 10px; border-radius: 5px;
+  box-shadow: 0 2px 10px rgba(42, 12, 20, .18);
+}
+a.project__badge:hover { background: var(--burgundy); color: #fff; }
 .project h3 { font-size: 20px; font-weight: 700; letter-spacing: -.01em; }
 .project__desc { color: var(--ink-soft); font-size: 15px; }
 .project__members { font-size: 14.5px; color: var(--stone); }

@@ -5,6 +5,8 @@
 #  sponsors         : 기관/기업 이름 목록
 #  members          : members.yml의 name 과 같게 적으면 구성원 페이지로 링크됩니다.
 #  status           : ongoing | completed
+#  badge_ko / badge_en : (선택) 카드 맨 위에 강조해서 보일 한 마디 (예: K-문샷 프로젝트)
+#  badge_url        : (선택) 배지를 누르면 열릴 주소 (관련 기사 등)
 #  image            : (선택) 사진 경로 — 있으면 카드가 가로 전체 폭으로 크게 표시됩니다
 #  image_layout     : (선택) banner — 가로로 긴 사진을 카드 위쪽에 넓게 (기본은 사진 왼쪽·글 오른쪽)
 #  video            : (선택) 짧은 영상(mp4). 화면에 보일 때만 소리 없이 반복 재생되고, image 는 재생 전 표시 사진이 됩니다.
@@ -21,13 +23,17 @@
   title_ko: 군집 휴머노이드
   sponsors: [NRF]
   status: ongoing
+  badge_ko: K-문샷 프로젝트
+  badge_en: K-Moonshot Project
+  # 과기정통부 정책브리핑 — 휴머노이드가 K-문샷 핵심 미션으로 선정 (2026.02.27)
+  badge_url: https://www.korea.kr/news/policyNewsView.do?newsId=148960102
   image: /assets/img/research/intro-robot.jpg
   image_layout: banner
   members: [Junho An, Gahyun Oh, Jinwoo Lee, Dongwoo Son, Chanwoo Seon]
   official_title_ko: 다중 이기종 휴머노이드 군집 자율 작업 프레임워크 개발
   official_title_en: Development of Autonomous Task Distribution and Physical Collaboration Framework for Multi Heterogeneous Humanoid Robots
-  agency_ko: 한국연구재단 (NRF)
-  agency_en: National Research Foundation of Korea (NRF)
+  agency_ko: 한국연구재단 (NRF) · K-문샷 프로젝트
+  agency_en: National Research Foundation of Korea (NRF) · K-Moonshot Project
   period: 2026.04.01 ~ 2030.12.31
   description_ko: >-
     다중 휴머노이드 로봇이 물류·제조·재난 등 인간 중심의 복합 환경에서 LLM 기반 자연어 명령을 스스로 해석·이해하고,

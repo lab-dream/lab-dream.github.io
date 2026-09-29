@@ -60,7 +60,12 @@ layout: page
         {%- if pr.image or pr.video %}{% include media.html item=pr class="project__media" alt=pr.title t=t %}{% endif %}
         <div class="project__body">
           <div class="project__head">
+          {%- capture pr_badge %}{% include tr.html obj=pr key="badge" %}{% endcapture %}
           <div class="project__top">
+            {%- if pr_badge != "" %}
+              {%- if pr.badge_url %}<a class="project__badge" href="{{ pr.badge_url }}">{{ pr_badge }} ↗</a>
+              {%- else %}<span class="project__badge">{{ pr_badge }}</span>{% endif %}
+            {%- endif %}
             <span class="project__status project__status--{{ status }}">{{ t.research.status[status] | default: status }}</span>
             {%- for s in pr.sponsors %}<span class="project__sponsor">{{ s }}</span>{% endfor %}
           </div>
