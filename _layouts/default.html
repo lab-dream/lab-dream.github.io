@@ -12,6 +12,13 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#2a0c14">
+  {%- comment %} 검색엔진 소유 확인 (_config.yml 의 verify: 항목) {% endcomment %}
+  {%- if site.verify.google and site.verify.google != "" %}
+  <meta name="google-site-verification" content="{{ site.verify.google }}">
+  {%- endif %}
+  {%- if site.verify.naver and site.verify.naver != "" %}
+  <meta name="naver-site-verification" content="{{ site.verify.naver }}">
+  {%- endif %}
   {% seo %}
   {%- unless page.no_lang_switch %}
   <link rel="alternate" hreflang="ko" href="{{ ko_url | absolute_url }}">
@@ -37,5 +44,6 @@
   </main>
   {% include footer.html %}
   <script src="{{ '/assets/js/main.js' | relative_url }}?v={{ asset_v }}" defer></script>
+  {% include analytics.html %}
 </body>
 </html>

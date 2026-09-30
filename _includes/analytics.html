@@ -1,0 +1,25 @@
+{%- comment %}
+  접속 통계 스크립트 — `_config.yml` 의 `analytics:` 항목에 코드를 적으면 켜집니다.
+  · 값이 비어 있으면 아무 스크립트도 내려보내지 않습니다(기본 상태).
+  · 로컬 미리보기(jekyll serve)는 JEKYLL_ENV=development 이므로 집계되지 않습니다.
+  · 둘 다 적으면 둘 다 동작하지만, 보통은 하나만 씁니다.
+{% endcomment -%}
+{%- if jekyll.environment == "production" -%}
+{%- assign gc = site.analytics.goatcounter | default: "" -%}
+{%- if gc != "" %}
+  {%- comment %} GoatCounter — 쿠키·개인정보 수집 없음, 방문 수/유입 경로/국가 통계 {% endcomment %}
+  <script data-goatcounter="https://{{ gc }}.goatcounter.com/count"
+          async src="https://gc.zgo.at/count.js"></script>
+{%- endif %}
+{%- assign ga = site.analytics.ga4 | default: "" -%}
+{%- if ga != "" %}
+  {%- comment %} Google Analytics 4 {% endcomment %}
+  <script async src="https://www.googletagmanager.com/gtag/js?id={{ ga }}"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', '{{ ga }}', { anonymize_ip: true });
+  </script>
+{%- endif %}
+{%- endif -%}

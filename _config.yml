@@ -46,6 +46,24 @@ social:
     - https://github.com/lab-dream
     - https://www.youtube.com/channel/UCVLai4d1WsOG-iGewUGehUQ
 
+# ─────────────────────────────────────────────────────────────
+#  접속 통계 (방문 수 · 어느 페이지를 봤는지 · 어디서 들어왔는지)
+#  아래 칸에 코드를 적으면 켜지고, 비워 두면 통계 스크립트가 아예 실리지 않습니다.
+#  로컬 미리보기(jekyll serve)는 집계되지 않고 실제 배포된 사이트만 집계됩니다.
+#  가입·확인 방법은 _private/NOTES.md 의 '접속 통계' 항목 참고.
+# ─────────────────────────────────────────────────────────────
+analytics:
+  # GoatCounter 코드 — 가입할 때 정한 이름. 예: dreamlab  → 통계 화면 https://dreamlab.goatcounter.com
+  # 쿠키를 쓰지 않아 동의 배너가 필요 없고, 유입 경로(Referrers)·국가·브라우저까지 보여 줍니다.
+  goatcounter: "park94"   # → 통계 화면 https://park94.goatcounter.com
+  # Google Analytics 4 측정 ID. 예: G-XXXXXXXXXX  (안 쓰면 비워 두세요)
+  ga4: ""
+
+# 검색엔진 소유 확인 — Search Console / 네이버 서치어드바이저의 'HTML 태그' 방식 값만 적으면 됩니다
+verify:
+  google: ""
+  naver: ""
+
 defaults:
   # 모든 페이지: 영어(기본) + 공유 이미지 (카카오톡·슬랙 등 링크 미리보기)
   - scope:

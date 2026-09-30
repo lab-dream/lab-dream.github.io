@@ -28,6 +28,7 @@ GitHub Pages가 기본 제공하는 Jekyll로 빌드되므로 **별도 빌드 �
 | 상단 메뉴 | `_data/navigation.yml` |
 | 버튼·제목 등 화면 문구(한/영) | `_data/i18n.yml` |
 | 연락처, 주소, 사이트 제목 | `_config.yml` |
+| 접속 통계 켜기/끄기 | `_config.yml` 의 `analytics:` |
 | 브랜드 컬러·폰트 | `assets/css/main.css` 맨 위 `:root` |
 
 이미지는 `assets/img/` 아래 폴더(`members/`, `pubs/`, `research/`, `photos/`)에 넣고 YAML에 경로를 적습니다.
@@ -144,6 +145,12 @@ python3 tools/bib2yml.py paper.bib --prepend  # publications.yml 맨 위에 바�
 ### 도메인
 
 사이트는 연구실 도메인으로도 연결됩니다. 도메인·DNS 관련 설정은 관리자만 다룹니다.
+
+### 접속 통계
+
+`_config.yml` 의 `analytics:` 칸에 통계 서비스 코드를 적으면 방문 수·페이지별 조회·유입 경로를 볼 수 있습니다.
+비워 두면(기본값) 통계 스크립트가 아예 실리지 않고, 로컬 미리보기는 어떤 경우에도 집계되지 않습니다.
+서비스 선택과 계정 설정은 관리자만 다룹니다.
 
 ---
 
