@@ -5719,6 +5719,56 @@ for t in reversed(range(T)):
         <p class="body-text">CVAE를 쓰는 이유는 사람 시연의 들쑥날쑥함을 <b>잠재변수에 몰아넣기</b> 위해서입니다. 학습 때는 시연의 스타일을 잠재변수 \(z\) 가 흡수하고, 추론 때는 \(z\) 를 사전분포의 평균(0)으로 두어 일관된 행동을 뽑습니다.</p>
       </div>
 
+      <div class="block">
+        <h3>토큰이 실제로 어떻게 들어가는가</h3>
+        <p class="body-text">ACT 안에는 트랜스포머가 두 개 있습니다. 시연의 스타일을 뽑아내는 쪽과 실제로 행동을 만드는 쪽입니다. 아래는 LeRobot 구현(<code>policies/act/modeling_act.py</code>) 기준입니다.</p>
+
+        <p class="body-text"><b>1. 스타일 인코더</b>는 학습할 때만 돕니다. 토큰을 이렇게 쌓습니다.</p>
+        <pre>[ CLS ,  현재 관절 상태 ,  a_t , a_t+1 , ... , a_t+k-1 ]
+   1   +        1          +            k           = 토큰 수</pre>
+        <p class="body-text">사인 위치 인코딩을 더해 통과시킨 뒤 <b>CLS 토큰의 출력만</b> 꺼내 선형층에 넣으면 잠재분포의 \((\mu, \log\sigma^2)\) 가 나옵니다. 재매개화로 \(z\) 를 뽑아 본체에 넘깁니다. 추론할 때는 이 인코더를 아예 돌리지 않고 \(z=0\) 으로 둡니다. 그래서 같은 관측이면 항상 같은 행동이 나옵니다.</p>
+
+        <p class="body-text"><b>2. 본체 인코더</b>의 토큰은 이렇게 생겼습니다.</p>
+        <pre>[ z , 관절 상태 , (환경 상태) , 카메라1 특징맵 픽셀... , 카메라2 특징맵 픽셀... ]</pre>
+        <ul class="plain">
+          <li>앞쪽 1차원 토큰들(\(z\), 상태)은 <b>학습되는</b> 위치 임베딩을 받습니다</li>
+          <li>이미지는 ResNet 특징맵 <code>(B, C, h, w)</code> 를 <code>h × w</code> 개의 토큰으로 펼친 것이고, <b>2D 사인</b> 위치 임베딩을 받습니다</li>
+          <li>카메라가 두 대이고 특징맵이 15×20이면 이미지 토큰만 600개입니다. 토큰 수의 대부분은 이미지에서 나옵니다</li>
+        </ul>
+
+        <p class="body-text"><b>3. 디코더</b>는 질의를 밖에서 받지 않습니다. 길이 \(k\) 짜리 <b>0 벡터</b>에 학습된 위치 임베딩만 더해 질의로 쓰고, 인코더 출력에 교차 어텐션합니다. 나온 \(k\) 개 토큰을 선형층에 통과시키면 행동 묶음이 됩니다.</p>
+        <pre><span class="cm"># 스타일 인코더 (학습 때만)</span>
+vae_in = cat([cls_embed, state_embed, action_embed], dim=1)   <span class="cm"># (B, 1+1+k, D)</span>
+mu, log_sigma2 = split(linear(vae_encoder(vae_in)[0]))         <span class="cm"># CLS 출력만 사용</span>
+z = mu + exp(log_sigma2 / 2) * randn_like(mu)                  <span class="cm"># 추론 때는 z = 0</span>
+
+<span class="cm"># 본체 인코더</span>
+tokens = [proj(z), proj(state)]
+for img in images:
+    feat = backbone(img)["feature_map"]                        <span class="cm"># (B, C, h, w)</span>
+    tokens += list(rearrange(proj(feat), "b c h w -&gt; (h w) b c"))
+
+<span class="cm"># 디코더: 0 벡터 + 학습된 위치 임베딩이 질의</span>
+dec_in  = zeros(k, B, D)
+actions = action_head(decoder(dec_in, encoder(tokens)))        <span class="cm"># (B, k, action_dim)</span></pre>
+
+        <table class="tbl">
+          <tr><th>LeRobot 기본값</th><th>값</th><th>뜻</th></tr>
+          <tr><td><code>chunk_size</code></td><td>100</td><td>한 번에 예측하는 행동 수 \(k\)</td></tr>
+          <tr><td><code>n_action_steps</code></td><td>100</td><td>그중 실제로 실행하는 수</td></tr>
+          <tr><td><code>n_obs_steps</code></td><td>1</td><td>관측은 현재 한 장만 봅니다</td></tr>
+          <tr><td><code>dim_model</code> / <code>n_heads</code></td><td>512 / 8</td><td>트랜스포머 폭과 헤드 수</td></tr>
+          <tr><td><code>latent_dim</code></td><td>32</td><td>스타일 잠재변수 \(z\) 의 차원</td></tr>
+          <tr><td><code>vision_backbone</code></td><td>resnet18</td><td>카메라마다 공유해서 씁니다</td></tr>
+          <tr><td><code>kl_weight</code></td><td>10.0</td><td>재구성 손실에 더하는 KL 항의 비중</td></tr>
+          <tr><td><code>temporal_ensemble_coeff</code></td><td>None</td><td><b>시간 앙상블은 기본으로 꺼져 있습니다</b></td></tr>
+        </table>
+        <div class="callout danger">
+          <b>시간 앙상블은 공짜로 켜지지 않습니다</b>
+          겹치는 예측을 평균 내려면 매 스텝 새로 예측해야 하므로 <code>n_action_steps</code> 가 1이어야 합니다. LeRobot도 두 값을 같이 켜면 오류를 냅니다. 기본 설정은 묶음 100개를 그대로 실행하고 다음 묶음으로 넘어가는 쪽입니다. 논문의 매끄러움을 기대했는데 이음매가 덜컥거린다면 이 설정부터 확인하세요.
+        </div>
+      </div>
+
       <div class="callout">
         <b>기억할 점</b>
         ACT의 출력은 <b>그 로봇의 관절각</b>입니다. 구현이 단순하고 원격조작 데이터와 바로 이어지지만, 카메라 위치나 로봇이 바뀌면 그대로 쓰기 어렵습니다. 이 문제를 행동 표현 쪽에서 푸는 방법이 뒤의 UMI 편입니다.
@@ -5885,6 +5935,7 @@ for t in reversed(range(T)):
           <li>상대 손끝 자세 표현이 왜 로봇을 바꿔도 통하는지 안다</li>
           <li>그 표현이 수학 기초 3편의 오른쪽곱과 같은 것임을 안다</li>
           <li>상대 표현의 약점과 그 대처를 안다</li>
+          <li>UMI 구현에서 상대 변환이 일어나는 지점과 그 구조를 설명할 수 있다</li>
         </ul>
       </div>
 
@@ -5929,6 +5980,72 @@ q_des = inverse_kinematics(T_des)</pre>
       <div class="callout danger">
         <b>공짜는 아닙니다</b>
         상대 표현은 기준이 매 순간 움직이므로 작은 오차가 쌓이면 제자리로 돌아오지 못합니다. 그래서 보통 <b>묶음 안에서는 기준을 고정</b>합니다. 묶음을 시작한 시점의 손끝 자세를 기준으로 \(H\) 개를 모두 적고, 다음 묶음에서 기준을 새로 잡는 식입니다. 또 "책상 위 고정된 지점에 항상 놓기"처럼 절대 위치가 본질인 작업에서는 상대 표현만으로 부족하므로, 카메라로 목표를 보고 맞추는 구조가 함께 필요합니다.
+      </div>
+
+      <div class="block">
+        <h3>데이터셋은 절대로 저장하고, 꺼낼 때 상대로 바꾼다</h3>
+        <p class="body-text">UMI 구현에서 가장 눈여겨볼 설계는 <b>저장은 절대 좌표로 해 두고 변환은 데이터 로더에서 한다</b>는 점입니다. 기준을 바꿔 다시 실험하거나 궤적을 그려 보거나 역기구학에 넣을 때는 절대 좌표가 편하고, 상대 표현은 꺼낼 때 한 줄이면 만들어지기 때문입니다. 변환이 일어나는 자리는 딱 두 파일입니다.</p>
+        <table class="tbl">
+          <tr><th>파일</th><th>하는 일</th></tr>
+          <tr><td><code>diffusion_policy/dataset/umi_dataset.py</code> 의 <code>__getitem__</code></td><td>한 샘플을 꺼낼 때 기준 자세를 고르고 관측과 행동을 변환합니다</td></tr>
+          <tr><td><code>diffusion_policy/common/pose_repr_util.py</code> 의 <code>convert_pose_mat_rep</code></td><td>실제 변환 식. 학습용(forward)과 복원용(backward)을 한 함수에 담았습니다</td></tr>
+        </table>
+
+        <p class="body-text"><code>__getitem__</code> 의 흐름을 줄여 적으면 이렇습니다.</p>
+        <pre><span class="cm"># 1) 창(window) 하나를 꺼낸다 — 과거 관측 몇 개 + 미래 행동 묶음</span>
+data = self.sampler.sample_sequence(idx)
+
+<span class="cm"># 2) 위치 + 축각(axis-angle)으로 저장된 값을 4x4 행렬로</span>
+pose_mat   = pose_to_mat(cat([obs['robot0_eef_pos'], obs['robot0_eef_rot_axis_angle']]))
+action_mat = pose_to_mat(data['action'][..., 0:6])      <span class="cm"># 팔 하나당 7칸 중 앞 6칸이 자세</span>
+
+<span class="cm"># 3) 기준은 "관측 창의 마지막" = 결정하는 순간의 손끝</span>
+base = pose_mat[-1]
+
+<span class="cm"># 4) 관측과 행동을 같은 기준으로 변환</span>
+obs_pose_mat    = convert_pose_mat_rep(pose_mat,   base_pose_mat=base, pose_rep=repr)
+action_pose_mat = convert_pose_mat_rep(action_mat, base_pose_mat=base, pose_rep=repr)
+
+<span class="cm"># 5) 4x4 행렬을 신경망이 먹을 수 있는 벡터로: 위치 3 + 회전 6</span>
+obs_pose    = mat_to_pose10d(obs_pose_mat)
+action_pose = mat_to_pose10d(action_pose_mat)
+
+<span class="cm"># 6) 그리퍼 폭은 변환하지 않고 절대값 그대로 붙인다 → 팔 하나당 11차원</span>
+action = cat([action_pose, data['action'][..., 6:7]])</pre>
+        <p class="body-text">네 번째 줄이 핵심입니다. <b>관측과 행동이 같은 기준 자세를 공유</b>합니다. 기준이 어긋나면 정책은 서로 다른 원점에서 적힌 숫자 두 벌을 보게 됩니다. 그리고 기준은 창의 <b>마지막 관측</b>입니다. 즉 "지금 이 순간의 손끝"이 매번 새 원점이 됩니다.</p>
+
+        <p class="body-text">다섯 번째 줄의 <code>mat_to_pose10d</code> 는 4×4 행렬에서 위치 3개와 회전행렬의 성분 6개를 떼어 10차원으로 만듭니다. 앞에서 말한 6D 회전 표현이 여기서 나옵니다. 되돌릴 때는 그 6개를 정규직교화해 회전행렬을 복원합니다.</p>
+
+        <p class="body-text">여섯 번째 줄도 중요합니다. <b>그리퍼 폭은 상대로 바꾸지 않습니다.</b> 손끝 자세는 "여기서 얼마나 더"가 말이 되지만 그리퍼 폭은 그 자체가 목표값이기 때문입니다.</p>
+      </div>
+
+      <div class="block">
+        <h3>변환 함수 안쪽</h3>
+        <p class="body-text"><code>convert_pose_mat_rep</code> 는 네 가지 방식을 지원하고, <code>backward</code> 인자로 학습용 변환과 추론용 복원을 함께 처리합니다.</p>
+        <pre><span class="cm"># 학습 때 (backward=False)</span>
+if pose_rep == 'relative':
+    out = np.linalg.inv(base_pose_mat) @ pose_mat       <span class="cm"># 절대 → 상대</span>
+
+<span class="cm"># 추론 때 (backward=True)</span>
+if pose_rep == 'relative':
+    out = base_pose_mat @ pose_mat                       <span class="cm"># 상대 → 절대</span></pre>
+        <p class="body-text">앞에서 적은 \(A_t = T_{\text{cur}}^{-1}T_{\text{des}}\) 와 \(T_{\text{des}} = T_{\text{cur}}A_t\) 가 코드로는 이 두 줄입니다. 수학 기초에서 만든 <code>se3_inv</code> 와 행렬곱 그대로입니다.</p>
+        <table class="tbl">
+          <tr><th><code>pose_rep</code></th><th>변환</th><th>성격</th></tr>
+          <tr><td><code>abs</code></td><td>그대로</td><td>절대 좌표. 베이스가 고정된 환경에서만 통합니다</td></tr>
+          <tr><td><code>relative</code></td><td><code>inv(base) @ pose</code></td><td>제대로 된 SE(3) 상대 변환. 보통 이것을 씁니다</td></tr>
+          <tr><td><code>delta</code></td><td>이웃한 스텝끼리의 차이</td><td>한 스텝씩의 증분. 누적해서 복원합니다</td></tr>
+          <tr><td><code>rel</code></td><td>위치는 빼고 회전은 따로</td><td>코드에 <b>legacy buggy implementation</b> 이라고 적혀 있습니다</td></tr>
+        </table>
+        <div class="callout danger">
+          <b><code>rel</code> 과 <code>relative</code> 는 다릅니다</b>
+          <code>rel</code> 은 위치에서 기준 위치를 빼고 회전에는 \(R\,R_{\text{base}}^{-1}\) 를 곱합니다. 위치는 월드 축 기준으로 빼면서 회전은 다른 쪽에서 곱하므로 하나의 \(SE(3)\) 변환으로 설명되지 않습니다. 원 저자도 주석에 호환성 때문에 남겨 둔 잘못된 구현이라고 적어 두었는데, <code>UmiDataset</code> 의 기본 fallback 값이 <code>rel</code> 이라 설정 파일에서 지정하지 않으면 이쪽이 걸립니다. 남의 설정을 가져다 쓸 때 <code>obs_pose_repr</code> 와 <code>action_pose_repr</code> 가 무엇으로 되어 있는지 반드시 확인하세요.
+        </div>
+      </div>
+
+      <div class="callout">
+        <b>양팔이면 기준이 하나 더 생깁니다</b>
+        같은 파일에는 한쪽 팔의 자세를 <b>다른 팔 기준</b>으로 적은 관측(<code>..._eef_pos_wrt{other}</code>)과, <b>에피소드 시작 자세 기준</b>으로 적은 관측(<code>..._wrt_start</code>)을 만드는 부분도 있습니다. 앞의 것은 두 손의 상대 배치를 정책에 직접 알려 주는 입력이고, 뒤의 것은 작업이 얼마나 진행됐는지를 알려 주는 입력입니다. 두 팔이 함께 물체를 드는 작업이라면 앞의 관측이 수학 기초 5편에서 본 양팔 구속과 정확히 같은 양을 가리킵니다.
       </div>
 
       <div class="block">
@@ -5986,14 +6103,127 @@ q_des = inverse_kinematics(T_des)</pre>
         <div class="quiz-result" id="quiz-actrep-result"></div>
       </div>
 
+    </section>
+<!-- ============ PAGE DATASET : 데이터셋과 정규화 ============ -->
+    <section class="page" data-type="theory" id="page-dataset">
+      <div class="crumb">LEVEL 4 학습 기반 조작 <span class="sep">›</span> 46 데이터셋과 정규화 (LeRobot)</div>
+      <div class="page-head">
+        <h2>데이터셋과 정규화 (LeRobot)</h2>
+        <span class="badge theory">이론 강의</span>
+      </div>
+      <p class="lead">모델 이야기만 하면 정작 코드를 열었을 때 막힙니다. 실제로 시간을 가장 많이 잡아먹는 것은 <b style="color:var(--text)">데이터를 어떤 모양으로 저장하고, 숫자를 어떤 범위로 맞춰 넣느냐</b>입니다. 연구실에서 쓰는 LeRobot을 기준으로 정리합니다.</p>
+
+      <div class="goal-box">
+        <div class="lbl">이 페이지를 마치면</div>
+        <ul>
+          <li>LeRobot 데이터셋의 폴더 구조를 읽을 수 있다</li>
+          <li>행동 묶음이 데이터 로더에서 어떻게 만들어지는지 안다</li>
+          <li>정규화 방식 다섯 가지와 정책마다 기본값이 다른 이유를 안다</li>
+          <li>학습은 됐는데 로봇에서 이상할 때 어디를 보는지 안다</li>
+        </ul>
+      </div>
+
+      <div class="block">
+        <h3>폴더 구조</h3>
+        <pre>.
+├── data
+│   └── chunk-000
+│       ├── file-000.parquet        <span class="cm"># 여러 에피소드가 한 파일에 모여 있음</span>
+│       └── file-001.parquet
+├── meta
+│   ├── info.json                   <span class="cm"># fps, 특징 이름과 shape, 청크 구조</span>
+│   ├── stats.json                  <span class="cm"># 정규화에 쓰는 통계</span>
+│   ├── tasks.parquet               <span class="cm"># 언어 지시문</span>
+│   └── episodes
+│       └── chunk-000/file-000.parquet
+└── videos
+    ├── observation.images.laptop
+    │   └── chunk-000/file-000.mp4
+    └── observation.images.phone
+        └── chunk-000/file-000.mp4</pre>
+        <p class="body-text">쓰이는 파일 형식은 <code>.parquet</code>, <code>.json</code>, <code>.mp4</code> 뿐입니다. 특별한 도구 없이 열어볼 수 있고, <code>info.json</code> 하나만 받아보면 데이터를 내려받기 전에 구조를 파악할 수 있습니다.</p>
+      </div>
+
+      <div class="block">
+        <h3>한 행이 한 프레임</h3>
+        <p class="body-text">parquet의 한 행은 한 시점입니다. 관절 상태와 행동 같은 낮은 차원 값이 여기에 들어가고, <b>이미지는 들어가지 않습니다</b>. 이미지는 카메라마다 mp4로 인코딩해 두고 프레임 번호로 맞춰 읽습니다. 수십만 장을 PNG로 두는 것과 비교하면 용량이 크게 줄어듭니다.</p>
+        <table class="tbl">
+          <tr><th>열</th><th>내용</th></tr>
+          <tr><td><code>observation.state</code></td><td>관절각 등 로봇 상태 벡터</td></tr>
+          <tr><td><code>action</code></td><td>그 시점에 보낸 명령</td></tr>
+          <tr><td><code>timestamp</code>, <code>frame_index</code></td><td>에피소드 안에서의 시각과 프레임 번호</td></tr>
+          <tr><td><code>episode_index</code>, <code>index</code></td><td>몇 번째 에피소드인지, 전체에서 몇 번째 행인지</td></tr>
+          <tr><td><code>task_index</code></td><td><code>tasks</code> 의 어느 지시문에 해당하는지</td></tr>
+          <tr><td><code>observation.images.*</code></td><td>이름만 열로 두고 실제 픽셀은 mp4에서 읽습니다</td></tr>
+        </table>
+      </div>
+
+      <div class="block">
+        <h3>행동 묶음은 로더가 만들어 줍니다</h3>
+        <p class="body-text">앞 편들에서 본 행동 묶음은 모델이 아니라 <b>데이터 로더</b>에서 시작합니다. <code>delta_timestamps</code> 에 "현재 시점 기준 몇 초 앞뒤를 같이 달라"고 적으면 됩니다.</p>
+        <pre>from lerobot.datasets.lerobot_dataset import LeRobotDataset
+
+fps = 50
+ds = LeRobotDataset(
+    "lerobot/aloha_sim_insertion_human",
+    delta_timestamps={
+        "action": [i / fps for i in range(100)],      <span class="cm"># 앞으로 100 스텝 = 행동 묶음</span>
+        "observation.state": [-1 / fps, 0.0],          <span class="cm"># 직전 한 스텝과 현재</span>
+    },
+)
+
+sample = ds[0]
+sample["action"].shape              <span class="cm"># (100, action_dim)</span>
+sample["action_is_pad"]             <span class="cm"># 에피소드 끝을 넘어간 자리 표시</span></pre>
+        <p class="body-text">에피소드 끝 근처에서는 100 스텝이 다 없을 수 있습니다. 그 자리는 채워 넣고 <code>action_is_pad</code> 로 표시해 주므로, 손실을 계산할 때 그 부분을 빼면 됩니다. 요청한 시각이 실제 프레임과 어긋나는지도 <code>tolerance_s</code> 로 검사합니다.</p>
+      </div>
+
+      <div class="block">
+        <h3>정규화 — 숫자의 크기를 맞춘다</h3>
+        <p class="body-text">관절각은 대략 ±3 라디안, 그리퍼 폭은 0에서 0.08 미터, 픽셀은 0에서 255입니다. 그대로 넣으면 손실이 큰 숫자 쪽에 끌려다닙니다. 그래서 학습 전에 값을 비슷한 범위로 바꾸고, 로봇에 내보내기 직전에 되돌립니다.</p>
+        <table class="tbl">
+          <tr><th>모드</th><th>식</th><th>성격</th></tr>
+          <tr><td><code>MEAN_STD</code></td><td>\((x-\mu)/(\sigma+\varepsilon)\)</td><td>평균 0, 표준편차 1. 가장 무난합니다</td></tr>
+          <tr><td><code>MIN_MAX</code></td><td>\(2\dfrac{x-\min}{\max-\min}-1\)</td><td>\([-1,1]\) 로. 확산 모델이 가정하는 범위와 맞습니다</td></tr>
+          <tr><td><code>QUANTILES</code></td><td>q01, q99 기준</td><td>이상치 한두 개에 범위가 끌려가는 것을 막습니다</td></tr>
+          <tr><td><code>QUANTILE10</code></td><td>q10, q90 기준</td><td>더 과감하게 꼬리를 자릅니다</td></tr>
+          <tr><td><code>IDENTITY</code></td><td>그대로</td><td>이미 정규화된 값에 씁니다</td></tr>
+        </table>
+        <p class="body-text">\(\varepsilon = 10^{-8}\) 은 표준편차나 범위가 0인 차원에서 0으로 나누는 것을 막습니다. 한 번도 움직이지 않은 관절이 있으면 실제로 이런 일이 생깁니다.</p>
+        <table class="tbl">
+          <tr><th>정책</th><th>이미지</th><th>상태</th><th>행동</th></tr>
+          <tr><td>ACT</td><td>MEAN_STD</td><td>MEAN_STD</td><td>MEAN_STD</td></tr>
+          <tr><td>Diffusion Policy</td><td>MEAN_STD</td><td><b>MIN_MAX</b></td><td><b>MIN_MAX</b></td></tr>
+        </table>
+        <p class="body-text">같은 데이터인데 기본값이 다릅니다. 확산은 노이즈에서 출발해 \([-1,1]\) 안에서 움직이는 것을 전제로 하므로 행동을 그 범위에 맞춰 두는 편이 자연스럽고, ACT는 회귀라 평균과 표준편차로 충분합니다. 남의 설정을 가져다 쓸 때 이 줄을 같이 가져왔는지 확인하세요.</p>
+      </div>
+
+      <div class="callout danger">
+        <b>학습은 잘 됐는데 로봇에서 이상하다면</b>
+        정규화 통계부터 의심하세요. 통계는 데이터셋의 <code>meta/stats.json</code> 에서 와서 <b>정책 체크포인트에 함께 저장</b>됩니다. 데이터를 더 모아 통계가 바뀌었는데 예전 체크포인트를 쓰거나, 추론 코드에서 역정규화를 빠뜨리면 로봇은 엉뚱한 크기의 명령을 받습니다. 관절 순서가 학습 때와 다른 경우도 같은 증상을 냅니다. 모델을 고치기 전에 입력과 출력의 숫자를 한 번 찍어 보는 것이 가장 빠릅니다.
+      </div>
+
+      <div class="block">
+        <h3>직접 볼 곳</h3>
+        <a class="linkbox" href="https://github.com/huggingface/lerobot" target="_blank">
+          <span class="ico">GIT</span>
+          <span class="meta"><b>LeRobot — 데이터셋, 정책, 학습 스크립트</b><span>github.com/huggingface/lerobot</span></span>
+        </a>
+        <a class="linkbox" href="https://huggingface.co/docs/lerobot/lerobot-dataset-v3" target="_blank">
+          <span class="ico">DOC</span>
+          <span class="meta"><b>LeRobot Dataset v3 — 포맷 설명</b><span>huggingface.co/docs/lerobot</span></span>
+        </a>
+        <p class="body-text" style="margin-top:10px;">코드를 읽을 때는 <code>policies/act/modeling_act.py</code>(토큰 구성), <code>processor/normalize_processor.py</code>(정규화), <code>datasets/lerobot_dataset.py</code>(로더) 세 파일만 봐도 전체 그림이 잡힙니다.</p>
+      </div>
+
       <div class="callout hands">
         <b>Level 4 완료</b>
-        신경망과 트랜스포머에서 시작해 확산과 플로우를 거쳐, 실제로 쓰이는 정책 네 가지와 행동 표현까지 훑었습니다. 여기까지가 개념이고, 실제로 데이터를 모으고 학습을 돌리는 일은 연구실 과제에서 선배와 함께 하게 됩니다. 마지막 Level 5에서는 결과를 논문 형식으로 정리하는 LaTeX을 다룹니다.
+        신경망과 트랜스포머에서 시작해 확산과 플로우를 거쳐, 실제로 쓰이는 정책 네 가지와 행동 표현, 그리고 데이터와 정규화까지 훑었습니다. 여기까지가 개념이고, 실제로 데이터를 모으고 학습을 돌리는 일은 연구실 과제에서 선배와 함께 하게 됩니다. 마지막 Level 5에서는 결과를 논문 형식으로 정리하는 LaTeX을 다룹니다.
       </div>
     </section>
 <!-- ============ PAGE OVERLEAF : Overleaf 시작하기 ============ -->
     <section class="page" data-type="hands" id="page-overleaf">
-      <div class="crumb">LEVEL 5 LaTeX (Overleaf) <span class="sep">›</span> 46 Overleaf 시작하기</div>
+      <div class="crumb">LEVEL 5 LaTeX (Overleaf) <span class="sep">›</span> 47 Overleaf 시작하기</div>
       <div class="page-head">
         <h2>Overleaf 시작하기</h2>
         <span class="badge hands">실습 가이드</span>
@@ -6049,7 +6279,7 @@ q_des = inverse_kinematics(T_des)</pre>
     </section>
 <!-- ============ PAGE LATEX : LaTeX 문서 구조 & 수식 ============ -->
     <section class="page" data-type="hands" id="page-latex">
-      <div class="crumb">LEVEL 5 LaTeX (Overleaf) <span class="sep">›</span> 47 LaTeX 문서 구조 & 수식</div>
+      <div class="crumb">LEVEL 5 LaTeX (Overleaf) <span class="sep">›</span> 48 LaTeX 문서 구조 & 수식</div>
       <div class="page-head">
         <h2>LaTeX 문서 구조 & 수식</h2>
         <span class="badge hands">실습 가이드</span>
@@ -6222,8 +6452,9 @@ q_des = inverse_kinematics(T_des)</pre>
     {id:'page-pi0', num:'43', title:'π0 (VLA)', type:'theory', level:'LEVEL 4'},
     {id:'page-groot', num:'44', title:'GR00T', type:'theory', level:'LEVEL 4'},
     {id:'page-action-rep', num:'45', title:'행동 표현과 UMI', type:'theory', level:'LEVEL 4'},
-    {id:'page-overleaf', num:'46', title:'Overleaf 시작하기', type:'hands', level:'LEVEL 5'},
-    {id:'page-latex', num:'47', title:'LaTeX 문서 구조 & 수식', type:'hands', level:'LEVEL 5'},
+    {id:'page-dataset', num:'46', title:'데이터셋과 정규화', type:'theory', level:'LEVEL 4'},
+    {id:'page-overleaf', num:'47', title:'Overleaf 시작하기', type:'hands', level:'LEVEL 5'},
+    {id:'page-latex', num:'48', title:'LaTeX 문서 구조 & 수식', type:'hands', level:'LEVEL 5'},
     {id:'page-cert', num:'🎓', title:'인증서 발급', type:'cert', level:'CERTIFICATE'},
   ];
 
