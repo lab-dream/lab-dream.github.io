@@ -1558,7 +1558,7 @@ print(R_half.as_euler("xyz", degrees=True))   <span class="cm"># [0, 0, 55]</spa
 
       <div class="block">
         <h3>FK를 미분하는 길 (Craig 교재)</h3>
-        <p class="body-text">많은 사람이 자코비안을 처음 만나는 곳은 Craig의 <i>Introduction to Robotics</i>입니다. 이 책은 두 가지 경로로 자코비안을 유도합니다. 하나는 순기구학 식을 관절각으로 직접 편미분하는 것이고, 다른 하나는 링크를 따라 속도를 넘겨주는 것입니다. 첫 번째는 Level 3 기구학 기초 페이지에서 2R 팔로 이미 해본 계산입니다.</p>
+        <p class="body-text">많은 사람이 자코비안을 처음 만나는 곳은 Craig의 <i>Introduction to Robotics</i>입니다. 이 책은 두 가지 경로로 자코비안을 유도합니다. 하나는 순기구학 식을 관절각으로 직접 편미분하는 것이고, 다른 하나는 링크를 따라 속도를 넘겨주는 것입니다. 첫 번째 방법을 2R 평면 팔로 따라가 봅니다. Level 3의 기구학 기초 페이지에서 로봇 그림과 함께 한 번 더 만나게 됩니다.</p>
         <div class="eq">\[ x = l_1\cos\theta_1 + l_2\cos(\theta_1+\theta_2), \qquad y = l_1\sin\theta_1 + l_2\sin(\theta_1+\theta_2) \]</div>
         <div class="eq">\[ J(\theta)=\frac{\partial (x,\,y)}{\partial (\theta_1,\,\theta_2)}=\begin{bmatrix} -l_1 s_1 - l_2 s_{12} & -l_2 s_{12} \\ l_1 c_1 + l_2 c_{12} & l_2 c_{12} \end{bmatrix}, \qquad \det J = l_1 l_2 \sin\theta_2 \]</div>
         <p class="body-text">손으로 미분하기 번거로우면 sympy가 그대로 해줍니다. 이름부터 <code>jacobian</code>입니다.</p>
@@ -4635,7 +4635,7 @@ $ find $(ros2 pkg prefix open_manipulator_description) -name "*.xacro"</pre>
 
       <div class="block">
         <h3>좌표계와 자유도(DOF)</h3>
-        <p class="body-text">로봇을 다룰 때는 여러 좌표계가 동시에 존재합니다. <b>world</b>(전체 공간 기준), <b>base</b>(로봇 베이스 기준), <b>end-effector</b>(손끝 기준). <b>자유도(DOF)</b>는 로봇이 독립적으로 움직일 수 있는 방향의 개수입니다. OMY는 6-DOF로, 3차원 공간에서 위치(3) + 자세(3)를 모두 자유롭게 제어할 수 있습니다.</p>
+        <p class="body-text">로봇을 다룰 때는 여러 좌표계가 동시에 존재합니다. <b>world</b>(전체 공간 기준), <b>base</b>(로봇 베이스 기준), <b>end-effector</b>(손끝 기준). <b>자유도(DOF)</b>는 로봇이 독립적으로 움직일 수 있는 방향의 개수입니다. OMY는 6-DOF로, 3차원 공간에서 위치(3) + 자세(3)를 모두 자유롭게 제어할 수 있습니다. 이 좌표계들 사이의 변환을 \(T_{sb}\) 처럼 적고 곱으로 이어 붙이는 규칙은 수학 기초 3편에 정리해 두었습니다.</p>
       </div>
 
       <div class="block">
@@ -4677,31 +4677,24 @@ $ find $(ros2 pkg prefix open_manipulator_description) -name "*.xacro"</pre>
       <div class="block">
         <h3>2R 순기구학 (Forward Kinematics)</h3>
         <p class="body-text">관절 길이가 각각 l1, l2인 평면 2관절 팔에서, 관절각(θ1, θ2)이 주어지면 손끝 위치는 다음과 같이 계산됩니다:</p>
-        <pre>x = l1 * cos(θ1) + l2 * cos(θ1 + θ2)
-y = l1 * sin(θ1) + l2 * sin(θ1 + θ2)</pre>
+        <div class="eq">\[ x = l_1\cos\theta_1 + l_2\cos(\theta_1+\theta_2), \qquad y = l_1\sin\theta_1 + l_2\sin(\theta_1+\theta_2) \]</div>
         <p class="body-text">Python 기초 3에서 배운 NumPy의 <code>np.cos</code>/<code>np.sin</code>이 바로 이런 계산에 쓰입니다. <b>순기구학은 관절공간 → 작업공간</b> 방향의 계산이고, 관절이 몇 개든 입력이 정해지면 답은 항상 하나로 정해집니다.</p>
       </div>
 
       <div class="block">
         <h3>역기구학 (Inverse Kinematics) 개념</h3>
         <p class="body-text">역기구학은 순기구학의 반대 방향입니다: "손끝이 여기 있으려면 관절 각도는 얼마여야 하는가?" 순기구학과 달리 <b>해가 여러 개이거나(팔꿈치를 위로 굽히거나 아래로 굽히거나 — elbow up/down) 아예 없을 수도 있습니다(닿을 수 없는 위치).</b> 2R처럼 단순한 경우는 삼각함수로 직접 풀 수 있지만, 관절이 많아지면 보통 <b>자코비안(Jacobian)</b>을 이용해 수치적으로 반복 계산해서 근사해를 찾습니다. MoveIt 2 같은 도구가 이 계산을 대신해줍니다.</p>
+        <p class="body-text">관절이 필요한 자유도보다 많으면 해가 아예 무한히 많아집니다. 7관절 팔로 3차원 위치만 맞추는 경우가 그렇고, 이때는 역행렬 대신 <b>유사역행렬</b>로 그중 하나를 고릅니다(수학 기초 1편). 남는 자유도로 팔꿈치 자세를 따로 조절하거나, 두 팔이 같은 물체를 든 제약을 함께 만족시키는 것도 이 여유 덕분입니다.</p>
       </div>
 
       <div class="block">
         <h3>자코비안(Jacobian) — 순기구학을 미분한 것</h3>
-        <p class="body-text">자코비안은 별개의 새로운 개념이 아니라, 방금 본 순기구학 식 <code>x = f(θ)</code>을 각 관절각으로 <b>미분</b>한 결과입니다. "관절 각도가 아주 조금(dθ) 바뀌면, 손끝 위치는 얼마나(dx) 바뀌는가"를 나타내는 행렬입니다.</p>
-        <pre>x = l1 * cos(θ1) + l2 * cos(θ1 + θ2)
-y = l1 * sin(θ1) + l2 * sin(θ1 + θ2)
-
-<span class="cm"># 각 식을 θ1, θ2로 각각 편미분한다</span>
-∂x/∂θ1 = -l1*sin(θ1) - l2*sin(θ1+θ2)
-∂x/∂θ2 = -l2*sin(θ1+θ2)
-∂y/∂θ1 =  l1*cos(θ1) + l2*cos(θ1+θ2)
-∂y/∂θ2 =  l2*cos(θ1+θ2)
-
-<span class="cm"># 이 네 개의 편미분을 행렬로 모으면 자코비안 J(θ)</span>
-J(θ) = [[ ∂x/∂θ1,  ∂x/∂θ2 ],
-        [ ∂y/∂θ1,  ∂y/∂θ2 ]]</pre>
+        <p class="body-text">자코비안은 별개의 새로운 개념이 아니라, 방금 본 순기구학 식 \(x = f(\theta)\) 을 각 관절각으로 <b>미분</b>한 결과입니다. "관절 각도가 아주 조금 바뀌면 손끝 위치는 얼마나 바뀌는가"를 나타내는 행렬입니다. 수학 기초 5편에서 <b>analytic Jacobian</b>, 즉 Craig 교재가 쓰는 첫 번째 유도 경로라고 불렀던 것이 바로 이 계산입니다. 거기서는 식으로만 봤으니 여기서는 로봇 그림과 함께 손으로 따라가 봅니다.</p>
+        <div class="eq">\[ J(\theta)=\begin{bmatrix} \dfrac{\partial x}{\partial \theta_1} & \dfrac{\partial x}{\partial \theta_2} \\[8pt] \dfrac{\partial y}{\partial \theta_1} & \dfrac{\partial y}{\partial \theta_2} \end{bmatrix} = \begin{bmatrix} -l_1 s_1 - l_2 s_{12} & -l_2 s_{12} \\ l_1 c_1 + l_2 c_{12} & l_2 c_{12} \end{bmatrix} \]<span class="eq-note">\(s_1=\sin\theta_1\), \(c_{12}=\cos(\theta_1+\theta_2)\) 처럼 줄여 적었습니다</span></div>
+        <div class="callout">
+          <b>MuJoCo가 주는 것은 이 형태가 아닙니다</b>
+          위처럼 순기구학 식을 미분해 얻은 것은 <b>위치에 대해서는</b> <code>mj_jacBody</code> 의 <code>jacp</code> 와 완전히 같습니다. 다만 자세까지 다루기 시작하면 갈라집니다. 각도 표현을 미분한 값과 각속도는 다른 것이고, MuJoCo는 각속도를 바로 주는 geometric Jacobian을 돌려줍니다. 두 가지가 어떻게 이어지는지는 수학 기초 5편의 비교표에 있습니다.
+        </div>
         <p class="body-text">즉 자코비안은 <b>작업공간 속도와 관절공간 속도를 잇는 다리</b>입니다:</p>
         <div class="eq">\[ \dot x = J(\theta)\,\dot\theta \]<span class="eq-note">관절이 이 속도로 움직이면, 손끝은 이 속도로 움직인다</span></div>
       </div>
@@ -4709,7 +4702,7 @@ J(θ) = [[ ∂x/∂θ1,  ∂x/∂θ2 ],
       <div class="block">
         <h3>자코비안을 어디에 쓰는가</h3>
         <ul class="plain">
-          <li><b>속도 제어</b> — "손끝을 이 방향으로 이 속도로 움직여라"는 명령을 관절 속도로 바꿀 때: \(\dot\theta = J^{-1}\dot x\)</li>
+          <li><b>속도 제어</b> — "손끝을 이 방향으로 이 속도로 움직여라"는 명령을 관절 속도로 바꿀 때 \(\dot\theta = J^{-1}\dot x\) 를 씁니다. \(J\) 가 정사각이 아니면 유사역행렬 \(J^{+}\) 로 바꿔 풉니다.</li>
           <li><b>수치적 역기구학</b> — 목표 위치와 현재 위치의 오차를 자코비안(의 역행렬)으로 관절각 보정량으로 바꿔서, 조금씩 목표에 다가가는 반복 계산에 씁니다.</li>
           <li><b>특이점(Singularity) 진단</b> — 자코비안이 역행렬을 가질 수 없는(<code>det(J) = 0</code>) 자세에서는, 특정 방향으로 아무리 관절을 움직여도 손끝이 그 방향으로 움직이지 못합니다. 2R 팔이 완전히 펴진 자세(θ2 = 0)가 대표적인 예입니다.</li>
         </ul>
@@ -4726,7 +4719,7 @@ repeat:
         break
     dtheta = inverse(J(θ)) @ error   <span class="cm"># 자코비안(역행렬)로 오차를 관절 보정량으로 변환</span>
     θ = θ + dtheta</pre>
-        <p class="body-text">한 번에 정답을 계산하는 게 아니라, "현재 위치와 목표의 차이 → 자코비안으로 관절 보정량 계산 → 조금 이동" 을 여러 번 반복해서 수렴시키는 방식입니다. MuJoCo 통합 실습 페이지에서 다룰 관절 제어도 이 감각 위에서 이해하면 훨씬 쉽습니다.</p>
+        <p class="body-text">한 번에 정답을 계산하는 게 아니라, "현재 위치와 목표의 차이 → 자코비안으로 관절 보정량 계산 → 조금 이동" 을 여러 번 반복해서 수렴시키는 방식입니다. 이 반복문이 바로 Level 3 뒤쪽의 <b>MuJoCo 순기구학과 자코비안(CLIK)</b> 페이지에서 직접 돌려볼 코드이고, 이어지는 양팔 도전 과제도 같은 루프를 팔마다 한 번씩 돌리는 구조입니다.</p>
       </div>
 
       <div class="callout">
@@ -5363,12 +5356,644 @@ $ git push origin main</pre>
 
       <div class="callout hands">
         <b>Level 3 완료</b>
-        URDF로 로봇 구조를 표현하고, 기구학으로 관절과 손끝의 관계를 손으로 유도하고, MuJoCo로 그 계산을 자동화해 한 팔을 목표 지점까지 보낸 다음, 마지막으로 양팔 로봇에서 두 손이 동시에 서로 다른 경로를 따르게 만들었습니다. 이어지는 Level 4에서는 이 결과를 논문이나 보고서 형식으로 정리하는 LaTeX을 다룹니다.
+        URDF로 로봇 구조를 표현하고, 기구학으로 관절과 손끝의 관계를 손으로 유도하고, MuJoCo로 그 계산을 자동화해 한 팔을 목표 지점까지 보낸 다음, 마지막으로 양팔 로봇에서 두 손이 동시에 서로 다른 경로를 따르게 만들었습니다. 여기까지가 손으로 적는 규칙에 기반한 제어입니다. 이어지는 Level 4에서는 반대로 데이터에서 행동을 배우는 쪽을 다룹니다.
+      </div>
+    </section>
+<!-- ============ PAGE NN BASICS : 뉴럴네트워크 기초 ============ -->
+    <section class="page" data-type="theory" id="page-nn-basics">
+      <div class="crumb">LEVEL 4 학습 기반 조작 <span class="sep">›</span> 37 뉴럴네트워크 기초</div>
+      <div class="page-head">
+        <h2>뉴럴네트워크 기초</h2>
+        <span class="badge theory">이론 강의</span>
+      </div>
+      <p class="lead">여기부터는 손으로 규칙을 적는 대신 <b style="color:var(--text)">데이터에서 행동을 배우는</b> 쪽을 다룹니다. 이 레벨은 실습을 요구하지 않습니다. 논문이나 코드를 마주쳤을 때 "무엇을 어떻게 학습하는 구조인가"를 읽어낼 수 있는 정도를 목표로 합니다.</p>
+
+      <div class="goal-box">
+        <div class="lbl">이 페이지를 마치면</div>
+        <ul>
+          <li>신경망이 결국 행렬곱과 비선형 함수의 반복이라는 것을 설명할 수 있다</li>
+          <li>손실, 경사하강, 역전파가 각각 무엇을 하는지 안다</li>
+          <li>학습이 안 될 때 흔히 의심하는 것들을 떠올릴 수 있다</li>
+          <li>로봇 정책에서 입력과 출력이 무엇인지 그려볼 수 있다</li>
+        </ul>
+      </div>
+
+      <div class="block">
+        <h3>한 층은 행렬곱 하나와 비선형 함수 하나</h3>
+        <p class="body-text">신경망의 한 층은 입력에 행렬을 곱하고 더한 뒤, 비선형 함수를 통과시키는 것이 전부입니다.</p>
+        <div class="eq">\[ h = \sigma(W x + b), \qquad \hat{y} = W_L h_{L-1} + b_L \]<span class="eq-note">\(W\) 가중치, \(b\) 편향, \(\sigma\) 활성함수(ReLU, GELU 등)</span></div>
+        <p class="body-text">비선형 함수가 없으면 층을 아무리 쌓아도 행렬곱 하나로 합쳐져 결국 선형 변환이 됩니다. 수학 기초 1편에서 본 회전행렬처럼, 선형 변환만으로는 휘어진 관계를 표현할 수 없습니다. 층을 쌓는 의미는 <b>중간중간 비선형을 끼워 넣는 데</b> 있습니다.</p>
+      </div>
+
+      <div class="block">
+        <h3>학습은 손실을 줄이는 방향으로 내려가는 것</h3>
+        <p class="body-text">정답과 예측의 차이를 숫자 하나로 적은 것이 <b>손실(loss)</b>이고, 학습은 그 숫자를 줄이는 방향으로 가중치를 조금씩 옮기는 일입니다.</p>
+        <div class="eq">\[ L(\theta)=\frac{1}{N}\sum_{i} \ell\!\left(\hat{y}_i(\theta),\, y_i\right), \qquad \theta \leftarrow \theta - \eta\,\nabla_\theta L \]</div>
+        <p class="body-text">수학 기초 2편의 오일러 적분과 모양이 같습니다. 기울기를 보고 작은 보폭 \(\eta\) 만큼 한 발 내딛는 것을 반복합니다. 보폭이 너무 크면 발산하고 너무 작으면 하염없이 느린 것도 똑같습니다. <b>역전파</b>는 이 기울기를 층마다 연쇄법칙으로 거꾸로 전달해 한 번에 구하는 계산 방법일 뿐, 별개의 학습 원리가 아닙니다.</p>
+        <table class="tbl">
+          <tr><th>손실</th><th>언제 쓰나</th></tr>
+          <tr><td>MSE, L1</td><td>연속값을 맞출 때. 로봇 행동 복제의 기본</td></tr>
+          <tr><td>교차 엔트로피</td><td>여러 선택지 중 하나를 고를 때(분류, 토큰 예측)</td></tr>
+          <tr><td>확산 손실, 플로우 손실</td><td>행동처럼 <b>정답이 여러 개일 수 있는</b> 분포를 통째로 배울 때. 뒤의 두 편에서 다룹니다</td></tr>
+        </table>
+      </div>
+
+      <div class="block">
+        <h3>로봇 정책에서는 입력과 출력이 무엇인가</h3>
+        <p class="body-text">조작 정책은 결국 <b>관측을 받아 행동을 뱉는 함수</b>입니다.</p>
+        <div class="eq">\[ a_{t:t+H} = \pi_\theta\!\left(o_t\right) \]<span class="eq-note">\(o_t\) 는 카메라 이미지와 관절 상태, \(a\) 는 관절 목표나 손끝 자세, \(H\) 는 한 번에 내놓는 길이</span></div>
+        <ul class="plain">
+          <li><b>입력</b> — 손목과 외부 카메라의 RGB 이미지, 현재 관절각, 그리퍼 폭, 때로는 언어 지시문</li>
+          <li><b>출력</b> — 다음 관절 목표각이나 손끝 자세. 한 스텝이 아니라 수십 스텝을 한 번에 내놓는 것이 요즘 방식이고, 그 이유는 ACT 편에서 다룹니다</li>
+          <li><b>이미지 처리</b> — 예전에는 ResNet 같은 CNN, 요즘은 ViT를 많이 씁니다. 어느 쪽이든 이미지를 길이가 고정된 특징 벡터로 바꾸는 역할입니다</li>
+        </ul>
+      </div>
+
+      <div class="block">
+        <h3>학습이 안 될 때 먼저 보는 것들</h3>
+        <table class="tbl">
+          <tr><th>증상</th><th>흔한 원인</th></tr>
+          <tr><td>손실이 전혀 안 내려감</td><td>학습률이 너무 큼, 입력 정규화 안 함, 라벨과 입력이 어긋남</td></tr>
+          <tr><td>학습 손실만 내려가고 평가가 나쁨</td><td>과적합. 데이터가 적거나 증강이 없음</td></tr>
+          <tr><td>로봇에서만 이상하게 움직임</td><td>학습 때와 추론 때의 전처리가 다름. 이미지 크기, 정규화 상수, 관절 순서를 먼저 확인</td></tr>
+          <tr><td>가끔 전혀 다른 행동을 함</td><td>시연에 여러 가지 방법이 섞여 있는데 평균을 배운 경우. 확산이나 플로우가 나온 이유가 이것입니다</td></tr>
+        </table>
+      </div>
+
+      <div class="quiz" id="quiz-nn">
+        <div class="quiz-head"><span class="icon">Quiz</span><h3>간단한 퀴즈</h3></div>
+        <div class="quiz-question" data-answer="b">
+          <p class="q-text">1. 활성함수(비선형)를 빼면 어떻게 되나요?</p>
+          <label class="q-option"><input type="radio" name="q-nn-1" value="a"> 학습 속도만 느려진다</label>
+          <label class="q-option"><input type="radio" name="q-nn-1" value="b"> 층을 몇 개 쌓아도 하나의 선형 변환과 같아진다</label>
+          <label class="q-option"><input type="radio" name="q-nn-1" value="c"> 출력이 항상 0이 된다</label>
+          <label class="q-option"><input type="radio" name="q-nn-1" value="d"> 역전파를 쓸 수 없다</label>
+          <div class="q-feedback"></div>
+        </div>
+        <div class="quiz-question" data-answer="c">
+          <p class="q-text">2. 역전파(backpropagation)는 무엇인가요?</p>
+          <label class="q-option"><input type="radio" name="q-nn-2" value="a"> 손실을 정의하는 방법</label>
+          <label class="q-option"><input type="radio" name="q-nn-2" value="b"> 데이터를 뒤에서부터 읽는 방법</label>
+          <label class="q-option"><input type="radio" name="q-nn-2" value="c"> 연쇄법칙으로 각 가중치의 기울기를 거꾸로 전달해 구하는 계산 방법</label>
+          <label class="q-option"><input type="radio" name="q-nn-2" value="d"> 학습률을 자동으로 정하는 알고리즘</label>
+          <div class="q-feedback"></div>
+        </div>
+        <div class="quiz-question" data-answer="a">
+          <p class="q-text">3. 같은 상황에서 사람이 두 가지 방식으로 시연했는데 MSE로 학습하면?</p>
+          <label class="q-option"><input type="radio" name="q-nn-3" value="a"> 두 방식의 평균을 배워서 어느 쪽도 아닌 행동이 나올 수 있다</label>
+          <label class="q-option"><input type="radio" name="q-nn-3" value="b"> 둘 중 하나를 무작위로 고른다</label>
+          <label class="q-option"><input type="radio" name="q-nn-3" value="c"> 학습이 아예 되지 않는다</label>
+          <label class="q-option"><input type="radio" name="q-nn-3" value="d"> 항상 더 빠른 쪽을 배운다</label>
+          <div class="q-feedback"></div>
+        </div>
+        <button class="quiz-check-btn" onclick="checkQuiz('quiz-nn')">정답 확인</button>
+        <div class="quiz-result" id="quiz-nn-result"></div>
+      </div>
+    </section>
+<!-- ============ PAGE TRANSFORMER : 트랜스포머 ============ -->
+    <section class="page" data-type="theory" id="page-transformer">
+      <div class="crumb">LEVEL 4 학습 기반 조작 <span class="sep">›</span> 38 트랜스포머</div>
+      <div class="page-head">
+        <h2>트랜스포머</h2>
+        <span class="badge theory">이론 강의</span>
+      </div>
+      <p class="lead">요즘 조작 정책의 몸통은 거의 트랜스포머입니다. 길이가 제각각인 입력을 하나의 토큰 열로 묶어 처리할 수 있어서, 카메라 여러 대와 관절 상태와 언어 지시를 한 모델에 밀어 넣기에 알맞습니다.</p>
+
+      <div class="goal-box">
+        <div class="lbl">이 페이지를 마치면</div>
+        <ul>
+          <li>토큰과 임베딩이 무엇인지 설명할 수 있다</li>
+          <li>어텐션 식이 무엇을 계산하는지 말로 풀 수 있다</li>
+          <li>위치 인코딩과 마스크가 왜 필요한지 안다</li>
+          <li>로봇에서 무엇을 토큰으로 만드는지 그려볼 수 있다</li>
+        </ul>
+      </div>
+
+      <div class="block">
+        <h3>토큰 — 무엇이든 벡터의 열로</h3>
+        <p class="body-text">트랜스포머는 입력을 <b>토큰이라는 벡터들의 열</b>로 받습니다. 문장이면 단어 조각 하나가 토큰이고, 이미지면 격자로 자른 패치 하나가 토큰입니다(ViT). 로봇에서는 카메라 특징, 관절 상태, 언어 지시문이 전부 각자 토큰으로 바뀌어 한 줄에 늘어섭니다. 길이가 달라도 같은 구조로 처리할 수 있다는 점이 핵심입니다.</p>
+      </div>
+
+      <div class="block">
+        <h3>어텐션 — 지금 필요한 토큰을 골라 읽는다</h3>
+        <div class="eq">\[ \mathrm{Attention}(Q,K,V)=\mathrm{softmax}\!\left(\frac{QK^{\top}}{\sqrt{d_k}}\right)V \]</div>
+        <p class="body-text">말로 풀면 이렇습니다. 토큰마다 <b>질의(Q)</b>, <b>열쇠(K)</b>, <b>내용(V)</b> 세 벡터를 만듭니다. 내 질의와 남의 열쇠를 내적해 "이 토큰이 지금 나에게 얼마나 관련 있나"를 점수로 매기고, softmax로 비중을 정한 뒤 그 비중대로 상대의 내용을 섞어 옵니다. \(\sqrt{d_k}\) 로 나누는 것은 차원이 커질수록 내적이 커져 softmax가 한쪽으로 쏠리는 것을 막기 위한 조정입니다.</p>
+        <p class="body-text"><b>멀티헤드</b>는 이 과정을 여러 벌 병렬로 돌리는 것입니다. 어떤 헤드는 물체 위치를, 어떤 헤드는 그리퍼 상태를 보는 식으로 서로 다른 관계를 나눠 봅니다.</p>
+      </div>
+
+      <div class="block">
+        <h3>위치 인코딩과 마스크</h3>
+        <ul class="plain">
+          <li><b>위치 인코딩</b> — 어텐션은 순서를 모릅니다. 토큰을 섞어도 결과가 같기 때문에, 몇 번째인지를 벡터로 더해 줍니다. 로봇에서는 시간 순서와 카메라 번호를 이렇게 알려 줍니다.</li>
+          <li><b>인과 마스크</b> — 언어 모델처럼 다음 토큰을 예측할 때는 미래를 못 보게 가립니다. 반대로 관측 전체를 한 번에 보고 행동 묶음을 내놓는 정책에서는 마스크를 쓰지 않는 경우가 많습니다.</li>
+          <li><b>인코더와 디코더</b> — 관측을 읽는 쪽이 인코더, 행동을 뽑아내는 쪽이 디코더입니다. ACT가 이 구조를 그대로 씁니다.</li>
+        </ul>
+      </div>
+
+      <div class="callout">
+        <b>로봇에서 트랜스포머가 맞아떨어지는 이유</b>
+        입력의 종류와 개수가 과제마다 다릅니다. 카메라가 두 대일 수도 네 대일 수도 있고, 언어 지시가 있을 수도 없을 수도 있습니다. 전부 토큰으로 바꿔 한 줄로 세우면 같은 모델이 그대로 받습니다. 출력도 마찬가지로 "행동 토큰"을 원하는 길이만큼 뽑아내면 되므로, 다음 편부터 볼 행동 묶음 예측과 잘 맞습니다.
+      </div>
+
+      <div class="quiz" id="quiz-tf">
+        <div class="quiz-head"><span class="icon">Quiz</span><h3>간단한 퀴즈</h3></div>
+        <div class="quiz-question" data-answer="c">
+          <p class="q-text">1. 어텐션에서 softmax가 하는 일은?</p>
+          <label class="q-option"><input type="radio" name="q-tf-1" value="a"> 토큰의 순서를 정한다</label>
+          <label class="q-option"><input type="radio" name="q-tf-1" value="b"> 값을 0과 1 사이로 자른다</label>
+          <label class="q-option"><input type="radio" name="q-tf-1" value="c"> 관련도 점수를 합이 1인 비중으로 바꿔 내용을 섞을 비율을 정한다</label>
+          <label class="q-option"><input type="radio" name="q-tf-1" value="d"> 기울기를 계산한다</label>
+          <div class="q-feedback"></div>
+        </div>
+        <div class="quiz-question" data-answer="b">
+          <p class="q-text">2. 위치 인코딩이 필요한 이유는?</p>
+          <label class="q-option"><input type="radio" name="q-tf-2" value="a"> 계산을 빠르게 하려고</label>
+          <label class="q-option"><input type="radio" name="q-tf-2" value="b"> 어텐션 자체는 토큰의 순서를 구분하지 못하기 때문</label>
+          <label class="q-option"><input type="radio" name="q-tf-2" value="c"> 토큰 개수를 맞추려고</label>
+          <label class="q-option"><input type="radio" name="q-tf-2" value="d"> 과적합을 막으려고</label>
+          <div class="q-feedback"></div>
+        </div>
+        <div class="quiz-question" data-answer="a">
+          <p class="q-text">3. 로봇 정책에서 토큰이 되는 것으로 알맞지 않은 것은?</p>
+          <label class="q-option"><input type="radio" name="q-tf-3" value="a"> 학습률</label>
+          <label class="q-option"><input type="radio" name="q-tf-3" value="b"> 손목 카메라 이미지의 패치</label>
+          <label class="q-option"><input type="radio" name="q-tf-3" value="c"> 현재 관절 상태</label>
+          <label class="q-option"><input type="radio" name="q-tf-3" value="d"> 언어 지시문</label>
+          <div class="q-feedback"></div>
+        </div>
+        <button class="quiz-check-btn" onclick="checkQuiz('quiz-tf')">정답 확인</button>
+        <div class="quiz-result" id="quiz-tf-result"></div>
+      </div>
+    </section>
+<!-- ============ PAGE DIFFUSION : 확산 모델 ============ -->
+    <section class="page" data-type="theory" id="page-diffusion">
+      <div class="crumb">LEVEL 4 학습 기반 조작 <span class="sep">›</span> 39 확산 모델 (Diffusion)</div>
+      <div class="page-head">
+        <h2>확산 모델 (Diffusion)</h2>
+        <span class="badge theory">이론 강의</span>
+      </div>
+      <p class="lead">정답이 하나로 정해지지 않는 문제가 있습니다. 컵을 왼쪽으로 돌아 잡아도 되고 오른쪽으로 돌아 잡아도 됩니다. 평균을 배우면 가운데로 돌진해 컵을 칩니다. 확산 모델은 평균 대신 <b style="color:var(--text)">분포 자체</b>를 배워서 그중 하나를 뽑아 줍니다.</p>
+
+      <div class="goal-box">
+        <div class="lbl">이 페이지를 마치면</div>
+        <ul>
+          <li>노이즈를 더하는 과정과 걷어내는 과정을 설명할 수 있다</li>
+          <li>학습 목표가 "노이즈 맞히기"라는 것을 안다</li>
+          <li>샘플링이 반복 과정이라 느리다는 점과 그 대책을 안다</li>
+          <li>로봇에서 무엇을 생성하는지(행동 묶음) 이해한다</li>
+        </ul>
+      </div>
+
+      <div class="block">
+        <h3>앞으로 가기 — 데이터에 노이즈를 섞는다</h3>
+        <p class="body-text">깨끗한 데이터 \(x_0\) 에 가우시안 노이즈를 조금씩 더해 갑니다. 여러 번 더한 결과는 한 번에 적을 수 있습니다.</p>
+        <div class="eq">\[ x_t = \sqrt{\bar\alpha_t}\,x_0 + \sqrt{1-\bar\alpha_t}\;\epsilon, \qquad \epsilon \sim \mathcal{N}(0, I) \]<span class="eq-note">\(t\) 가 커질수록 \(\bar\alpha_t\) 가 0에 가까워져 결국 순수한 노이즈가 됩니다</span></div>
+        <p class="body-text">이 과정에는 학습할 것이 없습니다. 정해진 규칙으로 망가뜨리는 것뿐입니다.</p>
+      </div>
+
+      <div class="block">
+        <h3>되돌아오기 — 섞인 노이즈를 맞히도록 학습한다</h3>
+        <p class="body-text">신경망에게 "지금 이 \(x_t\) 에 섞여 있는 노이즈가 무엇이냐"를 묻고, 실제로 섞었던 \(\epsilon\) 과 비교합니다. 손실은 이것뿐입니다.</p>
+        <div class="eq">\[ L(\theta)=\mathbb{E}_{x_0,\,\epsilon,\,t}\left\lVert \epsilon - \epsilon_\theta(x_t,\,t,\,c) \right\rVert^2 \]<span class="eq-note">\(c\) 는 조건. 로봇에서는 카메라 이미지와 현재 상태입니다</span></div>
+        <p class="body-text">노이즈를 맞힐 수 있으면 빼낼 수도 있습니다. 순수한 노이즈에서 출발해 조금 빼고, 다시 조금 빼고를 반복하면 데이터처럼 생긴 것이 나옵니다. 매번 뽑을 때마다 출발 노이즈가 다르므로 <b>나올 수 있는 여러 답 중 하나</b>가 나옵니다. 평균이 아니라는 점이 핵심입니다.</p>
+      </div>
+
+      <div class="block">
+        <h3>로봇에서는 무엇을 생성하나</h3>
+        <p class="body-text">이미지를 만드는 대신 <b>앞으로의 행동 묶음</b>을 만듭니다. 생성 대상 \(x_0\) 가 \(H \times d\) 짜리 행동 시퀀스이고, 조건 \(c\) 가 관측입니다.</p>
+        <pre><span class="cm"># 개념만 적은 샘플링 루프</span>
+a = torch.randn(H, action_dim)          <span class="cm"># 순수 노이즈에서 출발</span>
+for t in reversed(range(T)):
+    eps = model(a, t, obs_features)      <span class="cm"># 섞여 있는 노이즈 추정</span>
+    a = denoise_step(a, eps, t)          <span class="cm"># 한 단계만큼 걷어냄</span>
+<span class="cm"># a 가 실행할 행동 묶음</span></pre>
+        <p class="body-text">문제는 <b>속도</b>입니다. 행동 하나를 얻는 데 신경망을 수십 번에서 수백 번 돌려야 합니다. DDIM처럼 건너뛰는 샘플러를 쓰거나, 한 번에 여러 스텝을 실행하는 방식으로 완화합니다. 다음 편의 플로우 모델은 이 문제를 구조적으로 줄이려는 접근입니다.</p>
+      </div>
+
+      <div class="callout">
+        <b>조건을 얼마나 세게 따를 것인가</b>
+        조건이 있는 생성에서는 조건을 무시한 예측과 조건을 반영한 예측을 섞어 조건 쪽으로 더 밀어붙이는 기법(classifier-free guidance)을 씁니다. 이미지 생성에서 "프롬프트를 얼마나 강하게 따를지" 조절하는 그 손잡이입니다. 로봇 정책에서도 쓰이지만, 너무 세게 밀면 행동이 뻣뻣해지므로 적당히 둡니다.
+      </div>
+
+      <div class="quiz" id="quiz-diff">
+        <div class="quiz-head"><span class="icon">Quiz</span><h3>간단한 퀴즈</h3></div>
+        <div class="quiz-question" data-answer="b">
+          <p class="q-text">1. 확산 모델의 학습 목표는 무엇인가요?</p>
+          <label class="q-option"><input type="radio" name="q-diff-1" value="a"> 정답 행동을 바로 출력하도록 맞히기</label>
+          <label class="q-option"><input type="radio" name="q-diff-1" value="b"> 섞어 넣은 노이즈가 무엇이었는지 맞히기</label>
+          <label class="q-option"><input type="radio" name="q-diff-1" value="c"> 이미지를 분류하기</label>
+          <label class="q-option"><input type="radio" name="q-diff-1" value="d"> 보상을 최대화하기</label>
+          <div class="q-feedback"></div>
+        </div>
+        <div class="quiz-question" data-answer="c">
+          <p class="q-text">2. 확산 모델이 조작 정책에서 유리한 이유는?</p>
+          <label class="q-option"><input type="radio" name="q-diff-2" value="a"> 추론이 가장 빠르기 때문</label>
+          <label class="q-option"><input type="radio" name="q-diff-2" value="b"> 데이터가 적어도 되기 때문</label>
+          <label class="q-option"><input type="radio" name="q-diff-2" value="c"> 가능한 행동이 여러 가지일 때 평균이 아니라 그중 하나를 뽑아 주기 때문</label>
+          <label class="q-option"><input type="radio" name="q-diff-2" value="d"> 카메라가 필요 없기 때문</label>
+          <div class="q-feedback"></div>
+        </div>
+        <div class="quiz-question" data-answer="a">
+          <p class="q-text">3. 확산 정책의 대표적인 단점은?</p>
+          <label class="q-option"><input type="radio" name="q-diff-3" value="a"> 한 번 뽑는 데 신경망을 여러 번 돌려야 해서 느리다</label>
+          <label class="q-option"><input type="radio" name="q-diff-3" value="b"> 다봉 분포를 표현하지 못한다</label>
+          <label class="q-option"><input type="radio" name="q-diff-3" value="c"> 학습이 불안정해 자주 발산한다</label>
+          <label class="q-option"><input type="radio" name="q-diff-3" value="d"> 이미지 입력을 받을 수 없다</label>
+          <div class="q-feedback"></div>
+        </div>
+        <button class="quiz-check-btn" onclick="checkQuiz('quiz-diff')">정답 확인</button>
+        <div class="quiz-result" id="quiz-diff-result"></div>
+      </div>
+    </section>
+<!-- ============ PAGE FLOW : 플로우 매칭 ============ -->
+    <section class="page" data-type="theory" id="page-flow">
+      <div class="crumb">LEVEL 4 학습 기반 조작 <span class="sep">›</span> 40 플로우 매칭 (Flow)</div>
+      <div class="page-head">
+        <h2>플로우 매칭 (Flow)</h2>
+        <span class="badge theory">이론 강의</span>
+      </div>
+      <p class="lead">확산이 노이즈를 조금씩 걷어내는 그림이라면, 플로우 매칭은 <b style="color:var(--text)">노이즈에서 데이터로 흐르는 속도장</b>을 배우는 그림입니다. 목적지는 같고 가는 방법이 더 곧습니다. 적은 스텝으로 뽑을 수 있어서 실시간 제어에 유리하고, π0가 이 방식을 씁니다.</p>
+
+      <div class="goal-box">
+        <div class="lbl">이 페이지를 마치면</div>
+        <ul>
+          <li>직선 경로와 속도장이라는 그림으로 플로우를 설명할 수 있다</li>
+          <li>학습 손실이 왜 그렇게 단순한지 안다</li>
+          <li>샘플링이 ODE 적분이라는 것을 안다</li>
+          <li>확산과 비교해 언제 유리한지 말할 수 있다</li>
+        </ul>
+      </div>
+
+      <div class="block">
+        <h3>노이즈와 데이터를 직선으로 잇는다</h3>
+        <p class="body-text">노이즈 \(x_0 \sim \mathcal{N}(0,I)\) 하나와 데이터 \(x_1\) 하나를 짝지어 놓고, 그 사이를 직선으로 잇습니다.</p>
+        <div class="eq">\[ x_t=(1-t)\,x_0 + t\,x_1, \qquad t \in [0,1] \]</div>
+        <p class="body-text">이 직선 위에서 움직이는 속도는 \(t\) 와 상관없이 \(x_1 - x_0\) 로 일정합니다. 그러니 신경망에게 "지금 위치와 시각이 주어지면 어느 방향으로 얼마나 가야 하는가"만 가르치면 됩니다.</p>
+        <div class="eq">\[ L(\theta)=\mathbb{E}_{x_0,\,x_1,\,t}\left\lVert v_\theta(x_t,\,t,\,c) - (x_1 - x_0) \right\rVert^2 \]</div>
+        <p class="body-text">확산의 손실과 모양이 거의 같습니다. 맞히는 대상이 노이즈냐 속도냐의 차이입니다.</p>
+      </div>
+
+      <div class="block">
+        <h3>샘플링은 미분방정식을 푸는 것</h3>
+        <p class="body-text">학습된 속도장을 따라 노이즈에서 출발해 \(t=0\) 에서 \(t=1\) 까지 적분하면 데이터가 나옵니다.</p>
+        <div class="eq">\[ \frac{dx}{dt}=v_\theta(x,\,t,\,c), \qquad x_{t+\Delta t} = x_t + v_\theta(x_t,\,t,\,c)\,\Delta t \]</div>
+        <p class="body-text">수학 기초 2편의 오일러 적분이 그대로 쓰입니다. 경로가 곧을수록 큰 보폭으로 건너뛰어도 오차가 작으므로, 스텝을 열 번 안쪽으로 줄일 수 있습니다. 확산이 수십에서 수백 번 걸리던 자리를 대신합니다.</p>
+      </div>
+
+      <div class="block">
+        <h3>확산과 나란히 놓고 보기</h3>
+        <table class="tbl">
+          <tr><th></th><th>확산 (Diffusion)</th><th>플로우 매칭 (Flow)</th></tr>
+          <tr><td>무엇을 배우나</td><td>섞인 노이즈 \(\epsilon\)</td><td>흐르는 속도 \(x_1-x_0\)</td></tr>
+          <tr><td>생성 과정</td><td>확률적 되돌리기 (SDE 계열)</td><td>결정적 적분 (ODE)</td></tr>
+          <tr><td>스텝 수</td><td>보통 수십에서 수백, 샘플러로 단축</td><td>보통 한 자릿수에서 수십</td></tr>
+          <tr><td>로봇에서</td><td>Diffusion Policy</td><td>π0 의 행동 전문가</td></tr>
+        </table>
+        <p class="body-text">둘은 경쟁이라기보다 같은 생성 문제를 다른 경로로 푸는 방법입니다. 실제로 확산 쪽도 샘플러를 개선해 스텝을 줄이고 있고, 플로우 쪽도 확산과 수학적으로 이어져 있습니다. 로봇 입장에서 중요한 차이는 <b>한 번 행동을 뽑는 데 걸리는 시간</b>입니다.</p>
+      </div>
+
+      <div class="quiz" id="quiz-flow">
+        <div class="quiz-head"><span class="icon">Quiz</span><h3>간단한 퀴즈</h3></div>
+        <div class="quiz-question" data-answer="b">
+          <p class="q-text">1. 플로우 매칭에서 신경망이 맞히는 것은?</p>
+          <label class="q-option"><input type="radio" name="q-flow-1" value="a"> 섞여 있는 노이즈</label>
+          <label class="q-option"><input type="radio" name="q-flow-1" value="b"> 지금 위치에서 데이터 쪽으로 흐르는 속도</label>
+          <label class="q-option"><input type="radio" name="q-flow-1" value="c"> 다음에 올 토큰</label>
+          <label class="q-option"><input type="radio" name="q-flow-1" value="d"> 보상의 기댓값</label>
+          <div class="q-feedback"></div>
+        </div>
+        <div class="quiz-question" data-answer="c">
+          <p class="q-text">2. 플로우 모델의 샘플링은 무엇에 해당하나요?</p>
+          <label class="q-option"><input type="radio" name="q-flow-2" value="a"> 행렬의 역행렬 계산</label>
+          <label class="q-option"><input type="radio" name="q-flow-2" value="b"> 분류 문제 풀기</label>
+          <label class="q-option"><input type="radio" name="q-flow-2" value="c"> 속도장을 따라 미분방정식을 적분하기</label>
+          <label class="q-option"><input type="radio" name="q-flow-2" value="d"> 최단 경로 탐색</label>
+          <div class="q-feedback"></div>
+        </div>
+        <div class="quiz-question" data-answer="a">
+          <p class="q-text">3. 실시간 제어에서 플로우가 유리한 이유는?</p>
+          <label class="q-option"><input type="radio" name="q-flow-3" value="a"> 경로가 곧아 적은 스텝으로 뽑을 수 있어 지연이 작다</label>
+          <label class="q-option"><input type="radio" name="q-flow-3" value="b"> 카메라 없이 동작하기 때문</label>
+          <label class="q-option"><input type="radio" name="q-flow-3" value="c"> 학습 데이터가 필요 없기 때문</label>
+          <label class="q-option"><input type="radio" name="q-flow-3" value="d"> 항상 같은 행동만 내놓기 때문</label>
+          <div class="q-feedback"></div>
+        </div>
+        <button class="quiz-check-btn" onclick="checkQuiz('quiz-flow')">정답 확인</button>
+        <div class="quiz-result" id="quiz-flow-result"></div>
+      </div>
+    </section>
+<!-- ============ PAGE ACT ============ -->
+    <section class="page" data-type="theory" id="page-act">
+      <div class="crumb">LEVEL 4 학습 기반 조작 <span class="sep">›</span> 41 ACT — 행동 묶음과 트랜스포머</div>
+      <div class="page-head">
+        <h2>ACT — 행동 묶음과 트랜스포머</h2>
+        <span class="badge theory">이론 강의</span>
+      </div>
+      <p class="lead">ALOHA 논문과 함께 나온 ACT(Action Chunking with Transformers)는 "사람 시연을 그대로 따라 하기"를 실제로 쓸 만하게 만든 방법입니다. 바꾼 것은 두 가지뿐입니다. <b style="color:var(--text)">한 스텝이 아니라 묶음으로 예측하고</b>, <b style="color:var(--text)">겹치는 예측을 평균 내서 부드럽게</b> 만듭니다.</p>
+
+      <div class="block">
+        <h3>왜 한 스텝씩 예측하면 안 되는가</h3>
+        <p class="body-text">시연을 따라 하도록 학습한 정책은 조금씩 틀립니다. 틀린 자리에서 다음 관측을 받으면 학습 때 본 적 없는 상태가 되고, 거기서 더 크게 틀립니다. 이 눈덩이 현상을 <b>누적 오차</b>라고 합니다. 사람 시연에는 잠깐 멈칫하는 구간도 있는데, 같은 화면에서 어떤 때는 멈추고 어떤 때는 움직이므로 한 스텝 예측으로는 어느 쪽도 배우기 어렵습니다.</p>
+      </div>
+
+      <div class="block">
+        <h3>해법 1 — 행동 묶음(action chunking)</h3>
+        <p class="body-text">관측 하나를 보고 다음 \(k\) 스텝을 <b>한 번에</b> 내놓습니다. ALOHA에서는 \(k\) 를 100 정도로 잡았습니다. 결정을 \(k\) 배 덜 하게 되므로 오차가 쌓일 기회도 그만큼 줄고, 멈칫하는 구간도 묶음 안에 통째로 담기므로 학습이 쉬워집니다.</p>
+        <div class="eq">\[ a_{t},\,a_{t+1},\,\dots,\,a_{t+k-1} = \pi_\theta(o_t) \]</div>
+      </div>
+
+      <div class="block">
+        <h3>해법 2 — 시간 앙상블(temporal ensembling)</h3>
+        <p class="body-text">묶음을 끝까지 실행하고 다음 묶음으로 넘어가면 이음매에서 덜컥거립니다. 그래서 매 스텝 새로 예측하되, 지금 시각을 가리키는 <b>여러 묶음의 예측을 지수가중으로 평균</b>해 실행합니다. 이렇게 하면 묶음의 장점은 유지하면서 움직임이 매끄러워집니다.</p>
+      </div>
+
+      <div class="block">
+        <h3>구조와 입출력</h3>
+        <table class="tbl">
+          <tr><th>항목</th><th>내용</th></tr>
+          <tr><td>입력</td><td>카메라 여러 대의 RGB 이미지(ResNet 백본) + 현재 관절 상태</td></tr>
+          <tr><td>몸통</td><td>트랜스포머 인코더와 디코더. 디코더가 \(k\) 개의 행동 토큰을 뽑습니다</td></tr>
+          <tr><td>출력</td><td><b>절대 관절 목표각</b>의 묶음. 양팔이면 14차원 × \(k\)</td></tr>
+          <tr><td>학습</td><td>재구성 손실(L1)에 CVAE의 KL 항을 더함</td></tr>
+        </table>
+        <p class="body-text">CVAE를 쓰는 이유는 사람 시연의 들쑥날쑥함을 <b>잠재변수에 몰아넣기</b> 위해서입니다. 학습 때는 시연의 스타일을 잠재변수 \(z\) 가 흡수하고, 추론 때는 \(z\) 를 사전분포의 평균(0)으로 두어 일관된 행동을 뽑습니다.</p>
+      </div>
+
+      <div class="callout">
+        <b>기억할 점</b>
+        ACT의 출력은 <b>그 로봇의 관절각</b>입니다. 구현이 단순하고 원격조작 데이터와 바로 이어지지만, 카메라 위치나 로봇이 바뀌면 그대로 쓰기 어렵습니다. 이 문제를 행동 표현 쪽에서 푸는 방법이 뒤의 UMI 편입니다.
+      </div>
+
+      <div class="block">
+        <h3>원문</h3>
+        <a class="linkbox" href="https://arxiv.org/abs/2304.13705" target="_blank">
+          <span class="ico">PDF</span>
+          <span class="meta"><b>Learning Fine-Grained Bimanual Manipulation with Low-Cost Hardware (ALOHA, ACT)</b><span>arxiv.org/abs/2304.13705</span></span>
+        </a>
+      </div>
+    </section>
+<!-- ============ PAGE DIFFUSION POLICY ============ -->
+    <section class="page" data-type="theory" id="page-diffusion-policy">
+      <div class="crumb">LEVEL 4 학습 기반 조작 <span class="sep">›</span> 42 Diffusion Policy</div>
+      <div class="page-head">
+        <h2>Diffusion Policy</h2>
+        <span class="badge theory">이론 강의</span>
+      </div>
+      <p class="lead">같은 장면에서 사람마다, 시도마다 다르게 움직입니다. Diffusion Policy는 앞서 본 확산 모델을 정책에 그대로 가져와, <b style="color:var(--text)">행동 묶음을 생성</b>하는 방식으로 이 다양성을 다룹니다.</p>
+
+      <div class="block">
+        <h3>무엇을 생성하는가</h3>
+        <p class="body-text">관측을 조건으로 두고 \(H\) 스텝짜리 행동 시퀀스를 통째로 생성합니다. 관측까지 함께 생성하지 않고 <b>조건으로만 쓰는</b> 것이 중요합니다. 생성해야 할 대상이 행동으로 한정되어 계산이 가볍고 학습이 안정됩니다.</p>
+        <div class="eq">\[ a_{t:t+H} \sim p_\theta\!\left(a_{t:t+H} \mid o_t\right) \]</div>
+        <p class="body-text">실행은 <b>후퇴 지평(receding horizon)</b> 방식입니다. 예측한 \(H\) 개 중 앞쪽 몇 개만 실행하고, 새 관측으로 다시 생성합니다. 묶음의 일관성과 반응성을 함께 얻는 타협점입니다.</p>
+      </div>
+
+      <div class="block">
+        <h3>구조</h3>
+        <ul class="plain">
+          <li><b>시간축 CNN 계열</b> — 행동 시퀀스를 1차원 신호로 보고 UNet으로 잡음을 걷어냅니다. 관측 특징은 중간중간 조건으로 주입합니다. 손이 덜 가고 안정적입니다.</li>
+          <li><b>트랜스포머 계열</b> — 행동 토큰에 어텐션을 씁니다. 표현력이 좋지만 하이퍼파라미터에 더 민감합니다.</li>
+        </ul>
+      </div>
+
+      <div class="block">
+        <h3>ACT와 나란히 놓고 보기</h3>
+        <table class="tbl">
+          <tr><th></th><th>ACT</th><th>Diffusion Policy</th></tr>
+          <tr><td>출력 방식</td><td>묶음을 한 번에 회귀</td><td>묶음을 확산으로 생성</td></tr>
+          <tr><td>여러 방법이 섞인 시연</td><td>잠재변수로 흡수하되 기본은 평균에 가까움</td><td>분포에서 하나를 뽑으므로 모드가 살아 있음</td></tr>
+          <tr><td>추론 비용</td><td>한 번 통과</td><td>스텝 수만큼 반복</td></tr>
+          <tr><td>부드러움</td><td>시간 앙상블로 확보</td><td>묶음 자체가 매끄럽고, 후퇴 지평으로 이음</td></tr>
+        </table>
+        <p class="body-text">실무에서 자주 듣는 조언 두 가지가 있습니다. 속도 명령보다 <b>위치 명령</b>으로 학습하는 쪽이 잘 되고, 추론이 느리면 샘플러 스텝을 줄이는 것이 가장 먼저 손대는 손잡이입니다.</p>
+      </div>
+
+      <div class="block">
+        <h3>원문</h3>
+        <a class="linkbox" href="https://diffusion-policy.cs.columbia.edu/" target="_blank">
+          <span class="ico">WEB</span>
+          <span class="meta"><b>Diffusion Policy — 프로젝트 페이지 (영상과 코드)</b><span>diffusion-policy.cs.columbia.edu</span></span>
+        </a>
+        <a class="linkbox" href="https://arxiv.org/abs/2303.04137" target="_blank">
+          <span class="ico">PDF</span>
+          <span class="meta"><b>Diffusion Policy: Visuomotor Policy Learning via Action Diffusion</b><span>arxiv.org/abs/2303.04137</span></span>
+        </a>
+      </div>
+    </section>
+<!-- ============ PAGE PI0 ============ -->
+    <section class="page" data-type="theory" id="page-pi0">
+      <div class="crumb">LEVEL 4 학습 기반 조작 <span class="sep">›</span> 43 π0 — 비전, 언어, 행동 모델</div>
+      <div class="page-head">
+        <h2>π0 — 비전, 언어, 행동 모델</h2>
+        <span class="badge theory">이론 강의</span>
+      </div>
+      <p class="lead">ACT와 Diffusion Policy는 과제마다 데이터를 모아 그 과제를 배웁니다. π0는 방향이 다릅니다. <b style="color:var(--text)">이미 웹으로 학습된 비전 언어 모델 위에 행동을 붙여</b>, 여러 로봇의 데이터를 한꺼번에 사전학습하고 과제별로 다듬습니다.</p>
+
+      <div class="block">
+        <h3>VLA란 무엇인가</h3>
+        <p class="body-text">VLA(Vision-Language-Action)는 이미지와 언어 지시를 받아 행동을 내놓는 모델을 가리킵니다. 출발점은 사전학습된 VLM입니다. "컵", "서랍", "왼쪽" 같은 개념을 이미 알고 있는 모델에 행동 출력을 붙이면, 그 지식을 조작에 끌어다 쓸 수 있다는 생각입니다.</p>
+      </div>
+
+      <div class="block">
+        <h3>π0 의 구성</h3>
+        <table class="tbl">
+          <tr><th>부분</th><th>역할</th></tr>
+          <tr><td>VLM 몸통</td><td>PaliGemma 계열 3B 규모. 이미지와 지시문을 토큰으로 읽습니다</td></tr>
+          <tr><td>행동 전문가</td><td>약 300M 규모의 별도 가지. 연속 행동을 담당합니다</td></tr>
+          <tr><td>행동 생성</td><td><b>플로우 매칭</b>으로 \(H=50\) 짜리 연속 행동 묶음을 한 번에 생성합니다</td></tr>
+          <tr><td>제어 주기</td><td>50Hz 급. 적은 적분 스텝으로 뽑을 수 있는 플로우의 장점이 여기서 쓰입니다</td></tr>
+        </table>
+        <p class="body-text">행동을 토큰으로 쪼개 하나씩 뱉는 방식도 있지만, 그 경우 연속값을 이산화하면서 정밀도와 속도를 함께 잃습니다. π0가 플로우 매칭을 택한 이유가 이것입니다. 같은 팀이 이산 토큰 방식을 개선한 변형도 따로 내놓았습니다.</p>
+      </div>
+
+      <div class="block">
+        <h3>학습 방식</h3>
+        <ul class="plain">
+          <li><b>사전학습</b> — 싱글암, 양팔, 모바일 등 여러 로봇의 대규모 데이터를 섞어 학습합니다. 로봇마다 행동 차원이 다르므로 가장 큰 차원에 맞춰 자리를 비워 두고 채웁니다.</li>
+          <li><b>후속 학습</b> — 빨래 개기나 상자 조립처럼 긴 과제는 질 좋은 데이터로 따로 다듬습니다.</li>
+          <li><b>지시 이해</b> — 언어로 하위 작업을 지시하면 그에 맞는 행동을 내놓습니다. 높은 수준의 계획과 낮은 수준의 제어를 잇는 통로가 언어입니다.</li>
+        </ul>
+      </div>
+
+      <div class="block">
+        <h3>원문</h3>
+        <a class="linkbox" href="https://arxiv.org/abs/2410.24164" target="_blank">
+          <span class="ico">PDF</span>
+          <span class="meta"><b>π0: A Vision-Language-Action Flow Model for General Robot Control</b><span>arxiv.org/abs/2410.24164</span></span>
+        </a>
+      </div>
+    </section>
+<!-- ============ PAGE GR00T ============ -->
+    <section class="page" data-type="theory" id="page-groot">
+      <div class="crumb">LEVEL 4 학습 기반 조작 <span class="sep">›</span> 44 GR00T — 휴머노이드 파운데이션 모델</div>
+      <div class="page-head">
+        <h2>GR00T — 휴머노이드 파운데이션 모델</h2>
+        <span class="badge theory">이론 강의</span>
+      </div>
+      <p class="lead">NVIDIA의 Isaac GR00T N1은 휴머노이드를 겨냥한 공개 파운데이션 모델입니다. 느리게 생각하는 부분과 빠르게 움직이는 부분을 <b style="color:var(--text)">하나의 모델 안에 두 계층으로</b> 두었다는 점이 특징입니다.</p>
+
+      <div class="block">
+        <h3>두 개의 시스템</h3>
+        <table class="tbl">
+          <tr><th></th><th>하는 일</th><th>속도</th></tr>
+          <tr><td><b>시스템 2</b> 비전과 언어</td><td>장면과 지시를 이해하고 무엇을 할지 정합니다</td><td>느림</td></tr>
+          <tr><td><b>시스템 1</b> 행동</td><td>확산 트랜스포머로 부드러운 관절 행동을 만듭니다</td><td>빠름, 100Hz 급</td></tr>
+        </table>
+        <p class="body-text">사람이 상황을 판단하는 속도와 손을 움직이는 속도가 다른 것에서 가져온 구성입니다. 둘을 따로 학습해 붙이는 것이 아니라 <b>함께 학습</b>하기 때문에, 이해한 내용이 행동 쪽에 그대로 전달됩니다.</p>
+      </div>
+
+      <div class="block">
+        <h3>데이터 피라미드</h3>
+        <p class="body-text">휴머노이드는 실제 로봇 데이터가 가장 적습니다. 그래서 세 층으로 쌓습니다.</p>
+        <ul class="plain">
+          <li><b>맨 아래</b> — 웹의 영상과 사람 동작 데이터. 양이 가장 많고 일반적인 지식을 줍니다</li>
+          <li><b>가운데</b> — 시뮬레이션과 합성 궤적. 실제로 찍기 어려운 상황을 양으로 메웁니다</li>
+          <li><b>맨 위</b> — 실제 로봇 원격조작 데이터. 양은 적지만 가장 정확합니다</li>
+        </ul>
+      </div>
+
+      <div class="block">
+        <h3>서로 다른 로봇을 한 모델로</h3>
+        <p class="body-text">로봇마다 관절 수와 행동 차원이 다릅니다. GR00T는 로봇별 입출력 어댑터를 두고 몸통은 공유하는 방식으로 이 문제를 처리합니다. 새 로봇에 적용할 때는 그 로봇의 데이터로 어댑터를 맞추는 작업이 필요합니다. 연구실에서 쓰는 휴머노이드에 올리려면 이 과정을 거친다고 보면 됩니다.</p>
+      </div>
+
+      <div class="block">
+        <h3>원문과 코드</h3>
+        <a class="linkbox" href="https://arxiv.org/abs/2503.14734" target="_blank">
+          <span class="ico">PDF</span>
+          <span class="meta"><b>GR00T N1: An Open Foundation Model for Generalist Humanoid Robots</b><span>arxiv.org/abs/2503.14734</span></span>
+        </a>
+        <a class="linkbox" href="https://github.com/NVIDIA/Isaac-GR00T" target="_blank">
+          <span class="ico">GIT</span>
+          <span class="meta"><b>Isaac-GR00T — 공개 구현</b><span>github.com/NVIDIA/Isaac-GR00T</span></span>
+        </a>
+      </div>
+    </section>
+<!-- ============ PAGE ACTION REPRESENTATION / UMI ============ -->
+    <section class="page" data-type="theory" id="page-action-rep">
+      <div class="crumb">LEVEL 4 학습 기반 조작 <span class="sep">›</span> 45 행동을 무엇으로 적을 것인가 (UMI)</div>
+      <div class="page-head">
+        <h2>행동을 무엇으로 적을 것인가 (UMI)</h2>
+        <span class="badge theory">이론 강의</span>
+      </div>
+      <p class="lead">모델 구조만큼 중요한데 논문에서 한 줄로 지나가는 것이 <b style="color:var(--text)">행동의 표현</b>입니다. 같은 데이터, 같은 신경망이라도 행동을 관절각으로 적느냐 손끝 자세로 적느냐, 절대로 적느냐 상대로 적느냐에 따라 다른 로봇에 옮길 수 있는지가 갈립니다.</p>
+
+      <div class="goal-box">
+        <div class="lbl">이 페이지를 마치면</div>
+        <ul>
+          <li>행동 표현을 가르는 세 가지 축을 설명할 수 있다</li>
+          <li>상대 손끝 자세 표현이 왜 로봇을 바꿔도 통하는지 안다</li>
+          <li>그 표현이 수학 기초 3편의 오른쪽곱과 같은 것임을 안다</li>
+          <li>상대 표현의 약점과 그 대처를 안다</li>
+        </ul>
+      </div>
+
+      <div class="block">
+        <h3>세 가지 축</h3>
+        <table class="tbl">
+          <tr><th>축</th><th>선택지</th><th>성격</th></tr>
+          <tr><td>어느 공간</td><td>관절공간 / 작업공간</td><td>관절은 그 로봇에 묶이고, 작업공간은 로봇이 달라도 뜻이 통합니다</td></tr>
+          <tr><td>무엇 기준</td><td>절대 / 상대</td><td>절대는 베이스 좌표계에 묶이고, 상대는 지금 손끝에서 얼마나 움직일지만 말합니다</td></tr>
+          <tr><td>얼마나 길게</td><td>한 스텝 / 묶음</td><td>묶음이 누적 오차에 강합니다. 앞 편들에서 본 그대로입니다</td></tr>
+        </table>
+        <p class="body-text">ACT는 "관절공간 + 절대 + 묶음"을 골랐습니다. 원격조작 데이터와 바로 맞물리고 구현이 단순하지만, 카메라를 옮기거나 로봇을 바꾸면 처음부터 다시 모아야 합니다.</p>
+      </div>
+
+      <div class="block">
+        <h3>UMI가 상대 표현을 고른 이유</h3>
+        <p class="body-text">UMI(Universal Manipulation Interface)는 사람이 손에 들고 다니는 집게에 어안 카메라를 붙여 <b>로봇 없이</b> 데모를 모읍니다. 주방에서, 식당에서, 아무 데서나 시연할 수 있는 대신, 그 데이터에는 "로봇 베이스가 어디에 있었는지"가 아예 없습니다. 절대 좌표로 행동을 적을 방법 자체가 없는 것입니다.</p>
+        <p class="body-text">그래서 관측도 행동도 <b>지금 손끝을 기준으로</b> 적습니다. 행동은 "현재 자세에서 이만큼 더 가라"가 됩니다.</p>
+        <div class="eq">\[ A_t = T_{\text{cur}}^{-1}\,T_{\text{des}} \qquad\Longleftrightarrow\qquad T_{\text{des}} = T_{\text{cur}}\,A_t \]<span class="eq-note">실행할 때는 현재 자세에 오른쪽으로 곱해 절대 목표를 만들고 역기구학으로 풉니다</span></div>
+        <p class="body-text">오른쪽곱이 나왔습니다. 수학 기초 3편에서 "물체에 박아둔 축을 기준으로 움직인다"고 했던 바로 그 형태입니다. 상대 행동이란 결국 <b>body 좌표계 기준의 변환</b>이고, 이것을 6차원 숫자로 적을 때 위치 3개와 회전 3개를 씁니다. 회전은 오일러각 대신 <b>6D 회전 표현</b>(회전행렬의 두 열을 그대로 쓰고 나중에 정규직교화)을 쓰는 경우가 많습니다. 짐벌락도 없고 값이 튀지 않아 신경망이 다루기 좋기 때문입니다. 여기에 그리퍼 폭 한 개를 더하면 행동 벡터가 완성됩니다.</p>
+      </div>
+
+      <div class="block">
+        <h3>관측도 상대로</h3>
+        <p class="body-text">고유수용성 관측도 같은 방식으로 적습니다. 최근 몇 스텝의 손끝 궤적을 절대 좌표가 아니라 <b>현재 손끝 기준 상대 궤적</b>으로 넣습니다. 이렇게 하면 정책이 "작업대 위 어디"가 아니라 "지금 손이 어떻게 움직여 왔는가"만 보게 되어, 같은 동작이 방 안 어디에서 일어나도 같은 입력이 됩니다.</p>
+        <pre><span class="cm"># 개념 코드 — 수학 기초 3편의 se3, se3_inv 를 그대로 씁니다</span>
+T_cur = se3(R_cur, p_cur)                 <span class="cm"># 현재 손끝 자세</span>
+
+<span class="cm"># 학습 데이터 만들 때: 절대 궤적 → 현재 기준 상대 행동</span>
+A = se3_inv(T_cur) @ T_des
+
+<span class="cm"># 로봇에서 실행할 때: 상대 행동 → 절대 목표 → IK</span>
+T_des = T_cur @ A
+q_des = inverse_kinematics(T_des)</pre>
+      </div>
+
+      <div class="callout">
+        <b>무엇을 얻는가</b>
+        베이스 위치, 캘리브레이션, 로봇 종류가 달라도 같은 정책을 올릴 수 있습니다. 데이터를 모은 장치와 실행하는 로봇이 아예 다른데도 동작하는 이유가 이것입니다. 제어 지연을 보정하기도 쉽습니다. 늦게 도착할 것을 아는 명령이라면 "그 시점의 손끝 기준으로 얼마나"를 계산해 넣으면 되기 때문입니다.
+      </div>
+
+      <div class="callout danger">
+        <b>공짜는 아닙니다</b>
+        상대 표현은 기준이 매 순간 움직이므로 작은 오차가 쌓이면 제자리로 돌아오지 못합니다. 그래서 보통 <b>묶음 안에서는 기준을 고정</b>합니다. 묶음을 시작한 시점의 손끝 자세를 기준으로 \(H\) 개를 모두 적고, 다음 묶음에서 기준을 새로 잡는 식입니다. 또 "책상 위 고정된 지점에 항상 놓기"처럼 절대 위치가 본질인 작업에서는 상대 표현만으로 부족하므로, 카메라로 목표를 보고 맞추는 구조가 함께 필요합니다.
+      </div>
+
+      <div class="block">
+        <h3>대표 모델들이 쓰는 표현</h3>
+        <table class="tbl">
+          <tr><th>모델</th><th>행동 표현</th><th>특징</th></tr>
+          <tr><td>ACT</td><td>절대 관절 목표각, 묶음</td><td>원격조작 데이터와 직결. 그 로봇 전용</td></tr>
+          <tr><td>Diffusion Policy</td><td>주로 작업공간 자세(위치 제어), 묶음</td><td>구현에 따라 절대와 상대를 모두 씁니다</td></tr>
+          <tr><td>π0</td><td>로봇별 행동 차원에 맞춘 연속 묶음</td><td>여러 로봇을 한 모델에 담기 위해 자리를 맞춰 둡니다</td></tr>
+          <tr><td>GR00T</td><td>로봇별 어댑터를 통한 관절 행동</td><td>몸통은 공유하고 입출력만 로봇마다 맞춥니다</td></tr>
+          <tr><td>UMI</td><td><b>상대 손끝 자세 + 그리퍼 폭</b>, 묶음</td><td>데이터 수집 장치와 실행 로봇을 분리합니다</td></tr>
+        </table>
+        <p class="body-text">연구실에서 새 정책을 짤 때 가장 먼저 정해야 하는 것이 이 표에서 어느 칸에 설 것인가입니다. 데이터를 어떻게 모을 수 있는지가 대개 답을 정해 줍니다.</p>
+      </div>
+
+      <div class="block">
+        <h3>원문</h3>
+        <a class="linkbox" href="https://umi-gripper.github.io/" target="_blank">
+          <span class="ico">WEB</span>
+          <span class="meta"><b>UMI — 프로젝트 페이지 (하드웨어 도면과 영상)</b><span>umi-gripper.github.io</span></span>
+        </a>
+        <a class="linkbox" href="https://arxiv.org/abs/2402.10329" target="_blank">
+          <span class="ico">PDF</span>
+          <span class="meta"><b>Universal Manipulation Interface: In-The-Wild Robot Teaching Without In-The-Wild Robots</b><span>arxiv.org/abs/2402.10329</span></span>
+        </a>
+      </div>
+
+      <div class="quiz" id="quiz-actrep">
+        <div class="quiz-head"><span class="icon">Quiz</span><h3>간단한 퀴즈</h3></div>
+        <div class="quiz-question" data-answer="b">
+          <p class="q-text">1. 상대 손끝 자세로 행동을 적으면 좋은 점은?</p>
+          <label class="q-option"><input type="radio" name="q-ar-1" value="a"> 계산량이 줄어든다</label>
+          <label class="q-option"><input type="radio" name="q-ar-1" value="b"> 베이스 위치나 로봇 종류가 달라도 같은 정책을 쓸 수 있다</label>
+          <label class="q-option"><input type="radio" name="q-ar-1" value="c"> 카메라가 필요 없어진다</label>
+          <label class="q-option"><input type="radio" name="q-ar-1" value="d"> 그리퍼를 제어할 필요가 없어진다</label>
+          <div class="q-feedback"></div>
+        </div>
+        <div class="quiz-question" data-answer="c">
+          <p class="q-text">2. 상대 행동 \(A_t\) 를 실제 로봇에서 실행하려면?</p>
+          <label class="q-option"><input type="radio" name="q-ar-2" value="a"> 그대로 관절각으로 보낸다</label>
+          <label class="q-option"><input type="radio" name="q-ar-2" value="b"> 베이스 자세를 왼쪽에 곱한다</label>
+          <label class="q-option"><input type="radio" name="q-ar-2" value="c"> 현재 손끝 자세에 오른쪽으로 곱해 절대 목표를 만들고 역기구학을 푼다</label>
+          <label class="q-option"><input type="radio" name="q-ar-2" value="d"> 로그를 취해 평균을 낸다</label>
+          <div class="q-feedback"></div>
+        </div>
+        <div class="quiz-question" data-answer="a">
+          <p class="q-text">3. 상대 표현의 약점을 줄이는 흔한 방법은?</p>
+          <label class="q-option"><input type="radio" name="q-ar-3" value="a"> 묶음 안에서는 기준 자세를 묶음 시작 시점으로 고정한다</label>
+          <label class="q-option"><input type="radio" name="q-ar-3" value="b"> 행동 묶음 길이를 1로 줄인다</label>
+          <label class="q-option"><input type="radio" name="q-ar-3" value="c"> 회전을 오일러각으로 적는다</label>
+          <label class="q-option"><input type="radio" name="q-ar-3" value="d"> 학습률을 올린다</label>
+          <div class="q-feedback"></div>
+        </div>
+        <button class="quiz-check-btn" onclick="checkQuiz('quiz-actrep')">정답 확인</button>
+        <div class="quiz-result" id="quiz-actrep-result"></div>
+      </div>
+
+      <div class="callout hands">
+        <b>Level 4 완료</b>
+        신경망과 트랜스포머에서 시작해 확산과 플로우를 거쳐, 실제로 쓰이는 정책 네 가지와 행동 표현까지 훑었습니다. 여기까지가 개념이고, 실제로 데이터를 모으고 학습을 돌리는 일은 연구실 과제에서 선배와 함께 하게 됩니다. 마지막 Level 5에서는 결과를 논문 형식으로 정리하는 LaTeX을 다룹니다.
       </div>
     </section>
 <!-- ============ PAGE OVERLEAF : Overleaf 시작하기 ============ -->
     <section class="page" data-type="hands" id="page-overleaf">
-      <div class="crumb">LEVEL 4 LaTeX (Overleaf) <span class="sep">›</span> 37 Overleaf 시작하기</div>
+      <div class="crumb">LEVEL 5 LaTeX (Overleaf) <span class="sep">›</span> 46 Overleaf 시작하기</div>
       <div class="page-head">
         <h2>Overleaf 시작하기</h2>
         <span class="badge hands">실습 가이드</span>
@@ -5424,7 +6049,7 @@ $ git push origin main</pre>
     </section>
 <!-- ============ PAGE LATEX : LaTeX 문서 구조 & 수식 ============ -->
     <section class="page" data-type="hands" id="page-latex">
-      <div class="crumb">LEVEL 4 LaTeX (Overleaf) <span class="sep">›</span> 38 LaTeX 문서 구조 & 수식</div>
+      <div class="crumb">LEVEL 5 LaTeX (Overleaf) <span class="sep">›</span> 47 LaTeX 문서 구조 & 수식</div>
       <div class="page-head">
         <h2>LaTeX 문서 구조 & 수식</h2>
         <span class="badge hands">실습 가이드</span>
@@ -5514,7 +6139,7 @@ $ git push origin main</pre>
       </div>
 
       <div class="callout hands">
-        <b>Level 4 완료, 온보딩 완주!</b>
+        <b>Level 5 완료, 온보딩 완주!</b>
         여기까지 왔다면 개발 환경, 통신, 협업 툴, 문서 작성까지 연구실 생활에 필요한 기본기를 모두 갖췄습니다. 아래에서 지금까지의 증빙자료를 모아 수료증을 발급받으세요.
       </div>
     </section>
@@ -5588,8 +6213,17 @@ $ git push origin main</pre>
     {id:'page-mujoco-control', num:'34', title:'MuJoCo 관절 제어', type:'hands', level:'LEVEL 3'},
     {id:'page-mujoco-integration', num:'35', title:'MuJoCo 순기구학과 자코비안 (CLIK)', type:'hands', level:'LEVEL 3'},
     {id:'page-aiworker-dualarm', num:'36', title:'도전 과제 — 양팔로 원과 삼각형', type:'hands', level:'LEVEL 3'},
-    {id:'page-overleaf', num:'37', title:'Overleaf 시작하기', type:'hands', level:'LEVEL 4'},
-    {id:'page-latex', num:'38', title:'LaTeX 문서 구조 & 수식', type:'hands', level:'LEVEL 4'},
+    {id:'page-nn-basics', num:'37', title:'뉴럴네트워크 기초', type:'theory', level:'LEVEL 4'},
+    {id:'page-transformer', num:'38', title:'트랜스포머', type:'theory', level:'LEVEL 4'},
+    {id:'page-diffusion', num:'39', title:'확산 모델 (Diffusion)', type:'theory', level:'LEVEL 4'},
+    {id:'page-flow', num:'40', title:'플로우 매칭 (Flow)', type:'theory', level:'LEVEL 4'},
+    {id:'page-act', num:'41', title:'ACT', type:'theory', level:'LEVEL 4'},
+    {id:'page-diffusion-policy', num:'42', title:'Diffusion Policy', type:'theory', level:'LEVEL 4'},
+    {id:'page-pi0', num:'43', title:'π0 (VLA)', type:'theory', level:'LEVEL 4'},
+    {id:'page-groot', num:'44', title:'GR00T', type:'theory', level:'LEVEL 4'},
+    {id:'page-action-rep', num:'45', title:'행동 표현과 UMI', type:'theory', level:'LEVEL 4'},
+    {id:'page-overleaf', num:'46', title:'Overleaf 시작하기', type:'hands', level:'LEVEL 5'},
+    {id:'page-latex', num:'47', title:'LaTeX 문서 구조 & 수식', type:'hands', level:'LEVEL 5'},
     {id:'page-cert', num:'🎓', title:'인증서 발급', type:'cert', level:'CERTIFICATE'},
   ];
 
@@ -5597,7 +6231,8 @@ $ git push origin main</pre>
     'LEVEL 1': 'Level 1 기초 다지기',
     'LEVEL 2': 'Level 2 통신과 ROS 2',
     'LEVEL 3': 'Level 3 URDF와 기구학',
-    'LEVEL 4': 'Level 4 LaTeX (Overleaf)',
+    'LEVEL 4': 'Level 4 학습 기반 조작',
+    'LEVEL 5': 'Level 5 LaTeX (Overleaf)',
     'CERTIFICATE': 'Certificate'
   };
   const typeLabels = { hands:'실습', theory:'이론', cert:'인증' };
