@@ -385,6 +385,8 @@ html[lang="ko"] .news-item__tag { letter-spacing: .02em; font-size: 12.5px; }
 .pub__title { font-size: 17px; font-weight: 700; line-height: 1.45; letter-spacing: -.005em; }
 .pub__authors { margin-top: 6px; font-size: 14.5px; color: var(--stone); line-height: 1.6; }
 .au--lab { color: var(--ink); font-weight: 700; }
+a.au--lab { text-decoration: none; }
+a.au--lab:hover { text-decoration: underline; text-underline-offset: 3px; text-decoration-color: var(--champagne); }
 .pub__meta { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px 8px; align-items: center; }
 .pub__venue { font-family: var(--font-serif); font-size: 15.5px; color: var(--burgundy); font-style: italic; margin-right: 4px; }
 .pub__links { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 6px; }

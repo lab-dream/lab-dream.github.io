@@ -132,7 +132,6 @@ ko:
     links: 바로가기
     join: 연구실 지원
     guide: 신입생 가이드
-    bootcamp: 온보딩 부트캠프
 
   guide:
     eyebrow: For new members
@@ -274,7 +273,6 @@ en:
     links: Links
     join: Join us
     guide: New member guide
-    bootcamp: Onboarding bootcamp
 
   guide:
     eyebrow: For new members

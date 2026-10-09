@@ -1,11 +1,14 @@
 {%- comment -%}
-  저자 문자열("A, B, C")을 받아 연구실 구성원(members.yml의 name)을 강조합니다.
+  저자 문자열("A, B, C")을 받아 연구실 구성원(members.yml의 name)을 강조하고,
+  그 이름을 구성원 페이지의 해당 사람 위치로 연결합니다.
   사용: {% include authors.html authors=pub.authors %}
 {%- endcomment -%}
 {%- assign lab_names = site.data.members | map: "name" -%}
+{%- assign tr = site.data.i18n[page.lang] | default: site.data.i18n.en -%}
+{%- assign members_url = tr.prefix | append: '/members/' | relative_url -%}
 {%- assign list = include.authors | split: ", " -%}
 {%- for a in list -%}
   {%- assign clean = a | remove: "*" | remove: "†" | strip -%}
-  {%- if lab_names contains clean -%}<span class="au au--lab">{{ a | strip }}</span>{%- else -%}<span class="au">{{ a | strip }}</span>{%- endif -%}
+  {%- if lab_names contains clean -%}<a class="au au--lab" href="{{ members_url }}#{{ clean | slugify }}">{{ a | strip }}</a>{%- else -%}<span class="au">{{ a | strip }}</span>{%- endif -%}
   {%- unless forloop.last -%}, {% endunless -%}
 {%- endfor -%}
