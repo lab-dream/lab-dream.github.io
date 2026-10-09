@@ -5559,6 +5559,35 @@ $ git push origin main</pre>
       </div>
 
       <div class="block">
+        <h3>눈으로 보기</h3>
+        <p class="body-text">정답이 두 군데에 몰려 있는 장난감 분포입니다. 왼쪽은 데이터에 노이즈를 더해 가는 과정이고, 오른쪽은 노이즈에서 출발해 되돌아오는 과정입니다. 이 예시는 분포를 우리가 알고 있으므로 신경망 대신 <b>정확한 점수(score)를 계산해서</b> 돌립니다. 학습이 하는 일은 이 점수를 데이터로부터 흉내 내는 것입니다.</p>
+        <div class="wdg" id="dfz">
+          <svg class="wdg__canvas" id="dfz-svg" viewBox="0 0 520 290" xmlns="http://www.w3.org/2000/svg">
+            <g id="dfz-bg"></g>
+            <g id="dfz-fwd"></g>
+            <g id="dfz-rev"></g>
+            <g id="dfz-lab" font-family="JetBrains Mono, monospace"></g>
+          </svg>
+          <div class="wdg__ctrl">
+            <div class="wdg__group">
+              <div class="wdg__lbl">왼쪽: 노이즈를 얼마나 더했나</div>
+              <div class="wdg__row"><span class="k">t</span><input type="range" id="dfz-t" min="0" max="40" step="1" value="0"><span class="val" id="dfz-tv">0</span></div>
+            </div>
+            <div class="wdg__group">
+              <div class="wdg__lbl">오른쪽: 되돌리는 중</div>
+              <div class="wdg__row"><span class="k" style="width:auto;">스텝</span><span class="val" id="dfz-step" style="width:auto;">대기</span></div>
+            </div>
+          </div>
+          <div class="wdg__out" id="dfz-out"></div>
+          <div class="wdg__btns">
+            <button class="wdg__btn" id="dfz-play" type="button">되돌리기 재생</button>
+            <button class="wdg__btn" id="dfz-reset" type="button">다시 뽑기</button>
+          </div>
+        </div>
+        <p class="body-text">오른쪽을 여러 번 돌려 보세요. 매번 출발 노이즈가 다르므로 어떤 점은 왼쪽 덩어리로, 어떤 점은 오른쪽 덩어리로 갑니다. <b>평균인 가운데로 가는 점은 없습니다.</b> 이것이 "평균이 아니라 분포를 배운다"는 말의 실제 모습입니다.</p>
+      </div>
+
+      <div class="block">
         <h3>로봇에서는 무엇을 생성하나</h3>
         <p class="body-text">이미지를 만드는 대신 <b>앞으로의 행동 묶음</b>을 만듭니다. 생성 대상 \(x_0\) 가 \(H \times d\) 짜리 행동 시퀀스이고, 조건 \(c\) 가 관측입니다.</p>
         <pre><span class="cm"># 개념만 적은 샘플링 루프</span>
@@ -5638,6 +5667,35 @@ for t in reversed(range(T)):
         <p class="body-text">학습된 속도장을 따라 노이즈에서 출발해 \(t=0\) 에서 \(t=1\) 까지 적분하면 데이터가 나옵니다.</p>
         <div class="eq">\[ \frac{dx}{dt}=v_\theta(x,\,t,\,c), \qquad x_{t+\Delta t} = x_t + v_\theta(x_t,\,t,\,c)\,\Delta t \]</div>
         <p class="body-text">수학 기초 2편의 오일러 적분이 그대로 쓰입니다. 경로가 곧을수록 큰 보폭으로 건너뛰어도 오차가 작으므로, 스텝을 열 번 안쪽으로 줄일 수 있습니다. 확산이 수십에서 수백 번 걸리던 자리를 대신합니다.</p>
+      </div>
+
+      <div class="block">
+        <h3>눈으로 보기</h3>
+        <p class="body-text">앞 편의 확산과 똑같은 분포에 플로우를 돌린 것입니다. 점들이 노이즈에서 출발해 거의 곧은 선을 따라 두 덩어리로 흘러갑니다. 여기서도 속도장은 신경망 대신 <b>정확한 값을 계산해</b> 씁니다.</p>
+        <div class="wdg" id="flw">
+          <svg class="wdg__canvas" id="flw-svg" viewBox="0 0 520 290" xmlns="http://www.w3.org/2000/svg">
+            <g id="flw-bg"></g>
+            <g id="flw-trail"></g>
+            <g id="flw-pts"></g>
+            <g id="flw-lab" font-family="JetBrains Mono, monospace"></g>
+          </svg>
+          <div class="wdg__ctrl">
+            <div class="wdg__group">
+              <div class="wdg__lbl">적분 스텝 수</div>
+              <div class="wdg__row"><span class="k">N</span><input type="range" id="flw-n" min="1" max="40" step="1" value="8"><span class="val" id="flw-nv">8</span></div>
+            </div>
+            <div class="wdg__group">
+              <div class="wdg__lbl">진행</div>
+              <div class="wdg__row"><span class="k">t</span><span class="val" id="flw-t" style="width:auto;">0.00</span></div>
+            </div>
+          </div>
+          <div class="wdg__out" id="flw-out"></div>
+          <div class="wdg__btns">
+            <button class="wdg__btn" id="flw-play" type="button">흐름 재생</button>
+            <button class="wdg__btn" id="flw-reset" type="button">다시 뽑기</button>
+          </div>
+        </div>
+        <p class="body-text">스텝 수를 <b>2</b>까지 줄여 보세요. 그래도 점들이 덩어리 근처에 도착합니다. 경로가 곧기 때문입니다. 확산에서 같은 일을 하려면 훨씬 많은 스텝이 필요합니다. 스텝 수를 줄였을 때 도착점이 얼마나 흩어지는지가 아래 숫자로 나옵니다.</p>
       </div>
 
       <div class="block">
@@ -7515,6 +7573,306 @@ sample["action_is_pad"]             <span class="cm"># 에피소드 끝을 넘�
 
     draw();
     autoPlay();
+  })();
+</script>
+<script>
+  /* ── 확산과 플로우 시각화 (수학 기초 Level 4) ──
+     데이터 분포를 가우시안 혼합으로 두면 점수(score)와 속도장을 해석적으로 구할 수 있습니다.
+     그래서 아래 두 위젯은 흉내가 아니라 실제 샘플링 과정을 그립니다. */
+  (function(){
+    const NS = 'http://www.w3.org/2000/svg';
+    const el = (t,a) => { const n = document.createElementNS(NS,t); for(const k in a) n.setAttribute(k,a[k]); return n; };
+    const txt = (x,y,fill,size,anchor,content) => {
+      const n = el('text',{x,y,fill,'font-size':size,'text-anchor':anchor||'start'});
+      n.textContent = content; return n;
+    };
+    // 재현 가능한 난수
+    function rng(seed){ return function(){ seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+      let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+      return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+    function gauss(r){ const u = Math.max(1e-9, r()), v = r(); return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); }
+
+    // 데이터 분포: 두 덩어리
+    const MU = [[-1.6,-0.95],[1.5,1.0]], W = [0.5,0.5], S0 = 0.26;
+    const N = 220;
+
+    function sampleData(r){
+      const k = r() < W[0] ? 0 : 1;
+      return [MU[k][0] + S0*gauss(r), MU[k][1] + S0*gauss(r), k];
+    }
+    // 혼합 성분별 책임도
+    function resp(x, y, means, varc){
+      let w0 = W[0]*Math.exp(-((x-means[0][0])**2 + (y-means[0][1])**2)/(2*varc));
+      let w1 = W[1]*Math.exp(-((x-means[1][0])**2 + (y-means[1][1])**2)/(2*varc));
+      const z = w0 + w1 + 1e-300;
+      return [w0/z, w1/z];
+    }
+
+    const COL = ['#4FD1C5','#FFB454'];
+    const mix = (a) => a > 0.65 ? COL[1] : (a < 0.35 ? COL[0] : '#8CA3C4');
+
+    /* ───────── 확산 ───────── */
+    (function(){
+      const root = document.getElementById('dfz'); if(!root) return;
+      const gBg = document.getElementById('dfz-bg'), gF = document.getElementById('dfz-fwd'),
+            gR = document.getElementById('dfz-rev'), gL = document.getElementById('dfz-lab');
+      const out = document.getElementById('dfz-out'), playBtn = document.getElementById('dfz-play');
+      const slider = document.getElementById('dfz-t'), sval = document.getElementById('dfz-tv'),
+            stepLbl = document.getElementById('dfz-step');
+
+      const T = 40;
+      const beta = [], abar = [];
+      let ab = 1;
+      for(let t = 0; t < T; t++){ const b = 0.006 + (0.15-0.006)*t/(T-1); beta.push(b); ab *= (1-b); abar.push(ab); }
+
+      // 패널 좌표 (model → svg)
+      const PAN = [{ox:132, oy:150, sc:40}, {ox:388, oy:150, sc:40}];
+      const px = (p,x) => PAN[p].ox + x*PAN[p].sc;
+      const py = (p,y) => PAN[p].oy - y*PAN[p].sc;
+
+      let x0 = [], eps = [], rev = [], revT = T, raf = null, seed = 7;
+
+      function init(){
+        const r = rng(seed);
+        x0 = []; eps = []; rev = [];
+        for(let i = 0; i < N; i++){
+          x0.push(sampleData(r));
+          eps.push([gauss(r), gauss(r)]);
+          rev.push([gauss(r), gauss(r)]);
+        }
+        revT = T;
+      }
+
+      function buildDots(){
+        gF.innerHTML = ''; gR.innerHTML = '';
+        for(let i = 0; i < N; i++){
+          gF.appendChild(el('circle',{r:2.4, fill:COL[x0[i][2]], 'fill-opacity':0.75}));
+          gR.appendChild(el('circle',{r:2.4, fill:'#8CA3C4', 'fill-opacity':0.75}));
+        }
+      }
+
+      function drawBg(){
+        gBg.innerHTML = ''; gL.innerHTML = '';
+        for(let p = 0; p < 2; p++){
+          gBg.appendChild(el('rect',{x:PAN[p].ox-116, y:PAN[p].oy-116, width:232, height:232, rx:4,
+                                     fill:'#0B1A30', stroke:'#1C3A5E','stroke-width':1}));
+          for(const m of MU) gBg.appendChild(el('circle',{cx:px(p,m[0]), cy:py(p,m[1]), r:S0*PAN[p].sc*2,
+                                     fill:'none', stroke:'#2E4F74','stroke-width':1,'stroke-dasharray':'3 3'}));
+        }
+        gL.appendChild(txt(PAN[0].ox, 24, '#E8EDF4', 11.5, 'middle', '순방향: 데이터 → 노이즈'));
+        gL.appendChild(txt(PAN[1].ox, 24, '#E8EDF4', 11.5, 'middle', '역방향: 노이즈 → 데이터'));
+        gL.appendChild(txt(PAN[0].ox, 283, '#8CA3C4', 10.5, 'middle', '슬라이더로 t 를 움직여 보세요'));
+        gL.appendChild(txt(PAN[1].ox, 283, '#8CA3C4', 10.5, 'middle', '점수를 따라 한 스텝씩 걷어냅니다'));
+      }
+
+      function renderFwd(t){
+        const a = t === 0 ? 1 : abar[t-1], sa = Math.sqrt(a), sb = Math.sqrt(1-a);
+        const dots = gF.childNodes;
+        for(let i = 0; i < N; i++){
+          const x = sa*x0[i][0] + sb*eps[i][0], y = sa*x0[i][1] + sb*eps[i][1];
+          dots[i].setAttribute('cx', px(0,x).toFixed(1));
+          dots[i].setAttribute('cy', py(0,y).toFixed(1));
+        }
+      }
+
+      function scoreAt(x, y, t){
+        const a = abar[t], sa = Math.sqrt(a), v = a*S0*S0 + (1-a);
+        const means = [[sa*MU[0][0], sa*MU[0][1]],[sa*MU[1][0], sa*MU[1][1]]];
+        const w = resp(x, y, means, v);
+        const mx = w[0]*means[0][0] + w[1]*means[1][0];
+        const my = w[0]*means[0][1] + w[1]*means[1][1];
+        return [(mx-x)/v, (my-y)/v, w];
+      }
+
+      function renderRev(){
+        const dots = gR.childNodes;
+        const t = Math.max(0, revT-1);
+        const a = abar[t], sa = Math.sqrt(a), v = a*S0*S0 + (1-a);
+        const means = [[sa*MU[0][0], sa*MU[0][1]],[sa*MU[1][0], sa*MU[1][1]]];
+        for(let i = 0; i < N; i++){
+          dots[i].setAttribute('cx', px(1,rev[i][0]).toFixed(1));
+          dots[i].setAttribute('cy', py(1,rev[i][1]).toFixed(1));
+          const w = resp(rev[i][0], rev[i][1], means, v);
+          dots[i].setAttribute('fill', mix(w[1]));
+        }
+      }
+
+      function revStep(){
+        if(revT <= 0) return false;
+        const t = revT - 1;
+        const r = rng(seed*131 + revT);
+        const al = 1 - beta[t], s = scoreAt.bind(null);
+        for(let i = 0; i < N; i++){
+          const [sx, sy] = scoreAt(rev[i][0], rev[i][1], t);
+          const nz = t > 0 ? Math.sqrt(beta[t]) : 0;
+          rev[i][0] = (rev[i][0] + (1-al)*sx)/Math.sqrt(al) + nz*gauss(r);
+          rev[i][1] = (rev[i][1] + (1-al)*sy)/Math.sqrt(al) + nz*gauss(r);
+        }
+        revT = t;
+        return true;
+      }
+
+      function readout(){
+        let n0 = 0, n1 = 0;
+        for(const p of rev){
+          const d0 = (p[0]-MU[0][0])**2 + (p[1]-MU[0][1])**2;
+          const d1 = (p[0]-MU[1][0])**2 + (p[1]-MU[1][1])**2;
+          (d0 < d1 ? n0++ : n1++);
+        }
+        stepLbl.textContent = revT === T ? '대기' : `${T-revT} / ${T}`;
+        out.textContent =
+          `전체 스텝 T = ${T}      남은 스텝 ${revT}\n` +
+          `왼쪽 덩어리로 ${n0} 개, 오른쪽 덩어리로 ${n1} 개` +
+          (revT === 0 ? '   (도착)' : '');
+      }
+
+      function stop(){ if(raf){ cancelAnimationFrame(raf); raf = null; playBtn.textContent = '되돌리기 재생'; } }
+      let acc = 0, last = 0;
+      function tick(ts){
+        const page = document.getElementById('page-diffusion');
+        if(page && !page.classList.contains('active')){ stop(); return; }
+        if(!last) last = ts;
+        acc += ts - last; last = ts;
+        while(acc > 70){ acc -= 70; if(!revStep()){ renderRev(); readout(); stop(); return; } }
+        renderRev(); readout();
+        raf = requestAnimationFrame(tick);
+      }
+      playBtn.addEventListener('click', ()=>{
+        if(raf){ stop(); return; }
+        if(revT === 0){ const r = rng(seed*977); for(let i=0;i<N;i++) rev[i] = [gauss(r), gauss(r)]; revT = T; }
+        playBtn.textContent = '정지'; last = 0; acc = 0; raf = requestAnimationFrame(tick);
+      });
+      document.getElementById('dfz-reset').addEventListener('click', ()=>{
+        stop(); seed = (seed*7919 + 13) % 100000; init(); buildDots();
+        renderFwd(+slider.value); renderRev(); readout();
+      });
+      slider.addEventListener('input', ()=>{ sval.textContent = slider.value; renderFwd(+slider.value); });
+
+      init(); drawBg(); buildDots(); renderFwd(0); renderRev(); readout();
+
+      const page = document.getElementById('page-diffusion');
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+      function autoPlay(){ if(!raf && !reduce.matches && page && page.classList.contains('active')) playBtn.click(); }
+      if(page) new MutationObserver(autoPlay).observe(page, {attributes:true, attributeFilter:['class']});
+      autoPlay();
+    })();
+
+    /* ───────── 플로우 ───────── */
+    (function(){
+      const root = document.getElementById('flw'); if(!root) return;
+      const gBg = document.getElementById('flw-bg'), gT = document.getElementById('flw-trail'),
+            gP = document.getElementById('flw-pts'), gL = document.getElementById('flw-lab');
+      const out = document.getElementById('flw-out'), playBtn = document.getElementById('flw-play');
+      const nIn = document.getElementById('flw-n'), nVal = document.getElementById('flw-nv'),
+            tLbl = document.getElementById('flw-t');
+
+      const OX = 260, OY = 150, SC = 46;
+      const px = x => OX + x*SC, py = y => OY - y*SC;
+      let start = [], path = [], seed = 11, raf = null, shown = 0;
+
+      function velocity(x, y, t){
+        const v = (1-t)*(1-t) + t*t*S0*S0;
+        const means = [[t*MU[0][0], t*MU[0][1]],[t*MU[1][0], t*MU[1][1]]];
+        const w = resp(x, y, means, v);
+        let ux = 0, uy = 0;
+        for(let k = 0; k < 2; k++){
+          const cx = x - means[k][0], cy = y - means[k][1];
+          const g = (t*S0*S0 - (1-t))/v;
+          ux += w[k]*(MU[k][0] + g*cx);
+          uy += w[k]*(MU[k][1] + g*cy);
+        }
+        return [ux, uy];
+      }
+
+      function integrate(){
+        const n = +nIn.value, dt = 1/n;
+        path = start.map(p => [[p[0], p[1]]]);
+        for(let i = 0; i < start.length; i++){
+          let x = start[i][0], y = start[i][1];
+          for(let s = 0; s < n; s++){
+            const t = s*dt;
+            const [ux, uy] = velocity(x, y, t);
+            x += ux*dt; y += uy*dt;
+            path[i].push([x, y]);
+          }
+        }
+      }
+
+      function drawBg(){
+        gBg.innerHTML = ''; gL.innerHTML = '';
+        gBg.appendChild(el('rect',{x:OX-200, y:OY-120, width:400, height:240, rx:4, fill:'#0B1A30', stroke:'#1C3A5E','stroke-width':1}));
+        for(const m of MU) gBg.appendChild(el('circle',{cx:px(m[0]), cy:py(m[1]), r:S0*SC*2, fill:'none', stroke:'#2E4F74','stroke-width':1,'stroke-dasharray':'3 3'}));
+        gBg.appendChild(el('circle',{cx:px(0), cy:py(0), r:SC, fill:'none', stroke:'#395B80','stroke-width':1,'stroke-dasharray':'2 4'}));
+        gL.appendChild(txt(OX, 24, '#E8EDF4', 11.5, 'middle', '노이즈(가운데 원)에서 출발해 두 덩어리로 흐릅니다'));
+        gL.appendChild(txt(OX, 283, '#8CA3C4', 10.5, 'middle', '선은 각 점이 지나간 자취입니다'));
+      }
+
+      function init(){
+        const r = rng(seed);
+        start = [];
+        for(let i = 0; i < 150; i++) start.push([gauss(r), gauss(r)]);
+        integrate(); shown = 0;
+        gP.innerHTML = ''; gT.innerHTML = '';
+        for(let i = 0; i < start.length; i++){
+          gT.appendChild(el('polyline',{fill:'none', stroke:'#2E4F74','stroke-width':0.8,'stroke-opacity':0.55, points:''}));
+          gP.appendChild(el('circle',{r:2.4, fill:'#8CA3C4','fill-opacity':0.8}));
+        }
+      }
+
+      function render(){
+        const n = +nIn.value, k = Math.min(shown, n);
+        const t = k/n, v = (1-t)*(1-t) + t*t*S0*S0;
+        const means = [[t*MU[0][0], t*MU[0][1]],[t*MU[1][0], t*MU[1][1]]];
+        for(let i = 0; i < start.length; i++){
+          const p = path[i][k];
+          gP.childNodes[i].setAttribute('cx', px(p[0]).toFixed(1));
+          gP.childNodes[i].setAttribute('cy', py(p[1]).toFixed(1));
+          const w = resp(p[0], p[1], means, v);
+          gP.childNodes[i].setAttribute('fill', mix(w[1]));
+          gT.childNodes[i].setAttribute('points', path[i].slice(0, k+1).map(q => px(q[0]).toFixed(1)+','+py(q[1]).toFixed(1)).join(' '));
+        }
+        tLbl.textContent = t.toFixed(2);
+        let near = 0, sum = 0;
+        for(const pth of path){
+          const e = pth[pth.length-1];
+          const d = Math.min(Math.hypot(e[0]-MU[0][0], e[1]-MU[0][1]), Math.hypot(e[0]-MU[1][0], e[1]-MU[1][1]));
+          sum += d; if(d < 3*S0) near++;
+        }
+        out.textContent =
+          `스텝 ${n} 번으로 적분      평균 도착 오차 ${(sum/path.length).toFixed(3)}\n` +
+          `덩어리 안에 들어간 점 ${near} / ${path.length}`;
+      }
+
+      function stop(){ if(raf){ cancelAnimationFrame(raf); raf = null; playBtn.textContent = '흐름 재생'; } }
+      let acc = 0, last = 0;
+      function tick(ts){
+        const page = document.getElementById('page-flow');
+        if(page && !page.classList.contains('active')){ stop(); return; }
+        if(!last) last = ts;
+        acc += ts - last; last = ts;
+        const per = Math.max(60, 900 / (+nIn.value));
+        while(acc > per){ acc -= per; shown++; }
+        if(shown >= +nIn.value){ shown = +nIn.value; render(); stop(); return; }
+        render();
+        raf = requestAnimationFrame(tick);
+      }
+      playBtn.addEventListener('click', ()=>{
+        if(raf){ stop(); return; }
+        shown = 0; playBtn.textContent = '정지'; last = 0; acc = 0; raf = requestAnimationFrame(tick);
+      });
+      document.getElementById('flw-reset').addEventListener('click', ()=>{
+        stop(); seed = (seed*7919 + 17) % 100000; init(); shown = +nIn.value; render();
+      });
+      nIn.addEventListener('input', ()=>{ stop(); nVal.textContent = nIn.value; integrate(); shown = +nIn.value; render(); });
+
+      drawBg(); init(); shown = +nIn.value; render();
+
+      const page = document.getElementById('page-flow');
+      const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+      function autoPlay(){ if(!raf && !reduce.matches && page && page.classList.contains('active')) playBtn.click(); }
+      if(page) new MutationObserver(autoPlay).observe(page, {attributes:true, attributeFilter:['class']});
+      autoPlay();
+    })();
   })();
 </script>
 {% include analytics.html %}
