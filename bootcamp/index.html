@@ -1546,6 +1546,7 @@ print(R_half.as_euler("xyz", degrees=True))   <span class="cm"># [0, 0, 55]</spa
           <li><code>mj_jacBody</code>가 돌려주는 것이 정확히 무엇인지 안다</li>
           <li>세 자코비안을 서로 변환하는 공식을 코드로 쓸 수 있다</li>
           <li>CLIK에서 오차와 자코비안의 좌표계를 맞춰야 하는 이유를 안다</li>
+          <li>양팔이 물체를 함께 쥘 때의 제약식과 그 자코비안을 Adjoint로 조립할 수 있다</li>
         </ul>
       </div>
 
@@ -1678,6 +1679,53 @@ print(np.allclose(adjoint(T_sb) @ J_body, J_space))   <span class="cm"># True</s
         <div class="callout">
           <b>순서 규약도 라이브러리마다 다릅니다</b>
           Modern Robotics 교재는 twist를 <code>(ω, v)</code> 순서로 쓰지만, Pinocchio나 KDL 같은 라이브러리는 <code>(v, ω)</code> 순서를 씁니다. MuJoCo는 아예 <code>jacp</code>와 <code>jacr</code>로 분리해서 주므로 쌓는 순서를 직접 정하게 됩니다. 교재의 6×6 <code>Ad</code> 공식을 그대로 베낄 때는 <b>내가 쌓은 순서가 그 공식의 순서와 같은지</b> 먼저 확인하세요. 블록 위치가 어긋나면 회전과 이동이 뒤섞입니다.
+        </div>
+      </div>
+
+      <div class="block">
+        <h3>양팔 구속 — 등식 제약과 그 자코비안</h3>
+        <p class="body-text">두 팔이 같은 물체를 잡으면 더 이상 따로 움직일 수 없습니다. 왼손과 오른손의 <b>상대 자세가 고정</b>되어야 하고, 이것이 로봇에서 가장 자주 만나는 등식 제약입니다. 제약을 식으로 적으면 6차원 벡터 하나가 됩니다.</p>
+        <div class="eq">\[ f(q)=\log\!\left( \left(T^{d}_{lr}\right)^{-1} T_{l}(q_l)^{-1}\,T_{r}(q_r) \right)^{\vee} = 0 \;\in\;\mathbb{R}^6 \]<span class="eq-note">\(T_l, T_r\) 은 두 끝단의 자세, \(T^{d}_{lr}\) 은 유지하려는 상대 자세</span></div>
+        <p class="body-text">앞 편에서 본 log가 여기서 쓰입니다. 두 자세의 차이를 뺄셈으로 구할 수 없으니, 상대 변환을 log로 내려 6차원 오차 벡터로 바꾸는 것입니다. 위치 3개와 자세 3개가 모두 0이면 두 손이 정확히 원하는 상대 자세를 유지하고 있다는 뜻입니다.</p>
+
+        <p class="body-text">이제 이 제약의 자코비안이 필요합니다. 손으로 미분하는 대신, <b>두 손의 속도를 같은 좌표계로 옮겨서 빼면</b> 바로 나옵니다. 좌표계를 옮기는 그 작업이 정확히 Adjoint입니다.</p>
+        <div class="eq">\[ \mathcal{V}_{lr} = \mathcal{V}_{r}^{b} - \mathrm{Ad}_{T_{rl}}\,\mathcal{V}_{l}^{b}, \qquad T_{rl}=T_r^{-1}T_l \]</div>
+        <p class="body-text">왼손의 body twist를 \(\mathrm{Ad}_{T_{rl}}\) 로 오른손 좌표계에 옮긴 다음 오른손의 twist에서 빼면, 그것이 <b>상대 자세가 변하는 속도</b>입니다. 두 팔의 body Jacobian을 넣으면 제약 자코비안이 그대로 조립됩니다.</p>
+        <div class="eq">\[ \mathcal{V}_{lr}=\underbrace{\left[\;-\mathrm{Ad}_{T_{rl}}J^{b}_{l}\;\middle|\;J^{b}_{r}\;\right]}_{J_c(q)\;\in\;\mathbb{R}^{6\times(n_l+n_r)}}\begin{bmatrix}\dot q_l\\[2pt]\dot q_r\end{bmatrix}, \qquad J_c(q)\,\dot q = 0 \]</div>
+        <p class="body-text">왼팔 열에 음수가 붙는 이유는 단순합니다. 왼손이 움직이면 상대 자세가 그 반대 방향으로 벌어지기 때문입니다. 결국 <b>관절 속도가 \(J_c\) 의 영공간 안에 있어야</b> 두 손이 물체를 놓치지 않습니다. 7자유도 팔 두 개면 14개 자유도에서 6개를 제약이 가져가므로, 물체를 든 채로 움직일 수 있는 여유는 8차원입니다.</p>
+
+        <pre>def body_jacobian(body, dof):
+    """5편의 변환 그대로: 월드 자코비안에 Rᵀ 를 곱해 끝단 좌표계로"""
+    mujoco.mj_jacBody(model, data, jacp, jacr, model.body(body).id)
+    R = data.body(body).xmat.reshape(3, 3)
+    return np.vstack([R.T @ jacr[:, dof], R.T @ jacp[:, dof]])      <span class="cm"># (ω, v) 순서</span>
+
+Jl = body_jacobian("arm_l_link7", L_DOF)        <span class="cm"># 6 x 7</span>
+Jr = body_jacobian("arm_r_link7", R_DOF)        <span class="cm"># 6 x 7</span>
+
+T_l = se3(data.body("arm_l_link7").xmat.reshape(3, 3), data.body("arm_l_link7").xpos)
+T_r = se3(data.body("arm_r_link7").xmat.reshape(3, 3), data.body("arm_r_link7").xpos)
+T_rl = se3_inv(T_r) @ T_l
+
+Jc = np.hstack([-adjoint(T_rl) @ Jl, Jr])       <span class="cm"># 6 x 14  제약 자코비안</span>
+print(np.linalg.matrix_rank(Jc))                 <span class="cm"># 보통 6, 떨어지면 특이 자세</span></pre>
+        <p class="body-text"><code>se3</code>, <code>se3_inv</code>, <code>adjoint</code> 는 수학 기초 3편과 4편에서 만든 함수를 그대로 씁니다. 여기까지 오면 네 편에 걸쳐 만든 도구가 한 줄짜리 조립으로 합쳐집니다.</p>
+
+        <p class="body-text"><b>제약을 지키며 움직이는 방법은 두 가지입니다.</b></p>
+        <ul class="plain">
+          <li><b>영공간으로 움직이기</b> — 원하는 관절 속도 \(\dot q_{\text{des}}\) 를 영공간에 투영합니다. \(\dot q = \left(I - J_c^{+}J_c\right)\dot q_{\text{des}}\) 로 두면 제약을 깨지 않는 성분만 남습니다.</li>
+          <li><b>어긋난 뒤 되돌리기</b> — 적분 오차로 \(f(q)\) 가 0에서 벗어나면 뉴턴 한 스텝으로 끌어당깁니다. \(q \leftarrow q - J_c^{+} f(q)\) 를 몇 번 반복하면 제약 위로 돌아옵니다.</li>
+        </ul>
+        <p class="body-text">두 번째가 제약 조건 하 모션 플래닝에서 말하는 <b>투영(projection)</b>입니다. 샘플을 하나 뽑을 때마다 이 뉴턴 반복을 돌려 제약 다양체 위로 끌어올리는데, 이 과정이 전체 계산 시간을 지배합니다. 연구실의 <a href="/patacon_paper/" target="_blank">PATACON</a>이 이 투영을 GPU에서 여러 개 한꺼번에 처리하고, 접평면을 이용해 애초에 덜 벗어나는 방향으로 탐색하는 이유가 여기에 있습니다.</p>
+
+        <div class="callout danger">
+          <b>엄밀히는 항이 하나 더 있습니다</b>
+          \(\dot f\) 와 \(\mathcal{V}_{lr}\) 사이에는 log의 미분(right Jacobian)이 한 번 더 곱해집니다. 다만 제약을 거의 만족하는 상태, 즉 \(f\) 가 0 근처일 때는 그 행렬이 단위행렬에 가까워서 실무에서는 보통 생략하고 \(\dot f \approx J_c\dot q\) 로 씁니다. 제약이 크게 어긋난 상태에서 한 번에 끌어당기려 하면 수렴이 느려지는 이유가 이 생략 때문입니다.
+        </div>
+
+        <div class="callout">
+          <b>제약의 차원은 과제마다 다릅니다</b>
+          두 손이 물체를 완전히 쥐면 6차원 제약이지만, 쟁반을 수평으로만 유지하면 되는 경우에는 기울어짐 2개만 묶이므로 2차원입니다. 필요한 행만 고르는 선택행렬 \(S\) 를 앞에 곱해 \(S\,f(q)=0\) 으로 적으면 됩니다. 발을 바닥에 고정하는 제약, 무게중심을 지지면 안에 두는 제약도 같은 방식으로 행을 늘려 붙입니다.
         </div>
       </div>
 
@@ -5224,6 +5272,11 @@ with mujoco.viewer.launch_passive(model, data) as viewer:
       <div class="callout">
         <b>두 팔인데 자코비안은 왜 하나로 충분한가</b>
         <code>mj_jacBody</code>는 로봇 로봇의 <b>전체 자유도</b>(<code>nv</code> = 25)를 모두 포함한 3×25 자코비안을 돌려줍니다. 거기서 왼팔 7열만 뽑으면 "다른 관절은 그대로 두고 왼팔만 움직였을 때 왼손이 어떻게 움직이나"가 됩니다. 두 팔은 베이스를 공유하지만 서로의 열에는 전혀 나타나지 않으므로, 팔마다 따로 풀어도 수학적으로 정확합니다. 반대로 <code>lift_joint</code>를 자코비안에 포함시키면 두 팔이 <b>같은 열</b>을 공유하게 되어 한쪽 팔의 보정이 다른 팔의 손끝을 밀어버립니다. 그래서 이 과제에서는 리프트와 머리를 고정합니다.
+      </div>
+
+      <div class="callout">
+        <b>두 손이 같은 물건을 잡는다면</b>
+        이 과제에서 두 팔은 서로 아무 상관 없이 움직입니다. 각자 자기 도형만 그리면 되니 팔마다 따로 풀어도 괜찮았습니다. 반대로 두 손이 <b>같은 물체를 함께 든다면</b> 상대 자세가 고정되어야 하고, 그때부터는 두 팔을 하나의 제약식으로 묶어서 풀어야 합니다. 그 식 \(f(q)=0\) 과 자코비안을 Adjoint로 조립하는 방법은 수학 기초 5편의 "양팔 구속" 부분에 있습니다. 이 과제를 끝낸 뒤 그쪽을 보면 왜 열 하나에 음수가 붙는지 바로 이해될 것입니다.
       </div>
 
       <div class="callout danger">
