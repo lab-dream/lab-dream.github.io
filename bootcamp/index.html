@@ -692,6 +692,11 @@ sitemap: false
         </ul>
       </div>
 
+      <div class="callout">
+        <b>이 다섯 편은 무엇인가</b>
+        수학 기초 1편부터 5편까지는 대학원 1학기 수업 <b>자율조작특론</b>에서 다루는 내용을 온보딩용으로 압축한 것입니다. 증명과 세부 유도는 입학 후 수업에서 제대로 배우면 되고, 여기서는 Level 3의 기구학과 MuJoCo 실습을 따라가는 데 필요한 만큼만 짚습니다. 한 번에 다 이해하려고 붙잡고 있기보다, 실습을 하다 막히면 돌아와서 해당 편만 다시 보는 쪽을 권합니다.
+      </div>
+
       <div class="block">
         <h3>벡터와 행렬 — 로봇에서 어떻게 쓰이나</h3>
         <p class="body-text">로봇의 위치는 벡터, 회전은 행렬로 표현됩니다. 관절을 하나 돌리면 손끝이 어디로 가는지 계산하는 것(순기구학)도, 결국 벡터에 행렬을 곱하는 일입니다.</p>
@@ -916,14 +921,85 @@ for step in range(500):
       <div class="block">
         <h3>회전 SO(3) — 열(column)이 곧 축이다</h3>
         <p class="body-text">회전행렬 \(R\)은 \(R^{\top}R = I\) 이고 \(\det R = 1\) 인 3×3 행렬입니다. 이 조건이 뜻하는 건 "길이와 각도를 보존하고, 뒤집지 않는다"입니다. 실제로 더 자주 쓰는 사실은 따로 있습니다. <b><code>R</code>의 세 열은 body 좌표계의 x, y, z 축을 space 좌표계에서 본 방향벡터</b>입니다.</p>
+        <p class="body-text">이 행렬을 읽는 가장 실용적인 방법은 <b>열 단위로 읽는 것</b>입니다. <code>R_sb</code>의 세 열은 각각 <b>새로 생긴 좌표계(body)의 x, y, z 축이 어느 쪽을 향하는지를, 변환 전 기준 좌표계(space)의 숫자로 적은 방향벡터</b>입니다.</p>
+        <div class="eq">\[ R_{sb}=\left[\begin{array}{c|c|c} \textcolor{#4FD1C5}{\hat{x}_b} & \textcolor{#FFB454}{\hat{y}_b} & \textcolor{#C9A9FF}{\hat{z}_b} \end{array}\right] \]<span class="eq-note">세 열 모두 space 좌표계에서 본 방향입니다</span></div>
+
+        <div class="diagram">
+          <svg viewBox="0 0 520 250" xmlns="http://www.w3.org/2000/svg">
+            <g font-family="JetBrains Mono, monospace">
+              <defs>
+                <marker id="ar-gray" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 z" fill="#8CA3C4"/></marker>
+                <marker id="ar-teal" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 z" fill="#4FD1C5"/></marker>
+                <marker id="ar-orange" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 z" fill="#FFB454"/></marker>
+              </defs>
+
+              <!-- 기준 좌표계 (변환 전) -->
+              <line x1="130" y1="190" x2="252" y2="190" stroke="#8CA3C4" stroke-width="1.2" stroke-dasharray="4 3" marker-end="url(#ar-gray)"/>
+              <line x1="130" y1="190" x2="130" y2="68" stroke="#8CA3C4" stroke-width="1.2" stroke-dasharray="4 3" marker-end="url(#ar-gray)"/>
+              <text x="259" y="194" fill="#8CA3C4" font-size="11">x_s</text>
+              <text x="130" y="59" text-anchor="middle" fill="#8CA3C4" font-size="11">y_s</text>
+
+              <!-- 30도 돌아간 새 좌표계 -->
+              <line x1="130" y1="190" x2="225" y2="135" stroke="#4FD1C5" stroke-width="2.2" marker-end="url(#ar-teal)"/>
+              <line x1="130" y1="190" x2="75" y2="95" stroke="#FFB454" stroke-width="2.2" marker-end="url(#ar-orange)"/>
+              <text x="233" y="131" fill="#4FD1C5" font-size="11">x_b</text>
+              <text x="66" y="89" text-anchor="end" fill="#FFB454" font-size="11">y_b</text>
+
+              <!-- 성분 읽기 -->
+              <line x1="225" y1="135" x2="225" y2="190" stroke="#5D7EA3" stroke-width="1" stroke-dasharray="3 3"/>
+              <line x1="225" y1="135" x2="130" y2="135" stroke="#5D7EA3" stroke-width="1" stroke-dasharray="3 3"/>
+              <text x="190" y="208" text-anchor="middle" fill="#8CA3C4" font-size="10.5">cos 30° = 0.866</text>
+              <text x="176" y="129" text-anchor="middle" fill="#8CA3C4" font-size="10.5">sin 30° = 0.5</text>
+
+              <path d="M 167 190 A 37 37 0 0 0 162 171" fill="none" stroke="#4FD1C5" stroke-width="1.2"/>
+              <text x="175" y="179" fill="#4FD1C5" font-size="11">30°</text>
+
+              <circle cx="130" cy="190" r="3.6" fill="none" stroke="#C9A9FF" stroke-width="1.4"/>
+              <circle cx="130" cy="190" r="1.2" fill="#C9A9FF"/>
+              <text x="121" y="208" text-anchor="end" fill="#C9A9FF" font-size="11">z_b</text>
+              <text x="130" y="236" text-anchor="middle" fill="#E8EDF4" font-size="11">z축으로 30° 회전</text>
+
+              <line x1="285" y1="45" x2="285" y2="215" stroke="#1C3A5E" stroke-width="1"/>
+
+              <!-- 열 읽기 -->
+              <text x="300" y="62" fill="#8CA3C4" font-size="11">R 의 각 열 = 새 좌표계의 축</text>
+              <text x="300" y="95" fill="#4FD1C5" font-size="10.5">1열</text>
+              <text x="332" y="95" fill="#4FD1C5" font-size="10.5">x_b = ( 0.866, 0.5,   0 )</text>
+              <text x="300" y="125" fill="#FFB454" font-size="10.5">2열</text>
+              <text x="332" y="125" fill="#FFB454" font-size="10.5">y_b = (-0.5,   0.866, 0 )</text>
+              <text x="300" y="155" fill="#C9A9FF" font-size="10.5">3열</text>
+              <text x="332" y="155" fill="#C9A9FF" font-size="10.5">z_b = ( 0,     0,     1 )</text>
+              <text x="300" y="190" fill="#8CA3C4" font-size="10.5">세 열 모두 변환 전 좌표계(space)에서</text>
+              <text x="300" y="205" fill="#8CA3C4" font-size="10.5">본 방향입니다</text>
+            </g>
+          </svg>
+        </div>
+
+        <p class="body-text">그림의 상태를 그대로 숫자로 옮기면 아래 행렬이 됩니다. 색이 그림의 화살표와 짝을 이룹니다.</p>
+        <div class="eq">\[ R=\left[\begin{array}{r|r|r} \textcolor{#4FD1C5}{0.866} & \textcolor{#FFB454}{-0.5} & \textcolor{#C9A9FF}{0} \\ \textcolor{#4FD1C5}{0.5} & \textcolor{#FFB454}{0.866} & \textcolor{#C9A9FF}{0} \\ \textcolor{#4FD1C5}{0} & \textcolor{#FFB454}{0} & \textcolor{#C9A9FF}{1} \end{array}\right] \]<span class="eq-note">z축으로 30° 돌린 회전행렬</span></div>
+        <table class="tbl">
+          <tr><th>열</th><th>읽는 법</th><th>30° 회전일 때</th><th>뜻</th></tr>
+          <tr><td>1열</td><td>새 좌표계의 x축을 원래 좌표계 숫자로</td><td>(0.866, 0.5, 0)</td><td>새 x축이 원래 x축에서 30° 올라간 방향</td></tr>
+          <tr><td>2열</td><td>새 좌표계의 y축을 원래 좌표계 숫자로</td><td>(-0.5, 0.866, 0)</td><td>새 y축도 같은 각도만큼 함께 돌아간다</td></tr>
+          <tr><td>3열</td><td>새 좌표계의 z축을 원래 좌표계 숫자로</td><td>(0, 0, 1)</td><td>회전축이므로 그대로 있다</td></tr>
+        </table>
+        <p class="body-text">각 열의 길이가 1이고 서로 수직이라는 점도 그림에서 바로 보입니다. \(R^{\top}R = I\) 라는 조건이 뜻하는 것이 정확히 이것입니다. 두 축이 직각을 유지한 채 통째로 돌아갔을 뿐입니다.</p>
+        <p class="body-text">그래서 <code>R</code>을 벡터에 곱하는 계산은 <b>세 축을 섞는 일</b>이 됩니다. body 좌표로 \((a, b, c)\) 인 점은 space에서 \(a\,\hat{x}_b + b\,\hat{y}_b + c\,\hat{z}_b\) 가 됩니다. 행렬곱이 열의 가중합이라는 선형대수의 기본 사실이, 여기서는 "새 좌표계의 축들을 그만큼씩 따라간다"는 뜻이 됩니다.</p>
+        <div class="callout">
+          <b>행으로 읽으면 반대 방향</b>
+          같은 행렬을 가로로 읽으면 <b>원래 좌표계의 축을 새 좌표계에서 본 방향</b>이 됩니다. 전치가 곧 역회전이라는 성질(\(R^{-1}=R^{\top}\))을 다르게 말한 것입니다. 코드에서 축 하나를 꺼낼 때 <code>R[:, 0]</code>(1열, 새 x축)과 <code>R[0, :]</code>(1행, 원래 x축)을 헷갈리면 자세가 조용히 틀어집니다.
+        </div>
         <pre>import numpy as np
 
+th = np.deg2rad(30)
 R = np.array([
-    [0, -1, 0],
-    [1,  0, 0],
-    [0,  0, 1],
+    [np.cos(th), -np.sin(th), 0],
+    [np.sin(th),  np.cos(th), 0],
+    [0,           0,          1],
 ])
-print("body의 x축을 월드에서 보면:", R[:, 0])   <span class="cm"># [0,1,0]</span>
+print("새 x축을 원래 좌표계에서 보면:", R[:, 0].round(3))   <span class="cm"># [ 0.866  0.5    0.   ]</span>
+print("새 y축:", R[:, 1].round(3))                          <span class="cm"># [-0.5    0.866  0.   ]</span>
+print("새 z축:", R[:, 2].round(3))                          <span class="cm"># [ 0.     0.     1.   ]</span>
 print("직교성 확인:", np.allclose(R.T @ R, np.eye(3)))
 print("역회전 = 전치:", np.allclose(np.linalg.inv(R), R.T))</pre>
         <p class="body-text">역행렬이 전치와 같다는 성질은 실전에서 자주 씁니다. 역회전을 구할 때 <code>np.linalg.inv</code>를 호출할 필요가 없습니다.</p>
@@ -1051,6 +1127,7 @@ T_s_ee = se3(R, p)                           <span class="cm"># 둘을 묶으면
           <li>회전관절과 직선관절의 screw axis를 직접 쓸 수 있다</li>
           <li>space-form PoE와 body-form PoE의 식과 차이를 설명할 수 있다</li>
           <li>PoE를 코드로 구현해 MuJoCo의 순기구학과 비교할 수 있다</li>
+          <li>exp와 log가 Lie group과 Lie algebra 사이를 어떻게 잇는지 안다</li>
         </ul>
       </div>
 
@@ -1177,6 +1254,53 @@ def fk_body(B_list, thetas, M):
       </div>
 
       <div class="block">
+        <h3>한 걸음 더: Lie group의 exp와 log</h3>
+        <p class="body-text">회전행렬 두 개를 더하면 회전행렬이 아닙니다. 두 자세의 평균을 구하겠다고 행렬을 더해서 2로 나누면 직교성이 깨집니다. 회전은 더하기로 닫혀 있지 않고 <b>곱하기로 닫혀 있는 집합</b>이며, 동시에 매끄러운 곡면이기도 합니다. 이런 대상을 <b>Lie group</b>이라고 하고, 로봇에서 매일 만나는 예가 \(SO(3)\) 와 \(SE(3)\) 입니다.</p>
+        <p class="body-text">다행히 그 곡면의 한 점(단위원소 \(I\))에서의 접평면은 보통의 벡터공간입니다. 이것을 <b>Lie algebra</b> \(so(3)\), \(se(3)\) 라고 하는데, 앞에서 이미 만났습니다. 반대칭 행렬 \([\omega]\) 와 twist \([\mathcal{V}]\) 가 바로 그 원소입니다. 더하고 상수배해도 되는 곳은 여기입니다.</p>
+        <p class="body-text">두 세계를 오가는 다리가 <b>exp</b>와 <b>log</b>입니다.</p>
+        <div class="eq">\[ \exp:\; so(3)\to SO(3),\quad [\omega]\theta \mapsto R \qquad\qquad \log:\; SO(3)\to so(3),\quad R \mapsto [\omega]\theta \]
+\[ \exp:\; se(3)\to SE(3),\quad [\mathcal{S}]\theta \mapsto T \qquad\qquad \log:\; SE(3)\to se(3),\quad T \mapsto [\mathcal{S}]\theta \]</div>
+        <p class="body-text">exp는 "축과 각도를 주면 변환을 만들어라"이고, 앞 블록에서 쓴 그 함수입니다. log는 그 반대로, 변환 하나를 주면 <b>어느 축을 중심으로 얼마나 돌고 얼마나 이동했는지</b>를 돌려줍니다. 맨 앞에서 말한 Chasles-Mozzi 정리를 실제 계산으로 옮긴 것이 log입니다.</p>
+
+        <table class="tbl">
+          <tr><th>어디에 쓰나</th><th>식</th><th>왜 필요한가</th></tr>
+          <tr><td>자세 오차</td><td>\(\omega_{\mathrm{err}} = \log\!\left(R_d R^{\top}\right)^{\vee}\)</td><td>위치는 빼기로 오차를 구하지만 자세는 뺄 수 없다. log가 3차원 오차 벡터를 만들어 준다</td></tr>
+          <tr><td>보간</td><td>\(T(s)=T_1\exp\!\left(s\log(T_1^{-1}T_2)\right)\)</td><td>두 자세 사이를 일정한 나사 운동으로 잇는다. 행렬을 선형보간하면 회전행렬이 아니게 된다</td></tr>
+          <tr><td>적분</td><td>\(R_{k+1}=R_k\exp\!\left([\omega]\Delta t\right)\)</td><td>\(R + \dot R \Delta t\) 로 더하면 직교성이 조금씩 깨져 매 스텝 다시 정규화해야 한다</td></tr>
+          <tr><td>최적화와 학습</td><td>\(T \leftarrow T\exp([\xi])\)</td><td>자세를 6개 숫자로 파라미터화하면 제약 없는 벡터공간에서 미분하고 갱신할 수 있다</td></tr>
+        </table>
+        <p class="body-text">첫 줄이 수학 기초 5편에서 "자세까지 맞추려면 회전 오차를 어느 좌표계로 적었는지 확인하라"고 했던 이야기의 실제 구현입니다. CLIK에 넣을 자세 오차는 이렇게 만듭니다. 마지막 줄은 SLAM과 궤적 최적화 라이브러리가 전부 올라서 있는 토대입니다.</p>
+
+        <pre>import numpy as np
+from scipy.spatial.transform import Rotation as Rot
+
+R1 = Rot.from_euler("z", 30, degrees=True)
+R2 = Rot.from_euler("z", 80, degrees=True)
+
+w = (R2 * R1.inv()).as_rotvec()          <span class="cm"># log — 두 자세의 차이를 3차원 벡터로</span>
+print(np.rad2deg(np.linalg.norm(w)))      <span class="cm"># 50.0 — 축 주위로 50도 차이</span>
+
+R_half = Rot.from_rotvec(w * 0.5) * R1    <span class="cm"># exp — 절반만 돌려 중간 자세</span>
+print(R_half.as_euler("xyz", degrees=True))   <span class="cm"># [0, 0, 55]</span></pre>
+        <p class="body-text"><code>as_rotvec()</code>가 log이고 <code>from_rotvec()</code>가 exp입니다. \(SE(3)\) 까지 한 번에 다루려면 Modern Robotics 코드의 <code>MatrixLog6</code>, <code>MatrixExp6</code>을 쓰면 됩니다. MuJoCo에도 쿼터니언 차이를 3차원 벡터로 돌려주는 <code>mju_subQuat</code>과 그 반대인 <code>mju_quatIntegrate</code>가 있는데, 어느 쪽 좌표계 기준인지는 문서에서 확인하고 쓰세요.</p>
+
+        <div class="callout">
+          <b>왼쪽에 곱하나 오른쪽에 곱하나</b>
+          갱신량을 \(\exp([\xi])\,T\) 처럼 왼쪽에 붙이면 space 기준이고, \(T\exp([\xi])\) 처럼 오른쪽에 붙이면 body 기준입니다. 수학 기초 3편의 왼쪽곱과 오른쪽곱이 여기서 그대로 다시 나옵니다. 최적화 라이브러리마다 어느 쪽을 쓰는지가 다르고, 그에 따라 자코비안 형태도 달라지므로 남의 코드를 가져다 쓸 때 가장 먼저 확인할 부분입니다.
+        </div>
+
+        <div class="callout danger">
+          <b>회전벡터는 더하면 안 됩니다</b>
+          행렬은 교환법칙이 없어서 \(\exp(A)\exp(B)\neq\exp(A+B)\) 입니다. 그래서 회전벡터 두 개를 더하는 것은 두 회전을 이어 붙이는 것과 다릅니다. 작은 각도에서는 비슷해 보이다가 각이 커지면 틀어지므로, 반드시 \(\log\) 로 내려와 계산하고 \(\exp\) 로 올라가야 합니다. 그리고 log는 유일하지 않습니다. \(\theta\) 와 \(\theta + 2\pi\) 가 같은 회전이고 \(\theta=\pi\) 근처에서는 축이 불안정해서, 보통 \(\lVert\omega\rVert \le \pi\) 로 제한한 주값을 씁니다.
+        </div>
+
+        <div class="callout hands">
+          <b>여기까지가 기본</b>
+          exp와 log의 닫힌 형태 유도, 지수좌표에서의 미분, manifold 위의 최적화는 대학원 수업 <b>자율조작특론</b>에서 제대로 다룹니다. 지금은 "회전은 더할 수 없고, exp와 log로 벡터공간과 오간다"는 감각과 위 표의 네 가지 쓰임만 손에 익혀두면 충분합니다.
+        </div>
+      </div>
+
+      <div class="block">
         <h3>참고 교재와 코드</h3>
         <a class="linkbox" href="https://hades.mech.northwestern.edu/images/2/25/MR-v2.pdf" target="_blank">
           <span class="ico">PDF</span>
@@ -1222,6 +1346,15 @@ def fk_body(B_list, thetas, M):
           <div class="q-feedback"></div>
         </div>
 
+        <div class="quiz-question" data-answer="b">
+          <p class="q-text">4. 두 자세의 차이를 구할 때 회전행렬을 그냥 빼면 안 되는 이유는?</p>
+          <label class="q-option"><input type="radio" name="q-math4-4" value="a"> 뺄셈이 곱셈보다 느리기 때문에</label>
+          <label class="q-option"><input type="radio" name="q-math4-4" value="b"> 뺀 결과가 더 이상 회전행렬이 아니기 때문에. \(\log\) 으로 3차원 벡터로 내려와서 계산한다</label>
+          <label class="q-option"><input type="radio" name="q-math4-4" value="c"> 행렬식이 항상 0이 되기 때문에</label>
+          <label class="q-option"><input type="radio" name="q-math4-4" value="d"> 각도 단위가 서로 다르기 때문에</label>
+          <div class="q-feedback"></div>
+        </div>
+
         <button class="quiz-check-btn" onclick="checkQuiz('quiz-math4')">정답 확인</button>
         <div class="quiz-result" id="quiz-math4-result"></div>
       </div>
@@ -1249,6 +1382,55 @@ def fk_body(B_list, thetas, M):
         <h3>자코비안 = 관절 속도에서 twist로 가는 지도</h3>
         <div class="eq">\[ \mathcal{V}=J(\theta)\,\dot\theta \]<span class="eq-note">\(\mathcal{V}\) 는 6차원 twist \((\omega, v)\)</span></div>
         <p class="body-text">관절 속도 <code>θ̇</code>를 넣으면 끝단의 속도 <code>V</code>가 나옵니다. 행렬 <code>J</code>의 i번째 열은 "i번 관절만 단위 속도로 움직였을 때 끝단이 받는 속도"입니다. 그래서 열을 관절마다 하나씩 쌓아 만들 수 있습니다. 문제는 그 "속도"를 <b>어느 좌표계로 적고, 어느 점을 기준으로 재는지</b>입니다. 여기서 종류가 갈립니다.</p>
+      </div>
+
+      <div class="block">
+        <h3>FK를 미분하는 길 (Craig 교재)</h3>
+        <p class="body-text">많은 사람이 자코비안을 처음 만나는 곳은 Craig의 <i>Introduction to Robotics</i>입니다. 이 책은 두 가지 경로로 자코비안을 유도합니다. 하나는 순기구학 식을 관절각으로 직접 편미분하는 것이고, 다른 하나는 링크를 따라 속도를 넘겨주는 것입니다. 첫 번째는 Level 3 기구학 기초 페이지에서 2R 팔로 이미 해본 계산입니다.</p>
+        <div class="eq">\[ x = l_1\cos\theta_1 + l_2\cos(\theta_1+\theta_2), \qquad y = l_1\sin\theta_1 + l_2\sin(\theta_1+\theta_2) \]</div>
+        <div class="eq">\[ J(\theta)=\frac{\partial (x,\,y)}{\partial (\theta_1,\,\theta_2)}=\begin{bmatrix} -l_1 s_1 - l_2 s_{12} & -l_2 s_{12} \\ l_1 c_1 + l_2 c_{12} & l_2 c_{12} \end{bmatrix}, \qquad \det J = l_1 l_2 \sin\theta_2 \]</div>
+        <p class="body-text">손으로 미분하기 번거로우면 sympy가 그대로 해줍니다. 이름부터 <code>jacobian</code>입니다.</p>
+        <pre>import sympy as sp
+
+t1, t2, l1, l2 = sp.symbols("theta1 theta2 l1 l2")
+x = l1*sp.cos(t1) + l2*sp.cos(t1 + t2)
+y = l1*sp.sin(t1) + l2*sp.sin(t1 + t2)
+
+J = sp.Matrix([x, y]).jacobian([t1, t2])   <span class="cm"># FK 식을 관절각으로 미분</span>
+print(sp.simplify(J.det()))                 <span class="cm"># l1*l2*sin(theta2)</span></pre>
+        <p class="body-text">행렬식이 0이 되는 \(\theta_2 = 0\) 과 \(\theta_2 = \pi\) 가 팔이 완전히 펴지거나 접힌 특이 자세입니다. 수학 기초 1편에서 특이값으로 이야기했던 것을 2×2 행렬에서 눈으로 확인하는 셈입니다.</p>
+      </div>
+
+      <div class="block">
+        <h3>위치는 같고, 자세에서 갈라진다</h3>
+        <p class="body-text"><b>위치만 보면 이 길과 screw를 쓰는 길은 완전히 같은 답</b>을 줍니다. \(\dot p = \frac{\partial p}{\partial \theta}\dot\theta\) 이므로, FK를 미분한 \(\partial p/\partial\theta\) 가 곧 MuJoCo의 <code>jacp</code>입니다. 물론 같은 좌표계로 적었을 때의 이야기입니다. 아래 수치미분 검산이 성립하는 이유도 여기에 있습니다.</p>
+        <p class="body-text">자세로 넘어가면 달라집니다. 자세를 RPY 같은 세 숫자 \(\varphi\) 로 적고 \(\partial\varphi/\partial\theta\) 를 구하면, 그 결과가 주는 것은 \(\dot\varphi\) 이지 각속도 \(\omega\) 가 아닙니다. 둘은 자세에 따라 달라지는 행렬 \(E\) 로 이어집니다.</p>
+        <div class="eq">\[ \omega = E(\varphi)\,\dot\varphi \qquad \Longrightarrow \qquad J_{\text{geo}} = E(\varphi)\,J_{\text{ana}} \]</div>
+        <ul class="plain">
+          <li><b>analytic Jacobian</b> — 순기구학의 자세 <b>표현</b>을 미분해 얻은 것. \(\dot\varphi\) 를 준다.</li>
+          <li><b>geometric Jacobian</b> — twist를 직접 쓴 것. \(\omega\) 를 준다. 앞에서 본 space, body, hybrid가 모두 여기에 속한다.</li>
+        </ul>
+        <div class="callout danger">
+          <b>표현 특이점은 로봇의 특이점이 아니다</b>
+          \(E(\varphi)\) 는 짐벌락 자세에서 특이해집니다. 그 자세에서 analytic Jacobian을 역행렬로 풀면 값이 폭발하지만, 로봇 자체는 아무 문제 없이 움직일 수 있습니다. 팔이 완전히 펴진 기구학적 특이점과 달리, 이것은 <b>자세를 세 숫자로 적기로 한 선택</b> 때문에 생긴 특이점입니다. 수학 기초 3편에서 오일러각의 단점으로 짚었던 것이 여기서 실제 버그로 나타납니다. MuJoCo의 <code>jacr</code>은 \(\omega\) 를 바로 주므로 이 문제가 없습니다.
+        </div>
+      </div>
+
+      <div class="block">
+        <h3>Craig의 또 다른 길: 속도 전파</h3>
+        <p class="body-text">관절이 여섯 개쯤 되면 삼각함수 식을 손으로 미분하는 것은 현실적이지 않습니다. 그래서 Craig는 실제 다관절 로봇에는 링크마다 속도를 넘겨주는 재귀를 씁니다.</p>
+        <div class="eq">\[ {}^{i+1}\omega_{i+1} = {}^{i+1}_{\;\;i}R\;{}^{i}\omega_i + \dot\theta_{i+1}\,{}^{i+1}\hat{Z}_{i+1} \]
+\[ {}^{i+1}v_{i+1} = {}^{i+1}_{\;\;i}R\left({}^{i}v_i + {}^{i}\omega_i \times {}^{i}P_{i+1}\right) \]</div>
+        <p class="body-text">베이스에서 출발해 링크를 따라 올라가며 적용하고, 마지막 프레임에서 멈추면 그 프레임 기준의 geometric Jacobian이 나옵니다. 끝단 프레임에서 멈추면 앞에서 본 body Jacobian과 같은 것입니다. PoE에서 \(\mathrm{Ad}\) 를 누적해 열을 쌓던 계산을, 행렬 지수 대신 링크별 회전행렬로 풀어 쓴 형태라고 보면 됩니다.</p>
+        <p class="body-text">Craig가 자코비안에 \({}^{0}J\), \({}^{N}J\) 처럼 위첨자를 붙이는 것도 같은 이유입니다. 자코비안은 어느 프레임 기준인지 밝히지 않으면 의미가 정해지지 않습니다. 이 책의 위첨자와 Modern Robotics의 space, body 구분은 같은 말을 다르게 적은 것입니다.</p>
+        <table class="tbl">
+          <tr><th>유도 경로</th><th>방법</th><th>나오는 것</th><th>기본 좌표계</th></tr>
+          <tr><td>Craig ①</td><td>FK 식을 관절각으로 편미분</td><td>analytic</td><td>FK를 적은 프레임, 보통 base</td></tr>
+          <tr><td>Craig ②</td><td>링크별 속도 전파</td><td>geometric</td><td>각 링크 프레임, 보통 tool frame</td></tr>
+          <tr><td>Modern Robotics</td><td>screw 축을 <code>Ad</code>로 옮겨 쌓기</td><td>geometric</td><td>space 또는 body</td></tr>
+          <tr><td>MuJoCo</td><td><code>mj_jacBody</code></td><td>geometric (hybrid)</td><td>world</td></tr>
+        </table>
+        <p class="body-text">네 경로 모두 같은 로봇의 같은 운동을 적은 것입니다. 다른 점은 <b>자세를 표현으로 적었는가 각속도로 적었는가</b>, 그리고 <b>어느 프레임에 적었는가</b> 둘뿐입니다. 서로 다른 교재의 식을 섞어 쓰다가 숫자가 안 맞으면, 거의 항상 이 둘 중 하나가 어긋난 것입니다.</p>
       </div>
 
       <div class="block">
