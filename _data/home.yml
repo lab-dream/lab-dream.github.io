@@ -88,6 +88,8 @@ domains:
         image: /assets/img/research/ball-toss.jpg
       - video: /assets/video/research-towel-folding.mp4
         image: /assets/img/research/towel-folding.jpg
+      - video: /patacon_paper/assets/video/dynamic-patacon.mp4
+        image: /assets/img/research/patacon.jpg
 
 keywords: >-
   Robots, Artificial Intelligence, Physical AI, Embodied AI, Digital Twin, Manipulation,

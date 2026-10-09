@@ -22,6 +22,7 @@
     - Grasp Planning
     - Whole-body Motion Planning
     - Constrained Motion Planning
+    - GPU-Parallel Planning
 
 - id: physical-ai
   title: Physical AI

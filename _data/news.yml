@@ -10,6 +10,19 @@
 #            사이트 안 페이지는 /로 시작해서 적습니다 → [안내 페이지](/ros2_special_lecture/)
 # ─────────────────────────────────────────────────────────────
 
+- date: 2026-10-09
+  tag: paper
+  text_ko: >-
+    제약 조건 하 모션 플래닝 연구 **PATACON**의 프로젝트 페이지를 공개했습니다. 접평면(tangent space)을 따라 탐색 방향을 고르고
+    여러 후보 간선을 GPU에서 한꺼번에 투영하고 검증해, 7자유도 매니퓰레이터부터 35자유도 전신 휴머노이드까지
+    기존 GPU 플래너 대비 최대 **11.25배 빠른 계획 시간**을 보였습니다. 움직이는 장애물 앞에서 실시간으로 다시 계획하는
+    실제 로봇 실험도 함께 공개했습니다. [프로젝트 페이지](/patacon_paper/) (arXiv 공개 예정)
+  text_en: >-
+    We published the project page for **PATACON**, our work on constrained motion planning. It picks expansion
+    directions inside local tangent spaces and projects and validates several candidate edges in parallel on the GPU,
+    reaching up to **11.25x lower planning latency** than a GPU baseline from 7-DoF manipulators to 35-DoF whole-body
+    humanoids, with real-robot replanning against a moving obstacle. [Project page](/patacon_paper/) (arXiv coming soon)
+
 - date: 2026-09-07
   tag: event
   text_ko: >-

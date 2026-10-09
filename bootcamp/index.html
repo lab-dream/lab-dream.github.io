@@ -6580,10 +6580,22 @@ $ git push origin main</pre>
     document.getElementById('pid-under').addEventListener('click', ()=> preset(16, 0, 2, 0));
     document.getElementById('pid-crit').addEventListener('click',  ()=> preset(16, 0, 8, 0));
     document.getElementById('pid-over').addEventListener('click',  ()=> preset(16, 0, 20, 0));
+    // 이 페이지를 열면 자동으로 재생합니다 (움직임을 줄이는 설정이면 그대로 둡니다)
+    const odePage = document.getElementById('page-math-ode');
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+    function autoPlay(){
+      if(raf || reduce.matches) return;
+      if(odePage && odePage.classList.contains('active')){
+        playBtn.textContent = '정지'; t0 = 0; raf = requestAnimationFrame(tick);
+      }
+    }
+    if(odePage) new MutationObserver(autoPlay).observe(odePage, {attributes:true, attributeFilter:['class']});
+
     document.getElementById('pid-dist').addEventListener('click',   ()=> preset(16, 0, 8, -2));
     document.getElementById('pid-ki-demo').addEventListener('click', ()=> preset(16, 12, 8, -2));
 
     draw();
+    autoPlay();
   })();
 </script>
 {% include analytics.html %}
