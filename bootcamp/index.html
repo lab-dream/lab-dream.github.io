@@ -196,6 +196,23 @@ sitemap: false
     font-family:var(--mono); background:#081221; border:1px solid var(--grid); padding:1px 6px; border-radius:2px;
     font-size:.9em; color:#8FEFE0;
   }
+  /* ── 인터랙티브 데모 위젯 (회전, PoE) ── */
+  .wdg{ margin:18px 0; border:1px solid var(--grid); border-radius:6px; background:var(--panel-2); overflow:hidden; }
+  .wdg__canvas{ display:block; width:100%; background:#0B1A30; touch-action:none; }
+  .wdg__ctrl{ display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px 24px; padding:14px 16px; border-top:1px solid var(--grid); }
+  .wdg__group{ min-width:0; }
+  .wdg__lbl{ font-family:var(--mono); font-size:10.5px; letter-spacing:.07em; color:var(--muted); text-transform:uppercase; margin-bottom:8px; }
+  .wdg__row{ display:flex; align-items:center; gap:7px; margin-bottom:7px; font-family:var(--mono); font-size:12px; color:var(--muted); }
+  .wdg__row .k{ width:24px; color:var(--hands); flex-shrink:0; }
+  .wdg__row input[type=range]{ flex:1; accent-color:var(--hands); min-width:0; }
+  .wdg__row input[type=number]{ width:64px; background:#0B1A30; color:var(--text); border:1px solid var(--grid); border-radius:3px; padding:3px 6px; font-family:var(--mono); font-size:12px; }
+  .wdg__row .val{ width:54px; text-align:right; color:var(--text); flex-shrink:0; }
+  .wdg__out{ padding:12px 16px; border-top:1px solid var(--grid); font-family:var(--mono); font-size:12px; color:var(--text); white-space:pre; overflow-x:auto; line-height:1.6; }
+  .wdg__btns{ display:flex; gap:8px; padding:0 16px 14px; }
+  .wdg__btn{ font-family:var(--mono); font-size:11.5px; padding:6px 12px; border-radius:3px; cursor:pointer; background:var(--hands-dim); color:var(--hands); border:1px solid rgba(79,209,197,.35); }
+  .wdg__btn:hover{ background:#12324A; }
+  @media (max-width:760px){ .wdg__ctrl{ grid-template-columns:1fr; } }
+
   /* ── 수식 (KaTeX) ── */
   .eq{
     margin:18px 0; padding:14px 16px; background:var(--panel-2);
@@ -852,6 +869,48 @@ for step in range(500):
         <p class="body-text">PID 제어기를 맞출 때 "P를 올리니 떨린다, D를 올리니 둔해진다"는 현상이 이 감쇠비를 손으로 조절하고 있는 것입니다.</p>
       </div>
 
+      <div class="block">
+        <h3>직접 맞춰보기: PID와 감쇠</h3>
+        <p class="body-text">질량 1인 물체를 목표 위치 1로 보내는 가장 단순한 제어 문제입니다. 제어기가 주는 힘이 \(u = K_p e + K_i \int e\,dt + K_d \dot e\) 이고, 뉴턴의 법칙 \( \ddot x = u + d \) 를 오일러 적분으로 한 스텝씩 풀어 그린 그래프입니다. \(K_i\) 와 외란 \(d\) 가 0이면 닫힌 루프는 정확히 위에서 본 2차 시스템이 됩니다.</p>
+        <div class="eq">\[ \ddot x + K_d\,\dot x + K_p\,x = K_p\,x_d \qquad\Longrightarrow\qquad \omega_n=\sqrt{K_p}, \quad \zeta=\frac{K_d}{2\sqrt{K_p}} \]</div>
+
+        <div class="wdg" id="pid">
+          <svg class="wdg__canvas" id="pid-svg" viewBox="0 0 560 260" xmlns="http://www.w3.org/2000/svg">
+            <g id="pid-grid"></g>
+            <g id="pid-mech"></g>
+            <g id="pid-curve"></g>
+            <g id="pid-lab" font-family="JetBrains Mono, monospace"></g>
+          </svg>
+          <div class="wdg__ctrl">
+            <div class="wdg__group">
+              <div class="wdg__lbl">제어 이득</div>
+              <div class="wdg__row"><span class="k">Kp</span><input type="range" id="pid-kp" min="1" max="60" step="0.5" value="16"><span class="val" id="pid-kpv"></span></div>
+              <div class="wdg__row"><span class="k">Ki</span><input type="range" id="pid-ki" min="0" max="40" step="0.5" value="0"><span class="val" id="pid-kiv"></span></div>
+              <div class="wdg__row"><span class="k">Kd</span><input type="range" id="pid-kd" min="0" max="30" step="0.1" value="2"><span class="val" id="pid-kdv"></span></div>
+            </div>
+            <div class="wdg__group">
+              <div class="wdg__lbl">외란 d (일정한 힘, 예: 중력)</div>
+              <div class="wdg__row"><span class="k">d</span><input type="range" id="pid-d" min="-5" max="0" step="0.1" value="0"><span class="val" id="pid-dv"></span></div>
+              <div class="wdg__lbl" style="margin-top:12px;">미리 맞춰둔 값</div>
+              <div class="wdg__btns" style="padding:0;">
+                <button class="wdg__btn" id="pid-under" type="button">과소감쇠</button>
+                <button class="wdg__btn" id="pid-crit" type="button">임계감쇠</button>
+                <button class="wdg__btn" id="pid-over" type="button">과감쇠</button>
+              </div>
+            </div>
+          </div>
+          <div class="wdg__out" id="pid-out"></div>
+          <div class="wdg__btns">
+            <button class="wdg__btn" id="pid-play" type="button">움직임 재생</button>
+            <button class="wdg__btn" id="pid-dist" type="button">외란 켜기 (Ki = 0)</button>
+            <button class="wdg__btn" id="pid-ki-demo" type="button">여기에 I 항 추가</button>
+          </div>
+        </div>
+
+        <p class="body-text">세 버튼이 교과서에 나오는 세 가지 경우입니다. <b>과소감쇠</b>(\(\zeta &lt; 1\))는 목표를 지나쳤다 돌아오며 출렁이고, <b>임계감쇠</b>(\(\zeta = 1\))는 넘치지 않으면서 가장 빨리 도달하며, <b>과감쇠</b>(\(\zeta &gt; 1\))는 넘치지 않지만 느립니다. \(K_p\) 를 올리면 \(\omega_n\) 이 커져 빨라지는 대신 같은 \(K_d\) 에서는 \(\zeta\) 가 작아져 더 출렁입니다. 로봇 관절 게인을 맞출 때 실제로 겪는 줄다리기가 이것입니다.</p>
+        <p class="body-text">외란 슬라이더를 내리면 중력처럼 일정한 힘이 걸립니다. 이때 \(K_i = 0\) 이면 목표에 도달하지 못하고 \(d/K_p\) 만큼 아래에 멈추는데, 적분항이 그 누적된 오차를 메워 목표로 끌어올립니다. 다만 \(K_i\) 를 너무 키우면 다시 출렁이기 시작합니다.</p>
+      </div>
+
       <div class="callout">
         <b>왜 주파수 도메인(신호 및 시스템)까지 봐야 하나</b>
         시간에 따라 변하는 미분방정식을 <b>라플라스 변환</b>으로 주파수 영역으로 옮기면, 미분과 적분이 곱셈과 나눗셈으로 바뀌어 계산이 훨씬 쉬워집니다. PID 제어기를 설계하거나, 센서 노이즈를 걸러내는 필터를 만들 때 이 관점이 필요합니다. Level 2의 제어주기 페이지에서 본 "지터"도 결국 주파수 영역에서 이야기하는 개념입니다.
@@ -924,58 +983,29 @@ for step in range(500):
         <p class="body-text">이 행렬을 읽는 가장 실용적인 방법은 <b>열 단위로 읽는 것</b>입니다. <code>R_sb</code>의 세 열은 각각 <b>새로 생긴 좌표계(body)의 x, y, z 축이 어느 쪽을 향하는지를, 변환 전 기준 좌표계(space)의 숫자로 적은 방향벡터</b>입니다.</p>
         <div class="eq">\[ R_{sb}=\left[\begin{array}{c|c|c} \textcolor{#4FD1C5}{\hat{x}_b} & \textcolor{#FFB454}{\hat{y}_b} & \textcolor{#C9A9FF}{\hat{z}_b} \end{array}\right] \]<span class="eq-note">세 열 모두 space 좌표계에서 본 방향입니다</span></div>
 
-        <div class="diagram">
-          <svg viewBox="0 0 520 250" xmlns="http://www.w3.org/2000/svg">
-            <g font-family="JetBrains Mono, monospace">
-              <defs>
-                <marker id="ar-gray" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 z" fill="#8CA3C4"/></marker>
-                <marker id="ar-teal" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 z" fill="#4FD1C5"/></marker>
-                <marker id="ar-orange" markerWidth="7" markerHeight="7" refX="6" refY="3" orient="auto"><path d="M0,0 L7,3 L0,6 z" fill="#FFB454"/></marker>
-              </defs>
-
-              <!-- 기준 좌표계 (변환 전) -->
-              <line x1="130" y1="190" x2="252" y2="190" stroke="#8CA3C4" stroke-width="1.2" stroke-dasharray="4 3" marker-end="url(#ar-gray)"/>
-              <line x1="130" y1="190" x2="130" y2="68" stroke="#8CA3C4" stroke-width="1.2" stroke-dasharray="4 3" marker-end="url(#ar-gray)"/>
-              <text x="259" y="194" fill="#8CA3C4" font-size="11">x_s</text>
-              <text x="130" y="59" text-anchor="middle" fill="#8CA3C4" font-size="11">y_s</text>
-
-              <!-- 30도 돌아간 새 좌표계 -->
-              <line x1="130" y1="190" x2="225" y2="135" stroke="#4FD1C5" stroke-width="2.2" marker-end="url(#ar-teal)"/>
-              <line x1="130" y1="190" x2="75" y2="95" stroke="#FFB454" stroke-width="2.2" marker-end="url(#ar-orange)"/>
-              <text x="233" y="131" fill="#4FD1C5" font-size="11">x_b</text>
-              <text x="66" y="89" text-anchor="end" fill="#FFB454" font-size="11">y_b</text>
-
-              <!-- 성분 읽기 -->
-              <line x1="225" y1="135" x2="225" y2="190" stroke="#5D7EA3" stroke-width="1" stroke-dasharray="3 3"/>
-              <line x1="225" y1="135" x2="130" y2="135" stroke="#5D7EA3" stroke-width="1" stroke-dasharray="3 3"/>
-              <text x="190" y="208" text-anchor="middle" fill="#8CA3C4" font-size="10.5">cos 30° = 0.866</text>
-              <text x="176" y="129" text-anchor="middle" fill="#8CA3C4" font-size="10.5">sin 30° = 0.5</text>
-
-              <path d="M 167 190 A 37 37 0 0 0 162 171" fill="none" stroke="#4FD1C5" stroke-width="1.2"/>
-              <text x="175" y="179" fill="#4FD1C5" font-size="11">30°</text>
-
-              <circle cx="130" cy="190" r="3.6" fill="none" stroke="#C9A9FF" stroke-width="1.4"/>
-              <circle cx="130" cy="190" r="1.2" fill="#C9A9FF"/>
-              <text x="121" y="208" text-anchor="end" fill="#C9A9FF" font-size="11">z_b</text>
-              <text x="130" y="236" text-anchor="middle" fill="#E8EDF4" font-size="11">z축으로 30° 회전</text>
-
-              <line x1="285" y1="45" x2="285" y2="215" stroke="#1C3A5E" stroke-width="1"/>
-
-              <!-- 열 읽기 -->
-              <text x="300" y="62" fill="#8CA3C4" font-size="11">R 의 각 열 = 새 좌표계의 축</text>
-              <text x="300" y="95" fill="#4FD1C5" font-size="10.5">1열</text>
-              <text x="332" y="95" fill="#4FD1C5" font-size="10.5">x_b = ( 0.866, 0.5,   0 )</text>
-              <text x="300" y="125" fill="#FFB454" font-size="10.5">2열</text>
-              <text x="332" y="125" fill="#FFB454" font-size="10.5">y_b = (-0.5,   0.866, 0 )</text>
-              <text x="300" y="155" fill="#C9A9FF" font-size="10.5">3열</text>
-              <text x="332" y="155" fill="#C9A9FF" font-size="10.5">z_b = ( 0,     0,     1 )</text>
-              <text x="300" y="190" fill="#8CA3C4" font-size="10.5">세 열 모두 변환 전 좌표계(space)에서</text>
-              <text x="300" y="205" fill="#8CA3C4" font-size="10.5">본 방향입니다</text>
-            </g>
+        <div class="wdg" id="rot">
+          <svg class="wdg__canvas" id="rot-svg" viewBox="0 0 520 250" xmlns="http://www.w3.org/2000/svg">
+            <g id="rot-art"></g>
+            <g id="rot-lab" font-family="JetBrains Mono, monospace"></g>
           </svg>
+          <div class="wdg__ctrl">
+            <div class="wdg__group">
+              <div class="wdg__lbl">회전각 θ (z축 기준)</div>
+              <div class="wdg__row"><span class="k">θ</span><input type="range" id="rot-th" min="-180" max="180" step="1" value="30"><span class="val" id="rot-thv">30°</span></div>
+            </div>
+            <div class="wdg__group">
+              <div class="wdg__lbl">읽는 법</div>
+              <div class="wdg__row">1열이 새 x축, 2열이 새 y축입니다</div>
+            </div>
+          </div>
+          <div class="wdg__out" id="rot-out"></div>
+          <div class="wdg__btns">
+            <button class="wdg__btn" id="rot-play" type="button">회전 애니메이션</button>
+            <button class="wdg__btn" id="rot-reset" type="button">30°로</button>
+          </div>
         </div>
 
-        <p class="body-text">그림의 상태를 그대로 숫자로 옮기면 아래 행렬이 됩니다. 색이 그림의 화살표와 짝을 이룹니다.</p>
+        <p class="body-text">슬라이더를 30°에 두면 아래 행렬이 됩니다. 색은 위 그림의 화살표와 짝을 이룹니다.</p>
         <div class="eq">\[ R=\left[\begin{array}{r|r|r} \textcolor{#4FD1C5}{0.866} & \textcolor{#FFB454}{-0.5} & \textcolor{#C9A9FF}{0} \\ \textcolor{#4FD1C5}{0.5} & \textcolor{#FFB454}{0.866} & \textcolor{#C9A9FF}{0} \\ \textcolor{#4FD1C5}{0} & \textcolor{#FFB454}{0} & \textcolor{#C9A9FF}{1} \end{array}\right] \]<span class="eq-note">z축으로 30° 돌린 회전행렬</span></div>
         <table class="tbl">
           <tr><th>열</th><th>읽는 법</th><th>30° 회전일 때</th><th>뜻</th></tr>
@@ -1318,6 +1348,45 @@ T = T @ M
 
 print(np.round(T, 3))    <span class="cm"># 끝단이 (2, 1, 0), 회전은 단위행렬</span></pre>
         <p class="body-text">직접 돌려보면 body-form으로 계산한 결과도, 삼각함수로 쓴 FK도 같은 값을 줍니다. 관절이 여섯 개로 늘어나도 바뀌는 것은 축을 여섯 개 적는 일뿐이고, 곱하는 구조는 그대로입니다.</p>
+      </div>
+
+      <div class="block">
+        <h3>직접 움직여보기</h3>
+        <p class="body-text">위 예제를 손으로 만져볼 수 있게 만들어 뒀습니다. 관절 각도를 바꾸면 자세가 움직이고, <b>축 위의 점을 옮기면 로봇의 모양 자체가 바뀝니다</b>. 점을 옮기는 순간 \(\mathcal{S}_i\) 의 숫자가 어떻게 따라 바뀌는지 보세요. 평면 팔이라 xy만 다룹니다. 점은 입력창에 숫자를 넣어도 되고 그림에서 그대로 끌어도 됩니다.</p>
+
+        <div class="wdg" id="poe">
+          <svg class="wdg__canvas" id="poe-svg" viewBox="0 0 520 300" xmlns="http://www.w3.org/2000/svg">
+            <g id="poe-grid"></g>
+            <g id="poe-ghost"></g>
+            <g id="poe-arm"></g>
+            <g id="poe-handles"></g>
+            <g id="poe-labels" font-family="JetBrains Mono, monospace"></g>
+          </svg>
+
+          <div class="wdg__ctrl">
+            <div class="wdg__group">
+              <div class="wdg__lbl">관절 각도 θ</div>
+              <div class="wdg__row"><span class="k">θ1</span><input type="range" id="poe-t0" min="-180" max="180" step="1"><span class="val" id="poe-t0v"></span></div>
+              <div class="wdg__row"><span class="k">θ2</span><input type="range" id="poe-t1" min="-180" max="180" step="1"><span class="val" id="poe-t1v"></span></div>
+              <div class="wdg__row"><span class="k">θ3</span><input type="range" id="poe-t2" min="-180" max="180" step="1"><span class="val" id="poe-t2v"></span></div>
+            </div>
+            <div class="wdg__group">
+              <div class="wdg__lbl">축 위의 점 q 와 끝단 M</div>
+              <div class="wdg__row"><span class="k">q1</span>x<input type="number" id="poe-q0x" step="0.1">y<input type="number" id="poe-q0y" step="0.1"></div>
+              <div class="wdg__row"><span class="k">q2</span>x<input type="number" id="poe-q1x" step="0.1">y<input type="number" id="poe-q1y" step="0.1"></div>
+              <div class="wdg__row"><span class="k">q3</span>x<input type="number" id="poe-q2x" step="0.1">y<input type="number" id="poe-q2y" step="0.1"></div>
+              <div class="wdg__row"><span class="k">M</span>x<input type="number" id="poe-mx" step="0.1">y<input type="number" id="poe-my" step="0.1"></div>
+            </div>
+          </div>
+
+          <div class="wdg__out" id="poe-out"></div>
+          <div class="wdg__btns">
+            <button class="wdg__btn" id="poe-play" type="button">애니메이션 재생</button>
+            <button class="wdg__btn" id="poe-reset" type="button">예제값으로 되돌리기</button>
+          </div>
+        </div>
+
+        <p class="body-text">몇 가지 해볼 만한 것들입니다. <b>q3를 위로 올려보세요.</b> 팔이 꺾인 모양이 되고 \(\mathcal{S}_3\) 의 v 성분에 x 값이 생깁니다. <b>q2와 q3를 같은 자리에 두면</b> 두 관절이 한 점에서 겹쳐 사실상 하나처럼 움직입니다. <b>q1을 원점에서 치우면</b> 1번 축의 v가 더 이상 0이 아니게 되는데, 이것이 "축이 원점을 지날 때만 v가 0"이라는 말의 뜻입니다. 끝단 M을 옮기면 같은 관절 배치에서 도구만 길어지거나 방향이 바뀌는 경우가 됩니다.</p>
       </div>
 
       <div class="block">
@@ -6080,6 +6149,442 @@ $ git push origin main</pre>
   updateSidebar();
   const genBtn = document.getElementById('genCertBtn');
   if(genBtn) genBtn.addEventListener('click', generateCertificatePDF);
+</script>
+<script>
+  /* ── 평면 3R PoE 인터랙티브 데모 (수학 기초 4) ──
+     공간 기준 PoE: 각 지수항은 "영 자세의 축 q_i 를 중심으로 한 회전"이므로,
+     평면에서는 점을 그 축 중심으로 돌리는 것만 반복하면 그대로 구현됩니다. */
+  (function(){
+    const root = document.getElementById('poe');
+    if(!root) return;
+    const svg = document.getElementById('poe-svg');
+    const NS  = 'http://www.w3.org/2000/svg';
+    const OX = 92, OY = 228, SC = 58;                       // 원점과 배율
+    const toSvg   = p => [OX + p[0]*SC, OY - p[1]*SC];
+    const toModel = (x,y) => [(x-OX)/SC, (OY-y)/SC];
+    const r1 = v => Math.round(v*10)/10;
+    const f2 = v => (Math.abs(v) < 5e-3 ? 0 : v).toFixed(2).padStart(6);
+
+    const DEFAULT = { th:[0,90,-90], q:[[0,0],[1,0],[2,0]], m:[3,0] };
+    const st = { th:[...DEFAULT.th], q:DEFAULT.q.map(a=>[...a]), m:[...DEFAULT.m] };
+
+    const rot   = (a,[x,y]) => [Math.cos(a)*x - Math.sin(a)*y, Math.sin(a)*x + Math.cos(a)*y];
+    const about = (c,a,p) => { const d = rot(a,[p[0]-c[0], p[1]-c[1]]); return [c[0]+d[0], c[1]+d[1]]; };
+
+    function solve(){
+      const a = st.th.map(d => d*Math.PI/180);
+      const f = i => p => about(st.q[i], a[i], p);
+      return {
+        p: [ st.q[0], f(0)(st.q[1]), f(0)(f(1)(st.q[2])) ],
+        ee: f(0)(f(1)(f(2)(st.m))),
+        ang: a[0]+a[1]+a[2]
+      };
+    }
+
+    function el(tag, attrs){
+      const n = document.createElementNS(NS, tag);
+      for(const k in attrs) n.setAttribute(k, attrs[k]);
+      return n;
+    }
+    function line(g, p1, p2, attrs){
+      const [x1,y1] = toSvg(p1), [x2,y2] = toSvg(p2);
+      g.appendChild(el('line', Object.assign({x1,y1,x2,y2}, attrs)));
+    }
+
+    const gGrid = document.getElementById('poe-grid');
+    const gGhost = document.getElementById('poe-ghost');
+    const gArm = document.getElementById('poe-arm');
+    const gHand = document.getElementById('poe-handles');
+    const gLab = document.getElementById('poe-labels');
+
+    (function grid(){
+      for(let x=-1; x<=6; x++) line(gGrid,[x,-1.4],[x,2.9],{stroke:'#132B49','stroke-width':1});
+      for(let y=-1; y<=2; y++) line(gGrid,[-1.4,y],[6.3,y],{stroke:'#132B49','stroke-width':1});
+      line(gGrid,[-1.4,0],[6.4,0],{stroke:'#2E4F74','stroke-width':1.2});
+      line(gGrid,[0,-1.4],[0,2.95],{stroke:'#2E4F74','stroke-width':1.2});
+    })();
+
+    function render(){
+      const s = solve();
+      gGhost.innerHTML = ''; gArm.innerHTML = ''; gHand.innerHTML = ''; gLab.innerHTML = '';
+
+      // 영 자세(축 위의 점들을 이은 모양)
+      const zero = [st.q[0], st.q[1], st.q[2], st.m];
+      for(let i=0;i<3;i++) line(gGhost, zero[i], zero[i+1], {stroke:'#395B80','stroke-width':2,'stroke-dasharray':'5 4','stroke-linecap':'round'});
+
+      // 현재 자세
+      const cur = [s.p[0], s.p[1], s.p[2], s.ee];
+      for(let i=0;i<3;i++) line(gArm, cur[i], cur[i+1], {stroke:'#4FD1C5','stroke-width':4,'stroke-linecap':'round'});
+      for(let i=0;i<3;i++){
+        const [cx,cy] = toSvg(cur[i]);
+        gArm.appendChild(el('circle',{cx,cy,r:5,fill:'#0B1A30',stroke:'#4FD1C5','stroke-width':1.8}));
+      }
+      const [ex,ey] = toSvg(s.ee);
+      gArm.appendChild(el('circle',{cx:ex,cy:ey,r:4.5,fill:'#C9A9FF'}));
+      gLab.appendChild(Object.assign(el('text',{x:ex+9,y:ey-7,fill:'#C9A9FF','font-size':10.5}),
+        {textContent:`끝단 (${s.ee[0].toFixed(2)}, ${s.ee[1].toFixed(2)})`}));
+
+      // 끌 수 있는 점들
+      const pts = [[st.q[0],'q1','#FFB454',0],[st.q[1],'q2','#FFB454',1],[st.q[2],'q3','#FFB454',2],[st.m,'M','#C9A9FF',3]];
+      pts.forEach(([p,name,color,idx])=>{
+        const [cx,cy] = toSvg(p);
+        const h = el('circle',{cx,cy,r:7,fill:'#0B1A30',stroke:color,'stroke-width':1.8,cursor:'grab'});
+        h.dataset.idx = idx;
+        gHand.appendChild(h);
+        gHand.appendChild(el('circle',{cx,cy,r:1.6,fill:color}));
+        gLab.appendChild(Object.assign(el('text',{x:cx,y:cy-13,'text-anchor':'middle',fill:color,'font-size':10.5}),
+          {textContent:name}));
+      });
+
+      gLab.appendChild(Object.assign(el('text',{x:14,y:20,fill:'#395B80','font-size':10.5}),{textContent:'점선 = 영 자세'}));
+      gLab.appendChild(Object.assign(el('text',{x:14,y:36,fill:'#4FD1C5','font-size':10.5}),{textContent:'실선 = 현재 자세'}));
+
+      // 숫자 출력
+      const sv = q => `(0, 0, 1, ${f2(q[1])}, ${f2(-q[0])},   0)`;
+      const c = Math.cos(s.ang), si = Math.sin(s.ang);
+      let deg = s.ang*180/Math.PI % 360; if(deg > 180) deg -= 360; if(deg < -180) deg += 360;
+      document.getElementById('poe-out').textContent =
+        `S1 = ${sv(st.q[0])}\nS2 = ${sv(st.q[1])}\nS3 = ${sv(st.q[2])}\n` +
+        `M  = 영 자세의 끝단 (${st.m[0].toFixed(2)}, ${st.m[1].toFixed(2)})\n\n` +
+        `T(θ) = [ ${f2(c)} ${f2(-si)}   0 ${f2(s.ee[0])} ]\n` +
+        `       [ ${f2(si)} ${f2(c)}   0 ${f2(s.ee[1])} ]\n` +
+        `       [   0      0     1    0   ]\n` +
+        `       [   0      0     0    1   ]\n\n` +
+        `끝단 위치 (${s.ee[0].toFixed(2)}, ${s.ee[1].toFixed(2)})   회전 ${deg.toFixed(1)}°`;
+    }
+
+    // 입력창 연결
+    const T = [0,1,2].map(i => document.getElementById('poe-t'+i));
+    const TV = [0,1,2].map(i => document.getElementById('poe-t'+i+'v'));
+    const Q = [0,1,2].map(i => [document.getElementById(`poe-q${i}x`), document.getElementById(`poe-q${i}y`)]);
+    const M = [document.getElementById('poe-mx'), document.getElementById('poe-my')];
+
+    function syncInputs(){
+      T.forEach((inp,i)=>{ inp.value = Math.round(st.th[i]); TV[i].textContent = Math.round(st.th[i]) + '°'; });
+      Q.forEach((pair,i)=> pair.forEach((inp,k)=> { if(document.activeElement !== inp) inp.value = st.q[i][k]; }));
+      M.forEach((inp,k)=> { if(document.activeElement !== inp) inp.value = st.m[k]; });
+    }
+    T.forEach((inp,i)=> inp.addEventListener('input', ()=>{ stop(); st.th[i] = +inp.value; syncInputs(); render(); }));
+    Q.forEach((pair,i)=> pair.forEach((inp,k)=> inp.addEventListener('input', ()=>{
+      const v = parseFloat(inp.value); if(!isNaN(v)){ st.q[i][k] = v; render(); }
+    })));
+    M.forEach((inp,k)=> inp.addEventListener('input', ()=>{
+      const v = parseFloat(inp.value); if(!isNaN(v)){ st.m[k] = v; render(); }
+    }));
+
+    // 끌어서 옮기기
+    let drag = null;
+    svg.addEventListener('pointerdown', e=>{
+      const idx = e.target.dataset && e.target.dataset.idx;
+      if(idx === undefined) return;
+      drag = +idx; svg.setPointerCapture(e.pointerId); e.preventDefault();
+    });
+    svg.addEventListener('pointermove', e=>{
+      if(drag === null) return;
+      const pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY;
+      const u = pt.matrixTransform(svg.getScreenCTM().inverse());
+      let [mx,my] = toModel(u.x, u.y);
+      mx = Math.min(5.5, Math.max(-1, r1(mx)));
+      my = Math.min(2.5, Math.max(-1, r1(my)));
+      if(drag === 3) st.m = [mx,my]; else st.q[drag] = [mx,my];
+      syncInputs(); render();
+    });
+    const endDrag = () => { drag = null; };
+    svg.addEventListener('pointerup', endDrag);
+    svg.addEventListener('pointercancel', endDrag);
+
+    // 애니메이션
+    let raf = null, t0 = 0;
+    const playBtn = document.getElementById('poe-play');
+    function stop(){ if(raf){ cancelAnimationFrame(raf); raf = null; t0 = 0; playBtn.textContent = '애니메이션 재생'; } }
+    function tick(ts){
+      const page = document.getElementById('page-math-screw');
+      if(page && !page.classList.contains('active')){ stop(); return; }
+      if(!t0) t0 = ts;
+      const t = (ts - t0)/1000;
+      st.th[0] =  35*Math.sin(t*0.70);
+      st.th[1] =  65*Math.sin(t*0.95 + 1.1);
+      st.th[2] = -70*Math.sin(t*1.30 + 0.4);
+      syncInputs(); render();
+      raf = requestAnimationFrame(tick);
+    }
+    playBtn.addEventListener('click', ()=>{
+      if(raf) stop();
+      else { playBtn.textContent = '정지'; raf = requestAnimationFrame(tick); }
+    });
+    document.getElementById('poe-reset').addEventListener('click', ()=>{
+      stop();
+      st.th = [...DEFAULT.th]; st.q = DEFAULT.q.map(a=>[...a]); st.m = [...DEFAULT.m];
+      syncInputs(); render();
+    });
+
+    syncInputs(); render();
+  })();
+</script>
+<script>
+  /* ── 회전행렬 인터랙티브 데모 (수학 기초 3) ── */
+  (function(){
+    const root = document.getElementById('rot');
+    if(!root) return;
+    const NS = 'http://www.w3.org/2000/svg';
+    const art = document.getElementById('rot-art');
+    const lab = document.getElementById('rot-lab');
+    const out = document.getElementById('rot-out');
+    const slider = document.getElementById('rot-th');
+    const sval = document.getElementById('rot-thv');
+    const playBtn = document.getElementById('rot-play');
+    const OX = 130, OY = 190, L = 110;
+    let th = 30, raf = null;
+
+    const el = (t,a) => { const n = document.createElementNS(NS,t); for(const k in a) n.setAttribute(k,a[k]); return n; };
+    const txt = (x,y,fill,size,anchor,content) => {
+      const n = el('text',{x,y,fill,'font-size':size,'text-anchor':anchor||'start'});
+      n.textContent = content; return n;
+    };
+    const num = v => (Math.abs(v) < 5e-4 ? 0 : v).toFixed(3).padStart(7);
+
+    function render(){
+      const a = th*Math.PI/180, c = Math.cos(a), s = Math.sin(a);
+      art.innerHTML = ''; lab.innerHTML = '';
+
+      art.appendChild(el('line',{x1:OX,y1:OY,x2:OX+L+14,y2:OY,stroke:'#8CA3C4','stroke-width':1.2,'stroke-dasharray':'4 3'}));
+      art.appendChild(el('line',{x1:OX,y1:OY,x2:OX,y2:OY-L-14,stroke:'#8CA3C4','stroke-width':1.2,'stroke-dasharray':'4 3'}));
+      lab.appendChild(txt(OX+L+20, OY+4, '#8CA3C4', 11, 'start', 'x_s'));
+      lab.appendChild(txt(OX, OY-L-22, '#8CA3C4', 11, 'middle', 'y_s'));
+
+      const bx = [OX + L*c, OY - L*s], by = [OX - L*s, OY - L*c];
+      art.appendChild(el('line',{x1:bx[0],y1:bx[1],x2:bx[0],y2:OY,stroke:'#5D7EA3','stroke-width':1,'stroke-dasharray':'3 3'}));
+      art.appendChild(el('line',{x1:bx[0],y1:bx[1],x2:OX,y2:bx[1],stroke:'#5D7EA3','stroke-width':1,'stroke-dasharray':'3 3'}));
+      art.appendChild(el('line',{x1:OX,y1:OY,x2:bx[0],y2:bx[1],stroke:'#4FD1C5','stroke-width':2.4}));
+      art.appendChild(el('line',{x1:OX,y1:OY,x2:by[0],y2:by[1],stroke:'#FFB454','stroke-width':2.4}));
+      art.appendChild(el('circle',{cx:bx[0],cy:bx[1],r:4.2,fill:'#4FD1C5'}));
+      art.appendChild(el('circle',{cx:by[0],cy:by[1],r:4.2,fill:'#FFB454'}));
+      lab.appendChild(txt(bx[0]+9, bx[1]-7, '#4FD1C5', 11, 'start', 'x_b'));
+      lab.appendChild(txt(by[0]-9, by[1]-7, '#FFB454', 11, 'end', 'y_b'));
+
+      lab.appendChild(txt((OX+bx[0])/2, OY+17, '#8CA3C4', 10.5, 'middle', 'cos θ = ' + c.toFixed(3)));
+      lab.appendChild(txt((OX+bx[0])/2, bx[1]-8, '#8CA3C4', 10.5, 'middle', 'sin θ = ' + s.toFixed(3)));
+
+      art.appendChild(el('circle',{cx:OX,cy:OY,r:3.8,fill:'none',stroke:'#C9A9FF','stroke-width':1.4}));
+      art.appendChild(el('circle',{cx:OX,cy:OY,r:1.3,fill:'#C9A9FF'}));
+      lab.appendChild(txt(OX-13, OY+34, '#C9A9FF', 11, 'end', 'z_b'));
+
+      art.appendChild(el('line',{x1:285,y1:40,x2:285,y2:215,stroke:'#1C3A5E','stroke-width':1}));
+      lab.appendChild(txt(300, 62, '#8CA3C4', 11, 'start', 'R 의 각 열 = 새 좌표계의 축'));
+      const rows = [['1열','x_b','#4FD1C5',`( ${c.toFixed(3)}, ${s.toFixed(3)}, 0 )`],
+                    ['2열','y_b','#FFB454',`( ${(-s).toFixed(3)}, ${c.toFixed(3)}, 0 )`],
+                    ['3열','z_b','#C9A9FF','( 0.000, 0.000, 1 )']];
+      rows.forEach(([n0,n1,color,v],i)=>{
+        const y = 95 + i*30;
+        lab.appendChild(txt(300, y, color, 10.5, 'start', n0));
+        lab.appendChild(txt(332, y, color, 10.5, 'start', n1 + ' = ' + v));
+      });
+      lab.appendChild(txt(300, 196, '#8CA3C4', 10.5, 'start', '세 열 모두 변환 전 좌표계에서 본 방향'));
+
+      const col = ['#4FD1C5','#FFB454','#C9A9FF'];
+      const row = vals => vals.map((v,i)=>`<span style="color:${col[i]}">${num(v)}</span>`).join('   ');
+      const thShow = Math.round(th);
+      out.innerHTML =
+        `R(${thShow}°) = [ ${row([c,-s,0])} ]\n` +
+        `         [ ${row([s, c,0])} ]\n` +
+        `         [ ${row([0, 0,1])} ]`;
+      sval.textContent = thShow + '°';
+      slider.value = Math.round(th);
+    }
+
+    function stop(){ if(raf){ cancelAnimationFrame(raf); raf = null; playBtn.textContent = '회전 애니메이션'; } }
+    let last = 0;
+    function tick(ts){
+      const page = document.getElementById('page-math-rigid');
+      if(page && !page.classList.contains('active')){ stop(); return; }
+      if(!last) last = ts;
+      th += (ts - last) * 0.03;            // 초당 30도
+      last = ts;
+      if(th > 180) th -= 360;
+      render();
+      raf = requestAnimationFrame(tick);
+    }
+    slider.addEventListener('input', ()=>{ stop(); th = +slider.value; render(); });
+    playBtn.addEventListener('click', ()=>{
+      if(raf) stop();
+      else { playBtn.textContent = '정지'; last = 0; raf = requestAnimationFrame(tick); }
+    });
+    document.getElementById('rot-reset').addEventListener('click', ()=>{ stop(); th = 30; render(); });
+    render();
+  })();
+
+  /* ── PID 와 감쇠 인터랙티브 데모 (수학 기초 2) ── */
+  (function(){
+    const root = document.getElementById('pid');
+    if(!root) return;
+    const NS = 'http://www.w3.org/2000/svg';
+    const gGrid = document.getElementById('pid-grid');
+    const gMech = document.getElementById('pid-mech');
+    const gCurve = document.getElementById('pid-curve');
+    const gLab = document.getElementById('pid-lab');
+    const out = document.getElementById('pid-out');
+    const playBtn = document.getElementById('pid-play');
+
+    const X0 = 150, X1 = 544, Y0 = 212, Y1 = 28;     // 그래프 영역
+    const XM = 64;                                   // 스프링-매스-댐퍼 중심
+    const TMAX = 3.0, YMIN = -0.4, YMAX = 1.9;
+    const px = t => X0 + (X1-X0) * t / TMAX;
+    const py = y => Y0 + (Y1-Y0) * (y - YMIN) / (YMAX - YMIN);
+
+    const el = (t,a) => { const n = document.createElementNS(NS,t); for(const k in a) n.setAttribute(k,a[k]); return n; };
+    const txt = (x,y,fill,size,anchor,content) => {
+      const n = el('text',{x,y,fill,'font-size':size,'text-anchor':anchor||'start','font-family':'JetBrains Mono, monospace'});
+      n.textContent = content; return n;
+    };
+
+    const S = { kp:document.getElementById('pid-kp'), ki:document.getElementById('pid-ki'),
+                kd:document.getElementById('pid-kd'), d:document.getElementById('pid-d') };
+    const V = { kp:document.getElementById('pid-kpv'), ki:document.getElementById('pid-kiv'),
+                kd:document.getElementById('pid-kdv'), d:document.getElementById('pid-dv') };
+
+    let pts = [], raf = null, t0 = 0;
+
+    function sim(){
+      const kp = +S.kp.value, ki = +S.ki.value, kd = +S.kd.value, d = +S.d.value;
+      const dt = 0.0005, n = Math.round(TMAX/dt), every = Math.round(n/320);
+      let x = 0, v = 0, I = 0;
+      const p = [];
+      for(let i = 0; i <= n; i++){
+        const e = 1 - x;
+        I += e*dt;
+        const u = kp*e + ki*I - kd*v;          // ė = -ẋ (목표가 일정하므로)
+        v += (u + d)*dt;
+        x += v*dt;
+        if(!isFinite(x)) break;
+        if(i % every === 0) p.push([i*dt, x]);
+      }
+      return {p, kp, ki, kd, d};
+    }
+
+    function draw(){
+      const r = sim();
+      pts = r.p;
+      gGrid.innerHTML = ''; gCurve.innerHTML = ''; gLab.innerHTML = '';
+
+      for(let t = 0; t <= TMAX + 1e-9; t += 0.5){
+        gGrid.appendChild(el('line',{x1:px(t),y1:Y1,x2:px(t),y2:Y0,stroke:'#132B49','stroke-width':1}));
+        gLab.appendChild(txt(px(t), Y0+16, '#8CA3C4', 10, 'middle', t.toFixed(1)));
+      }
+      for(let y = 0; y <= 1.5 + 1e-9; y += 0.5){
+        gGrid.appendChild(el('line',{x1:X0,y1:py(y),x2:X1,y2:py(y),stroke:'#132B49','stroke-width':1}));
+        gLab.appendChild(txt(X0-8, py(y)+3.5, '#8CA3C4', 10, 'end', y.toFixed(1)));
+      }
+      gGrid.appendChild(el('line',{x1:X0,y1:py(0),x2:X1,y2:py(0),stroke:'#2E4F74','stroke-width':1.2}));
+      gGrid.appendChild(el('line',{x1:X0,y1:py(1),x2:X1,y2:py(1),stroke:'#FFB454','stroke-width':1.2,'stroke-dasharray':'5 4'}));
+      gLab.appendChild(txt(X1-2, py(1)-7, '#FFB454', 10.5, 'end', '목표 x = 1'));
+      gLab.appendChild(txt(X0-8, py(0)+3.5, '#8CA3C4', 10, 'end', '0.0'));
+      gLab.appendChild(txt(X1, Y0+16, '#8CA3C4', 10, 'end', '초'));
+
+      const clip = y => Math.min(YMAX, Math.max(YMIN, y));
+      gCurve.appendChild(el('polyline',{
+        points: pts.map(([t,x]) => `${px(t).toFixed(1)},${py(clip(x)).toFixed(1)}`).join(' '),
+        fill:'none', stroke:'#4FD1C5', 'stroke-width':2.2, 'stroke-linejoin':'round'
+      }));
+
+      const wn = Math.sqrt(r.kp), z = r.kd / (2*Math.sqrt(r.kp));
+      const peak = pts.reduce((m,[,x]) => Math.max(m,x), 0);
+      const over = Math.max(0, peak - 1) * 100;
+      let settle = NaN;
+      for(let i = pts.length - 1; i >= 0; i--){ if(Math.abs(pts[i][1] - 1) > 0.02){ settle = pts[Math.min(i+1, pts.length-1)][0]; break; } }
+      const last = pts.length ? pts[pts.length-1][1] : NaN;
+      let verdict = z < 0.98 ? '과소감쇠 (underdamped)' : (z > 1.02 ? '과감쇠 (overdamped)' : '임계감쇠 (critically damped)');
+      if(r.ki > 0) verdict += '  ※ Ki 가 0 이 아니라 3차 시스템이므로 ζ 는 참고값';
+
+      V.kp.textContent = (+S.kp.value).toFixed(1);
+      V.ki.textContent = (+S.ki.value).toFixed(1);
+      V.kd.textContent = (+S.kd.value).toFixed(1);
+      V.d.textContent  = (+S.d.value).toFixed(1);
+
+      drawMech(isFinite(last) ? last : 0);
+
+      out.textContent =
+        `ωn = √Kp = ${wn.toFixed(2)}      ζ = Kd / (2√Kp) = ${z.toFixed(2)}   →  ${verdict}\n` +
+        `최대 오버슈트 ${over.toFixed(1)}%      정착시간(±2%) ${isNaN(settle) ? '3초 안에 못 들어옴' : settle.toFixed(2)+'초'}\n` +
+        `3초 뒤 위치 ${isFinite(last) ? last.toFixed(3) : '발산'}` +
+        (r.ki === 0 && r.d !== 0 ? `      외란 때문에 ${(-r.d/r.kp).toFixed(3)} 만큼 못 올라감 (= -d / Kp)` : '');
+    }
+
+    function spring(x0, yA, yB, coils, amp){
+      const pts = [[x0, yA]], n = coils*2;
+      for(let i = 1; i <= n; i++) pts.push([x0 + (i % 2 ? amp : -amp), yA + (yB-yA)*i/(n+1)]);
+      pts.push([x0, yB]);
+      return pts.map(q => q[0].toFixed(1)+','+q[1].toFixed(1)).join(' ');
+    }
+
+    function drawMech(x){
+      gMech.innerHTML = '';
+      const clip = v => Math.min(YMAX, Math.max(YMIN, v));
+      const yA = py(1), yB = Y0, yM = py(clip(x));
+      const xs = XM - 17, xd = XM + 17;
+
+      gMech.appendChild(el('line',{x1:XM-36,y1:yA,x2:XM+36,y2:yA,stroke:'#FFB454','stroke-width':2}));
+      gMech.appendChild(el('line',{x1:XM+36,y1:yA,x2:X0,y2:yA,stroke:'#FFB454','stroke-width':1,'stroke-dasharray':'4 4'}));
+      gMech.appendChild(txt(XM, yA-9, '#FFB454', 10.5, 'middle', '목표'));
+      gMech.appendChild(el('line',{x1:XM-36,y1:yB,x2:XM+36,y2:yB,stroke:'#5D7EA3','stroke-width':2}));
+
+      gMech.appendChild(el('polyline',{points:spring(xs, yA, yM, 5, 7), fill:'none', stroke:'#4FD1C5','stroke-width':1.6}));
+      gMech.appendChild(el('line',{x1:xd,y1:yM,x2:xd,y2:yB-16,stroke:'#8CA3C4','stroke-width':1.6}));
+      gMech.appendChild(el('rect',{x:xd-8,y:yB-22,width:16,height:22,fill:'none',stroke:'#8CA3C4','stroke-width':1.4}));
+      gMech.appendChild(el('line',{x1:xd-6,y1:yB-16,x2:xd+6,y2:yB-16,stroke:'#8CA3C4','stroke-width':2.5}));
+
+      gMech.appendChild(el('rect',{x:XM-21,y:yM-11,width:42,height:22,rx:3,fill:'#123244',stroke:'#4FD1C5','stroke-width':2}));
+      gMech.appendChild(txt(XM, yM+4.5, '#4FD1C5', 11, 'middle', 'm'));
+      gMech.appendChild(txt(xs-9, (yA+yM)/2, '#4FD1C5', 10, 'end', 'Kp'));
+      gMech.appendChild(txt(xd+11, yB-8, '#8CA3C4', 10, 'start', 'Kd'));
+
+      const d = +S.d.value;
+      if(d < 0){
+        const len = Math.min(26, -d*6);
+        gMech.appendChild(el('line',{x1:XM,y1:yM+13,x2:XM,y2:yM+13+len,stroke:'#F56565','stroke-width':1.8}));
+        gMech.appendChild(el('polygon',{points:`${XM-4},${yM+13+len-5} ${XM+4},${yM+13+len-5} ${XM},${yM+14+len}`,fill:'#F56565'}));
+        gMech.appendChild(txt(XM+8, yM+16+len/2, '#F56565', 10, 'start', 'd'));
+      }
+    }
+
+    function marker(t){
+      const old = document.getElementById('pid-mark');
+      if(old) old.remove();
+      let x = 0;
+      for(let i = 0; i < pts.length; i++){ if(pts[i][0] >= t){ x = pts[i][1]; break; } }
+      const g = el('g',{id:'pid-mark'});
+      g.appendChild(el('line',{x1:px(t),y1:Y1,x2:px(t),y2:Y0,stroke:'#C9A9FF','stroke-width':1,'stroke-dasharray':'3 3'}));
+      g.appendChild(el('circle',{cx:px(t),cy:py(Math.min(YMAX,Math.max(YMIN,x))),r:4.5,fill:'#C9A9FF'}));
+      gCurve.appendChild(g);
+      drawMech(x);
+    }
+
+    function stop(){ if(raf){ cancelAnimationFrame(raf); raf = null; t0 = 0; playBtn.textContent = '움직임 재생'; const m = document.getElementById('pid-mark'); if(m) m.remove(); draw(); } }
+    function tick(ts){
+      const page = document.getElementById('page-math-ode');
+      if(page && !page.classList.contains('active')){ stop(); return; }
+      if(!t0) t0 = ts;
+      const t = ((ts - t0)/1000) % TMAX;
+      marker(t);
+      raf = requestAnimationFrame(tick);
+    }
+
+    Object.values(S).forEach(inp => inp.addEventListener('input', ()=>{ draw(); }));
+    playBtn.addEventListener('click', ()=>{
+      if(raf) stop();
+      else { playBtn.textContent = '정지'; t0 = 0; raf = requestAnimationFrame(tick); }
+    });
+
+    function preset(kp, ki, kd, d){
+      S.kp.value = kp; S.ki.value = ki; S.kd.value = kd; S.d.value = d; draw();
+    }
+    document.getElementById('pid-under').addEventListener('click', ()=> preset(16, 0, 2, 0));
+    document.getElementById('pid-crit').addEventListener('click',  ()=> preset(16, 0, 8, 0));
+    document.getElementById('pid-over').addEventListener('click',  ()=> preset(16, 0, 20, 0));
+    document.getElementById('pid-dist').addEventListener('click',   ()=> preset(16, 0, 8, -2));
+    document.getElementById('pid-ki-demo').addEventListener('click', ()=> preset(16, 12, 8, -2));
+
+    draw();
+  })();
 </script>
 {% include analytics.html %}
 </body>
