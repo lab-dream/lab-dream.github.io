@@ -3,6 +3,10 @@
 - id: graduate
   title_ko: 대학원생
   title_en: Graduate Students
+  one_ko: 대학원생          # 개인 페이지 머리말에 쓰는 단수 표기
+  one_en: Graduate Student
 - id: undergraduate
   title_ko: 학부연구생
   title_en: Undergraduate Students
+  one_ko: 학부연구생
+  one_en: Undergraduate Researcher

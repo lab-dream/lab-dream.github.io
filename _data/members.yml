@@ -11,11 +11,33 @@
 #
 #  선택 필드: name_ko, program, photo, interests, email, github, homepage, scholar, linkedin,
 #             since, graduated, now
+#
+#  ▸ slug 를 적으면 개인 페이지가 생깁니다. (주소: /members/<slug>/ , /ko/members/<slug>/)
+#    페이지 파일도 members/<slug>.html 과 ko/members/<slug>.html 두 개가 있어야 하니
+#    기존 학생 파일을 복사해서 person: 값만 바꾸면 됩니다.
+#  ▸ research: 에 자기가 하는 연구를 적습니다. 비워 두면 연구 관심사와 논문만 나옵니다.
+#
+#    research:
+#      - title_ko: 한 줄 제목
+#        title_en: One-line title
+#        desc_ko: >-
+#          두세 문장으로 무엇을 왜 하는지. 사람이 읽는 글이라고 생각하고 쓰세요.
+#        desc_en: >-
+#          Two or three sentences.
+#        tags: [Motion Planning, GPU]          # 선택
+#        image: /assets/img/members/work.jpg   # 선택
+#        video: /assets/video/work.mp4         # 선택 (image 와 함께 쓰면 썸네일이 됩니다)
+#        links:                                # 선택
+#          paper: https://...
+#          code: https://github.com/...
+#          video: https://youtu.be/...
 # ─────────────────────────────────────────────────────────────
 
 - name: Suhan Park
+  slug: suhan-park
   name_ko: 박수한
   group: professor
+  pi: true
   position_en: Assistant Professor
   position_ko: 조교수
   photo: /assets/img/members/suhan-park.jpg
@@ -51,19 +73,40 @@
 
 # ── Graduate Students ────────────────────────────────────────
 - name: Dongwoo Son
+  slug: dongwoo-son
   name_ko: 손동우
   group: graduate
   photo: /assets/img/members/dongwoo-son.jpg
   interests: [Imitation Learning, Manipulation]
   github: https://github.com/son-dongwoo
+  research:
+    - title_ko: 학습한 정책이 내놓는 행동 묶음 다듬기
+      title_en: Smoothing action chunks produced by learned policies
+      desc_ko: >-
+        모방학습 정책은 한 번에 여러 스텝짜리 행동 묶음을 내놓습니다. 묶음이 바뀌는 자리에서
+        속도가 튀거나 움직임이 끊기는데, 정책을 다시 학습하지 않고 뒤쪽에서 가벼운 최적화로
+        이 이음매를 다듬는 방법을 연구했습니다. LiPo 로 IJCAS 2025 에 실었습니다.
+      desc_en: >-
+        Imitation policies emit a chunk of actions at a time, and the seams between chunks
+        show up as velocity jumps. This work adds a lightweight post-optimization stage that
+        smooths those seams without retraining the policy, published as LiPo in IJCAS 2025.
+      tags: [Imitation Learning, Action Chunking, Trajectory Optimization]
+      image: /assets/img/pubs/son2025lipo-toss.png
+      video: /assets/video/pub-lipo-toss.mp4
+      links:
+        paper: https://doi.org/10.1007/s12555-025-0537-0
+        arxiv: https://arxiv.org/abs/2506.05165
+        project: https://sites.google.com/view/action-lipo
 
 - name: Chanwoo Seon
+  slug: chanwoo-seon
   name_ko: 선찬우
   group: graduate
   photo: /assets/img/members/chanwoo-seon.jpg
   interests: [Reinforcement Learning, Imitation Learning]
 
 - name: Jinwoo Lee
+  slug: jinwoo-lee
   name_ko: 이진우
   group: graduate
   photo: /assets/img/members/jinwoo-lee.jpg
@@ -71,20 +114,52 @@
   github: https://github.com/jinw00-1
 
 - name: Gahyun Oh
+  slug: gahyun-oh
   name_ko: 오가현
   group: graduate
   photo: /assets/img/members/gahyun-oh.jpg
   interests: [Manipulator, Planning & Control]
   github: https://github.com/gahyun0425
+  research:
+    - title_ko: GPU로 병렬화한 제약 조건 모션 플래닝
+      title_en: GPU-parallel constrained motion planning
+      desc_ko: >-
+        문을 열거나 물건을 양손으로 드는 동작은 "손의 자세를 유지한다" 같은 등식 제약을
+        만족하는 경로만 쓸 수 있습니다. 제약을 만족하는 공간을 접평면 다발로 다루면서
+        RRT-Connect 를 GPU에서 한꺼번에 돌려 탐색 속도를 올리는 PATACON 을 1저자로 썼습니다.
+      desc_en: >-
+        Opening a door or carrying an object with both hands only admits paths that satisfy
+        equality constraints. PATACON, which I lead, treats the constraint manifold as a
+        tangent bundle and runs RRT-Connect in parallel on the GPU.
+      tags: [Motion Planning, Constrained Manifold, GPU]
+      image: /assets/img/research/patacon.jpg
+      video: /assets/video/patacon-replanning.mp4
+      links:
+        project: /patacon_paper/
 
 - name: Junho An
+  slug: junho-an
   name_ko: 안준호
   group: graduate
   photo: /assets/img/members/junho-an.jpg
   interests: [Imitation Learning, Constrained Motion Planning]
   github: https://github.com/AnJunHo98
+  research:
+    - title_ko: 제약 조건이 있는 모션 플래닝
+      title_en: Constrained motion planning
+      desc_ko: >-
+        손의 자세나 양팔 사이 거리처럼 등식으로 적히는 제약을 지키면서 경로를 찾는 문제를
+        다룹니다. 접평면 다발 위에서 탐색을 GPU로 병렬화한 PATACON 에 공저자로 참여했습니다.
+      desc_en: >-
+        Planning paths that keep equality constraints such as a fixed end-effector pose or a
+        fixed relative transform between two arms. I am a co-author of PATACON, which runs the
+        tangent-bundle search in parallel on the GPU.
+      tags: [Motion Planning, Constrained Manifold]
+      links:
+        project: /patacon_paper/
 
 - name: Hwang Young Sang
+  slug: youngsang-hwang
   name_ko: 황영상
   group: graduate
   photo: /assets/img/members/youngsang-hwang.jpg

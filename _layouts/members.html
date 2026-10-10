@@ -8,57 +8,38 @@ layout: page
 
 <div class="wrap">
   {%- for m in profs %}
-  {%- assign k_lang = "activities_" | append: page.lang -%}{%- assign k_other = "activities_" | append: other -%}
-  {%- assign activities = m[k_lang] | default: m.activities | default: m[k_other] %}
+  {%- assign prof_url = t.prefix | append: '/professor/' | relative_url %}
   <section class="member-group" aria-label="{{ t.members.professor }}">
     <div class="member-group__head"><h2>{{ t.members.professor }}</h2></div>
     <article class="prof" id="{{ m.name | slugify }}">
-      <div class="prof__photo">{% include member-photo.html m=m %}</div>
+      <div class="prof__photo"><a href="{{ prof_url }}">{% include member-photo.html m=m %}</a></div>
       <div>
         {%- if page.lang == "en" %}
-        <h3 class="prof__name">{{ m.name }}<span>{{ m.name_ko }}</span></h3>
+        <h3 class="prof__name"><a href="{{ prof_url }}">{{ m.name }}</a><span>{{ m.name_ko }}</span></h3>
         <p class="prof__position">{{ m.position_en }}, {{ site.lab.department_en }}, {{ site.lab.university_en }}</p>
+        <p class="prof__position">{{ t.members.pi_label }}, {{ site.lab.name }}</p>
         {%- else %}
-        <h3 class="prof__name">{{ m.name_ko | default: m.name }}<span>{{ m.name }}</span></h3>
+        <h3 class="prof__name"><a href="{{ prof_url }}">{{ m.name_ko | default: m.name }}</a><span>{{ m.name }}</span></h3>
         <p class="prof__position">{{ site.lab.university_ko }} {{ site.lab.department_ko }} {{ m.position_ko }}</p>
+        <p class="prof__position">{{ site.lab.name_ko }} {{ t.members.pi_label }}</p>
         {%- endif %}
+        {%- if m.email %}<p class="person__mail">{{ t.members.f_email }} <b>{{ m.email }}</b></p>{% endif %}
         <div class="prof__links">
+          <a class="pill pill--go" href="{{ prof_url }}">{{ t.members.prof_profile }}</a>
           {%- if m.email %}<a class="pill" href="mailto:{{ m.email }}">{% include icon.html name="mail" %}{{ m.email }}</a>{% endif -%}
           {%- if m.homepage %}<a class="pill" href="{{ m.homepage }}">{% include icon.html name="home" %}{{ t.members.homepage }}</a>{% endif -%}
           {%- if m.scholar %}<a class="pill" href="{{ m.scholar }}">{% include icon.html name="scholar" %}Scholar</a>{% endif -%}
           {%- if m.linkedin %}<a class="pill" href="{{ m.linkedin }}">{% include icon.html name="linkedin" %}LinkedIn</a>{% endif -%}
           {%- if m.github %}<a class="pill" href="{{ m.github }}">{% include icon.html name="github" %}GitHub</a>{% endif -%}
         </div>
-        <div class="prof__cols">
-          {%- if m.education %}
-          <div>
-            <h3>{{ t.members.education }}</h3>
-            <ul class="cv-list">
-              {%- for e in m.education %}<li><span class="cv-period">{{ e.period }}</span><span>{% include tr.html obj=e key="text" %}</span></li>{% endfor %}
-            </ul>
-          </div>
-          {%- endif %}
-          {%- if m.experience %}
-          <div>
-            <h3>{{ t.members.experience }}</h3>
-            <ul class="cv-list">
-              {%- for e in m.experience %}<li><span class="cv-period">{{ e.period }}</span><span>{% include tr.html obj=e key="text" %}</span></li>{% endfor %}
-            </ul>
-          </div>
-          {%- endif %}
-          {%- if m.interests %}
+        {%- if m.interests %}
+        <div class="prof__cols prof__cols--one">
           <div>
             <h3>{{ t.members.interests }}</h3>
             <ul class="bullet-list">{% for i in m.interests %}<li>{{ i }}</li>{% endfor %}</ul>
           </div>
-          {%- endif %}
-          {%- if activities %}
-          <div>
-            <h3>{{ t.members.activities }}</h3>
-            <ul class="bullet-list">{% for a in activities %}<li>{{ a }}</li>{% endfor %}</ul>
-          </div>
-          {%- endif %}
         </div>
+        {%- endif %}
       </div>
     </article>
   </section>
@@ -72,13 +53,15 @@ layout: page
     <div class="member-group__head"><h2>{{ g_title }}</h2><span>{{ people.size }}</span></div>
     <div class="member-grid">
       {%- for m in people %}
-      <article class="member" id="{{ m.name | slugify }}">
+      <article class="member{% if m.slug %} member--linked{% endif %}" id="{{ m.name | slugify }}">
+        {%- if m.slug %}{% assign p_url = t.prefix | append: '/members/' | append: m.slug | append: '/' | relative_url %}<a class="member__open" href="{{ p_url }}">{% endif %}
         <div class="member__photo">{% include member-photo.html m=m %}</div>
         {%- if page.lang == "en" or m.name_ko == nil %}
         <h3 class="member__name">{{ m.name }}{% if m.name_ko %}<span class="member__name-sub">{{ m.name_ko }}</span>{% endif %}</h3>
         {%- else %}
         <h3 class="member__name">{{ m.name_ko }}<span class="member__name-sub">{{ m.name }}</span></h3>
         {%- endif %}
+        {%- if m.slug %}</a>{% endif %}
         {%- if m.program %}<p class="member__program">{{ m.program }}</p>{% endif %}
         {%- if m.interests %}<p class="member__interests">{{ m.interests | join: " · " }}</p>{% endif %}
         {% include member-links.html m=m %}

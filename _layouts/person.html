@@ -1,0 +1,163 @@
+---
+layout: default
+---
+{%- comment %}
+  개인 소개 페이지. 페이지 파일에 person: <slug> 만 적으면 _data/members.yml 의 그 사람을 찾아 그립니다.
+  (예: members/dongwoo-son.html → person: dongwoo-son)
+{% endcomment -%}
+{%- assign t = site.data.i18n[page.lang] | default: site.data.i18n.en -%}
+{%- assign tm = t.members -%}
+{%- assign m = site.data.members | where: "slug", page.person | first -%}
+{%- assign members_url = t.prefix | append: '/members/' | relative_url -%}
+{%- assign pubs_url = t.prefix | append: '/publications/' | relative_url -%}
+{%- if page.lang == "ko" -%}{%- assign other = "en" -%}{%- else -%}{%- assign other = "ko" -%}{%- endif -%}
+
+{%- if m == nil -%}
+<div class="wrap"><p class="page-lead">{{ tm.back }}: <a href="{{ members_url }}">{{ members_url }}</a></p></div>
+{%- else -%}
+
+{%- if page.lang == "ko" -%}
+  {%- assign big = m.name_ko | default: m.name -%}{%- assign small = m.name -%}
+  {%- assign position = m.position_ko -%}
+  {%- capture affiliation %}{{ site.lab.university_ko }} {{ site.lab.department_ko }}{% endcapture -%}
+  {%- capture lab_name %}{{ site.lab.name_ko }} ({{ site.lab.name }}){% endcapture -%}
+  {%- capture role_line %}{{ affiliation }} {{ position }}{% endcapture -%}
+{%- else -%}
+  {%- assign big = m.name -%}{%- assign small = m.name_ko -%}
+  {%- assign position = m.position_en -%}
+  {%- capture affiliation %}{{ site.lab.department_en }}, {{ site.lab.university_en }}{% endcapture -%}
+  {%- capture lab_name %}{{ site.lab.name }} ({{ site.lab.name_en }}){% endcapture -%}
+  {%- capture role_line %}{{ position }}, {{ affiliation }}{% endcapture -%}
+{%- endif -%}
+
+{%- if m.pi -%}
+  {%- assign eyebrow = tm.pi -%}
+{%- else -%}
+  {%- assign grp = site.data.member_groups | where: "id", m.group | first -%}
+  {%- capture eyebrow %}{% include tr.html obj=grp key="one" %}{% endcapture -%}
+  {%- if eyebrow == "" %}{%- capture eyebrow %}{% include tr.html obj=grp key="title" %}{% endcapture -%}{%- endif -%}
+{%- endif -%}
+
+{%- assign mine = site.data.publications | where_exp: "p", "p.authors contains m.name" -%}
+{%- if m.pi -%}{%- assign shown_pubs = mine | where: "selected", true -%}{%- else -%}{%- assign shown_pubs = mine -%}{%- endif -%}
+{%- assign link_keys = "paper,pdf,arxiv,project,code,video,slides,poster,dataset" | split: "," -%}
+{%- assign link_labels = "Paper,PDF,arXiv,Project,Code,Video,Slides,Poster,Dataset" | split: "," -%}
+
+<header class="person">
+  <div class="wrap person__inner">
+    <div class="person__photo">{% include member-photo.html m=m %}</div>
+    <div>
+      <p class="eyebrow">{{ eyebrow }}</p>
+      <h1 class="person__name">{{ big }}{% if small %}<span>{{ small }}</span>{% endif %}</h1>
+      {%- if position %}<p class="person__role">{{ role_line }}</p>{% endif %}
+      {%- if m.pi %}<p class="person__role person__role--pi">{{ lab_name }} {{ tm.pi_label }}</p>{% endif %}
+      {%- if m.email %}<p class="person__mail">{{ tm.f_email }} <b>{{ m.email }}</b></p>{% endif %}
+      <div class="prof__links">
+        {%- if m.email %}<a class="pill" href="mailto:{{ m.email }}">{% include icon.html name="mail" %}{{ tm.mail_to }}</a>{% endif -%}
+        {%- if m.homepage %}<a class="pill" href="{{ m.homepage }}">{% include icon.html name="home" %}{{ tm.homepage }}</a>{% endif -%}
+        {%- if m.scholar %}<a class="pill" href="{{ m.scholar }}">{% include icon.html name="scholar" %}Scholar</a>{% endif -%}
+        {%- if m.linkedin %}<a class="pill" href="{{ m.linkedin }}">{% include icon.html name="linkedin" %}LinkedIn</a>{% endif -%}
+        {%- if m.github %}<a class="pill" href="{{ m.github }}">{% include icon.html name="github" %}GitHub</a>{% endif -%}
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap person__body">
+
+  {%- if m.pi %}
+  <section class="person__sec">
+    <p class="person__statement">
+      {%- if page.lang == "ko" -%}
+      {{ m.name_ko }}({{ m.name }})은 {{ site.lab.university_ko }} {{ site.lab.department_ko }} {{ m.position_ko }}이며,
+      {{ site.lab.name_ko }}({{ site.lab.name }})의 연구책임자(Principal Investigator, PI)입니다.
+      연구실은 {{ site.lab.office_ko }}에 있고, 이메일 주소는 {{ m.email }} 입니다.
+      {%- else -%}
+      {{ m.name }} is the Principal Investigator (PI) of {{ site.lab.name }} ({{ site.lab.name_en }})
+      and {{ m.position_en }} in the {{ site.lab.department_en }} at {{ site.lab.university_en }}.
+      The lab is located at {{ site.lab.office_en }}, and the email address is {{ m.email }}.
+      {%- endif -%}
+    </p>
+    <dl class="factsheet">
+      <dt>{{ tm.f_name }}</dt><dd>{{ m.name }}{% if m.name_ko %} ({{ m.name_ko }}){% endif %}</dd>
+      <dt>{{ tm.f_position }}</dt><dd>{{ position }}</dd>
+      <dt>{{ tm.f_role }}</dt><dd>{{ tm.pi_label }}, {{ lab_name }}</dd>
+      <dt>{{ tm.f_affiliation }}</dt><dd>{{ affiliation }}</dd>
+      {%- if m.email %}<dt>{{ tm.f_email }}</dt><dd>{{ m.email }}</dd>{% endif %}
+      <dt>{{ tm.f_office }}</dt><dd>{% include tr.html obj=site.lab key="office" %}</dd>
+      <dt>{{ tm.f_web }}</dt><dd>{{ site.url }}{{ t.prefix }}/</dd>
+    </dl>
+  </section>
+  {%- endif %}
+
+  {%- if m.interests %}
+  <section class="person__sec">
+    <h2>{{ tm.interests }}</h2>
+    <ul class="chip-list">{% for i in m.interests %}<li>{{ i }}</li>{% endfor %}</ul>
+  </section>
+  {%- endif %}
+
+  {%- if m.research %}
+  <section class="person__sec">
+    <h2>{{ tm.current_research }}</h2>
+    <div class="worklist">
+      {%- for w in m.research %}
+      {%- capture w_title %}{% include tr.html obj=w key="title" %}{% endcapture %}
+      <article class="work{% unless w.image or w.video %} work--plain{% endunless %}">
+        {%- if w.image or w.video %}{% include media.html item=w class="work__media" alt=w_title t=t %}{% endif %}
+        <div class="work__body">
+          <h3>{{ w_title }}</h3>
+          <p class="work__desc">{% include tr.html obj=w key="desc" %}</p>
+          {%- if w.tags %}<ul class="chip-list chip-list--sm">{% for g in w.tags %}<li>{{ g }}</li>{% endfor %}</ul>{% endif %}
+          {%- if w.links %}
+          <p class="work__links">
+            {%- for key in link_keys -%}
+              {%- if w.links[key] -%}<a class="pill" href="{{ w.links[key] | relative_url }}">{{ link_labels[forloop.index0] }}</a>{%- endif -%}
+            {%- endfor -%}
+          </p>
+          {%- endif %}
+        </div>
+      </article>
+      {%- endfor %}
+    </div>
+  </section>
+  {%- endif %}
+
+  {%- if m.education %}
+  <section class="person__sec">
+    <h2>{{ tm.education }}</h2>
+    <ul class="cv-list">{% for e in m.education %}<li><span class="cv-period">{{ e.period }}</span><span>{% include tr.html obj=e key="text" %}</span></li>{% endfor %}</ul>
+  </section>
+  {%- endif %}
+
+  {%- if m.experience %}
+  <section class="person__sec">
+    <h2>{{ tm.experience }}</h2>
+    <ul class="cv-list">{% for e in m.experience %}<li><span class="cv-period">{{ e.period }}</span><span>{% include tr.html obj=e key="text" %}</span></li>{% endfor %}</ul>
+  </section>
+  {%- endif %}
+
+  {%- assign k_lang = "activities_" | append: page.lang -%}
+  {%- assign k_other = "activities_" | append: other -%}
+  {%- assign activities = m[k_lang] | default: m.activities | default: m[k_other] %}
+  {%- if activities %}
+  <section class="person__sec">
+    <h2>{{ tm.activities }}</h2>
+    <ul class="bullet-list">{% for a in activities %}<li>{{ a }}</li>{% endfor %}</ul>
+  </section>
+  {%- endif %}
+
+  {%- if shown_pubs.size > 0 %}
+  <section class="person__sec">
+    <h2>{% if m.pi %}{{ tm.selected_pubs }}{% else %}{{ tm.pubs_title }}{% endif %}</h2>
+    <ul class="pub-mini-list">
+      {%- for p in shown_pubs %}{% include pub.html pub=p compact=true %}{% endfor %}
+    </ul>
+    <p class="person__more"><a class="section-head__more" href="{{ pubs_url }}">{{ tm.all_pubs }}</a></p>
+  </section>
+  {%- endif %}
+
+  <p class="person__back"><a class="back-link" href="{{ members_url }}">{{ tm.back }}</a></p>
+  <div class="page-end"></div>
+</div>
+{%- endif -%}

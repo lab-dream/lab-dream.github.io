@@ -86,6 +86,25 @@ ko:
     activities: 활동
     homepage: 홈페이지
     now_at: 현재
+    pi: 연구책임자
+    pi_label: 연구책임자 (PI)
+    view_profile: 소개 보기
+    prof_profile: 교수 소개
+    back: 구성원 목록으로
+    contact_info: 연락처
+    f_name: 이름
+    f_position: 직위
+    f_role: 역할
+    f_affiliation: 소속
+    f_email: 이메일
+    f_office: 연구실
+    f_web: 연구실 홈페이지
+    mail_to: 메일 보내기
+    current_research: 진행 중인 연구
+    selected_pubs: 대표 논문
+    pubs_title: 논문
+    all_pubs: 전체 논문 보기
+    no_research: 연구 소개는 준비 중입니다.
     clip_play: "“대학원이요…?” 장면 보기"
     clip_sound_on: 소리 켜기
     clip_sound_off: 소리 끄기
@@ -227,6 +246,25 @@ en:
     activities: Activities
     homepage: Homepage
     now_at: Now at
+    pi: Principal Investigator
+    pi_label: Principal Investigator (PI)
+    view_profile: View profile
+    prof_profile: Professor
+    back: All members
+    contact_info: Contact
+    f_name: Name
+    f_position: Position
+    f_role: Role
+    f_affiliation: Affiliation
+    f_email: Email
+    f_office: Office
+    f_web: Lab website
+    mail_to: Send email
+    current_research: Current Research
+    selected_pubs: Selected Publications
+    pubs_title: Publications
+    all_pubs: All publications
+    no_research: A research summary is on the way.
     clip_play: Play the clip
     clip_sound_on: Unmute
     clip_sound_off: Mute

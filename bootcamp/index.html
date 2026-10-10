@@ -5525,9 +5525,214 @@ $ git push origin main</pre>
         <div class="quiz-result" id="quiz-tf-result"></div>
       </div>
     </section>
+<!-- ============ PAGE VISION BACKBONE ============ -->
+    <section class="page" data-type="theory" id="page-vision">
+      <div class="crumb">LEVEL 4 학습 기반 조작 <span class="sep">›</span> 39 비전 백본 (ResNet, ViT)</div>
+      <div class="page-head">
+        <h2>비전 백본 — ResNet과 ViT</h2>
+        <span class="badge theory">이론 강의</span>
+      </div>
+      <p class="lead">정책은 사진을 그대로 보지 않습니다. <b style="color:var(--text)">백본</b>이 먼저 이미지를 숫자 수백 개로 줄여 놓고, 정책은 그 숫자만 받습니다. 어떤 백본을 어떤 방식으로 붙이느냐가 성능의 큰 부분을 가릅니다.</p>
+
+      <div class="goal-box">
+        <div class="lbl">이 페이지를 마치면</div>
+        <ul>
+          <li>합성곱이 무엇을 공유하고 무엇을 줄이는지 말할 수 있다</li>
+          <li>잔차 연결이 왜 필요한지 설명할 수 있다</li>
+          <li>특징맵을 정책에 넘기는 세 가지 방법을 구분할 수 있다</li>
+          <li>ViT가 이미지를 토큰으로 바꾸는 과정을 그릴 수 있다</li>
+          <li>사전학습 가중치를 왜 거의 항상 쓰는지 안다</li>
+        </ul>
+      </div>
+
+      <div class="block">
+        <h3>왜 백본이 따로 필요한가</h3>
+        <p class="body-text">224×224 컬러 이미지 한 장은 숫자 \(224 \times 224 \times 3 = 150{,}528\) 개입니다. 이것을 MLP에 바로 넣으면 첫 층 하나에만 가중치가 1억 개 넘게 생깁니다. 게다가 컵이 열 픽셀 옆으로 옮겨 가면 입력 벡터는 완전히 다른 값이 되어 버립니다. 사람이 보기에는 같은 장면인데 모델에게는 남남입니다.</p>
+        <p class="body-text">백본이 하는 일은 이 숫자 더미를 <b>무엇이 어디에 있는지</b>로 줄이는 것입니다. 카메라마다 512차원 벡터 하나, 또는 토큰 수십 개. 뒤에 붙는 트랜스포머나 확산 모델은 이 요약본만 받습니다.</p>
+      </div>
+
+      <div class="block">
+        <h3>합성곱 — 작은 창을 미끄러뜨린다</h3>
+        <p class="body-text">합성곱은 3×3 짜리 작은 가중치 묶음(커널)을 이미지 전체에 똑같이 적용합니다. 여기서 두 가지가 따라옵니다.</p>
+        <ul class="plain">
+          <li><b>가중치 공유</b> — 왼쪽 위를 보던 커널과 오른쪽 아래를 보던 커널이 같습니다. 파라미터 수가 이미지 크기와 무관하고, 물체가 옮겨 가도 같은 반응이 나옵니다</li>
+          <li><b>국소성</b> — 한 번에 주변 3×3 만 봅니다. 대신 층을 쌓으면 보는 범위(수용영역)가 넓어져서, 앞쪽 층은 모서리와 색, 뒤쪽 층은 물체 단위를 잡습니다</li>
+        </ul>
+        <p class="body-text">여기에 stride 와 풀링으로 해상도를 절반씩 줄이고 채널 수를 늘립니다. ResNet18 에 224 이미지를 넣으면 이렇게 흘러갑니다.</p>
+        <table class="tbl">
+          <tr><th>단계</th><th>해상도</th><th>채널</th><th>하는 일</th></tr>
+          <tr><td>conv1 (7×7, stride 2)</td><td>112 × 112</td><td>64</td><td>굵직한 모서리</td></tr>
+          <tr><td>maxpool</td><td>56 × 56</td><td>64</td><td>해상도 절반</td></tr>
+          <tr><td>layer1</td><td>56 × 56</td><td>64</td><td>무늬와 질감</td></tr>
+          <tr><td>layer2</td><td>28 × 28</td><td>128</td><td>부분 모양</td></tr>
+          <tr><td>layer3</td><td>14 × 14</td><td>256</td><td>물체 부분</td></tr>
+          <tr><td>layer4</td><td><b>7 × 7</b></td><td><b>512</b></td><td>여기가 정책으로 넘어갑니다</td></tr>
+        </table>
+        <p class="body-text">마지막 <code>layer4</code> 출력 \(7 \times 7 \times 512\) 를 <b>특징맵</b>이라고 부릅니다. 원본 150,528 개 숫자가 25,088 개로 줄었고, 각 칸은 원본의 넓은 영역을 요약합니다.</p>
+      </div>
+
+      <div class="block">
+        <h3>ResNet — 잔차 연결 하나로 깊어졌다</h3>
+        <p class="body-text">층을 깊게 쌓으면 당연히 좋아질 것 같지만, 2015년 이전에는 20층을 넘기면 <b>학습 오차마저</b> 커지는 일이 벌어졌습니다. 과적합이 아니라 학습 자체가 안 되는 문제였습니다. ResNet 은 블록의 출력을 이렇게 바꿔 이 문제를 넘었습니다.</p>
+        <div class="eq">\[ y = \mathcal{F}(x;\,W) + x \]</div>
+        <p class="body-text">블록이 \(y\) 를 통째로 만들지 않고 <b>\(x\) 에서 얼마나 바뀌어야 하는지</b>만 배웁니다. 아무것도 바꿀 필요가 없으면 \(\mathcal{F}\) 를 0으로 보내면 되므로, 층을 더 쌓아도 최소한 손해는 보지 않습니다. 역전파 쪽에서 보면 덧셈 경로를 따라 기울기가 감쇠 없이 앞쪽까지 흘러갑니다.</p>
+        <table class="tbl">
+          <tr><th>모델</th><th>블록</th><th>파라미터</th><th>마지막 특징 채널</th></tr>
+          <tr><td>ResNet18</td><td>3×3 두 개짜리 기본 블록</td><td>11.7M</td><td>512</td></tr>
+          <tr><td>ResNet34</td><td>같은 기본 블록, 더 많이</td><td>21.8M</td><td>512</td></tr>
+          <tr><td>ResNet50</td><td>1×1, 3×3, 1×1 병목 블록</td><td>25.6M</td><td>2048</td></tr>
+        </table>
+        <div class="callout">
+          <b>로봇에서는 왜 아직도 ResNet18 인가</b>
+          카메라가 두세 대이고 제어 주기가 10ms 단위입니다. 매 스텝 모든 카메라를 통과시켜야 하므로 가벼운 쪽이 유리합니다. ACT 와 Diffusion Policy 의 기본값이 모두 ResNet18 인 이유가 이것입니다. 데이터가 수백 에피소드 규모일 때 더 큰 백본이 반드시 더 좋지도 않습니다.
+        </div>
+      </div>
+
+      <div class="block">
+        <h3>특징맵을 정책에 넘기는 세 가지 방법</h3>
+        <p class="body-text">\(7 \times 7 \times 512\) 를 그대로 쓸 수는 없습니다. 실제로 쓰이는 방법은 셋입니다.</p>
+        <table class="tbl">
+          <tr><th>방법</th><th>나오는 것</th><th>쓰는 곳</th></tr>
+          <tr><td>전역 평균 풀링</td><td>512 벡터 하나</td><td>분류 모델의 기본. 간단하지만 <b>어디에</b> 있는지가 뭉개집니다</td></tr>
+          <tr><td>토큰으로 펼치기</td><td>49개 토큰 (7×7)</td><td>ACT. 2D 사인 위치 인코딩으로 자리를 알려 줍니다</td></tr>
+          <tr><td>공간 소프트맥스</td><td>키포인트 \((x_k, y_k)\) 32쌍</td><td>Diffusion Policy. 64차원으로 확 줄어듭니다</td></tr>
+        </table>
+        <p class="body-text">공간 소프트맥스는 채널마다 "이 특징이 가장 세게 반응한 자리"의 기댓값을 좌표로 뽑는 방식입니다.</p>
+        <div class="eq">\[ (x_k,\,y_k) \;=\; \sum_{i,j} \frac{\exp(f_{k,ij})}{\sum_{i',j'} \exp(f_{k,i'j'})}\,(u_i,\,v_j) \]</div>
+        <p class="body-text">조작에서 중요한 정보가 대부분 <b>위치</b>라는 점을 그대로 반영한 설계입니다. 다만 "무엇이 있는지"는 좌표에 담기지 않으니, 장면 이해가 필요한 작업에서는 토큰 방식이 유리합니다.</p>
+      </div>
+
+      <div class="block">
+        <h3>ViT — 이미지를 토큰으로 자른다</h3>
+        <p class="body-text">ViT 는 합성곱을 걷어내고 트랜스포머를 그대로 씁니다. 방법은 간단합니다. 이미지를 \(P \times P\) 격자로 자르고, 각 조각을 펴서 선형층에 통과시키면 토큰 하나가 됩니다. 224 이미지를 16으로 자르면 \((224/16)^2 = 196\) 개 토큰이 나옵니다.</p>
+        <pre>이미지 224×224×3
+  → 16×16 패치 196개
+  → 각 패치를 flatten (768 = 16 × 16 × 3) 후 선형사영 → 토큰 196개 × 768차원
+  → 위치 임베딩 더하기  (+ 분류용 CLS 토큰)
+  → 트랜스포머 블록 12개
+  → 토큰 196개 × 768차원</pre>
+        <p class="body-text">ViT-B/16 은 블록 12개, 폭 768, 헤드 12개, 파라미터 86M 입니다. CNN 이 공짜로 주던 국소성과 평행이동 성질이 없으므로 <b>데이터가 적으면 CNN보다 약하고, 아주 많으면 넘어섭니다</b>. 그래서 로봇에서는 ViT 를 처음부터 학습시키는 일이 거의 없고, 웹 규모로 미리 학습된 것을 가져다 씁니다.</p>
+        <p class="body-text">패치를 잘게 자를수록 세밀해지지만 토큰 수는 제곱으로 늘고, 어텐션 비용은 그 제곱으로 늘어납니다. 아래에서 직접 움직여 보세요.</p>
+
+        <div class="wdg" id="vbk">
+          <svg class="wdg__canvas" id="vbk-svg" viewBox="0 0 560 300" xmlns="http://www.w3.org/2000/svg">
+            <g id="vbk-img"></g>
+            <g id="vbk-bar"></g>
+            <g id="vbk-lab"></g>
+          </svg>
+          <div class="wdg__ctrl">
+            <div class="wdg__group">
+              <div class="wdg__lbl">패치 크기 P (입력은 224 × 224 고정)</div>
+              <div class="wdg__row"><span class="k" style="width:auto;">P</span><input type="range" id="vbk-p" min="0" max="5" step="1" value="2"><span class="val" id="vbk-pv"></span></div>
+            </div>
+            <div class="wdg__group">
+              <div class="wdg__lbl">견줄 기준</div>
+              <div class="wdg__row" style="display:block; line-height:1.6;">ResNet18 의 마지막 특징맵은 7 × 7 입니다. 토큰으로 펼치면 49개이니 패치 32 와 같은 수입니다.</div>
+            </div>
+          </div>
+          <div class="wdg__out" id="vbk-out"></div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h3>사전학습 — 가중치를 어디서 가져오는가</h3>
+        <p class="body-text">로봇 데이터는 적습니다. 에피소드 50개로 백본을 처음부터 학습시키는 것은 가망이 없습니다. 그래서 거의 항상 남이 학습해 둔 가중치에서 출발합니다.</p>
+        <table class="tbl">
+          <tr><th>가중치</th><th>무엇으로 배웠나</th><th>성격</th></tr>
+          <tr><td>ImageNet 지도학습</td><td>사진 100만 장과 라벨 1000종</td><td>가장 흔한 출발점. ACT 와 Diffusion Policy 의 기본값</td></tr>
+          <tr><td>DINOv2</td><td>라벨 없이 사진끼리 비교하며 학습</td><td>물체 모양과 부분 대응이 잘 잡힙니다</td></tr>
+          <tr><td>CLIP, SigLIP</td><td>이미지와 글을 짝지어 학습</td><td>언어를 함께 쓰는 VLA 의 눈이 이 계열입니다</td></tr>
+          <tr><td>R3M</td><td>사람이 일하는 영상 (Ego4D)</td><td>조작을 겨냥해 만든 ResNet 가중치</td></tr>
+        </table>
+        <p class="body-text"><b>동결할 것인가 함께 학습할 것인가.</b> 데이터가 수백 에피소드 규모이고 백본이 ResNet18 정도로 작으면 <b>함께 미세조정</b>하는 쪽이 보통 낫습니다. 반대로 수십억 파라미터짜리 VLM 백본은 낮은 학습률로 살짝만 건드리거나 일부를 얼려 둡니다. 작은 데이터로 큰 백본을 세게 흔들면 이미 알고 있던 것까지 잃습니다.</p>
+      </div>
+
+      <div class="block">
+        <h3>구현에서 실제로 챙기는 것</h3>
+        <p class="body-text">LeRobot 설정 파일 기준입니다. 같은 ResNet18 인데 쓰는 방식이 꽤 다릅니다.</p>
+        <table class="tbl">
+          <tr><th>항목</th><th>ACT</th><th>Diffusion Policy</th></tr>
+          <tr><td><code>vision_backbone</code></td><td>resnet18</td><td>resnet18</td></tr>
+          <tr><td><code>pretrained_backbone_weights</code></td><td colspan="2"><code>ResNet18_Weights.IMAGENET1K_V1</code> (양쪽 같음)</td></tr>
+          <tr><td>카메라가 여러 대면</td><td>백본 <b>하나를 공유</b></td><td><code>use_separate_rgb_encoder_per_camera: True</code> 라서 <b>카메라마다 따로</b></td></tr>
+          <tr><td>특징 사용법</td><td><code>layer4</code> 출력을 1×1 합성곱으로 폭을 맞춘 뒤 \(h \times w\) 토큰으로 펼침</td><td>공간 소프트맥스로 키포인트 32개 → 카메라당 64차원</td></tr>
+          <tr><td>이미지 정규화</td><td colspan="2"><code>VISUAL: MEAN_STD</code> (양쪽 같음)</td></tr>
+          <tr><td>이미지 증강</td><td>기본값 없음</td><td><code>crop_shape</code> 를 지정하면 학습 때 무작위, 추론 때 가운데로 자름 (<code>crop_is_random: True</code>, 기본은 <code>None</code> 이라 꺼짐)</td></tr>
+          <tr><td>정규화 층</td><td>BatchNorm 그대로</td><td><code>use_group_norm</code> 기본값은 <code>False</code></td></tr>
+          <tr><td>백본 학습률</td><td><code>optimizer_lr_backbone</code> 를 따로 둠 (기본은 본체와 같은 1e-5)</td><td>본체와 함께 학습</td></tr>
+        </table>
+        <div class="callout danger">
+          <b>GroupNorm 을 켜야 하는 경우</b>
+          Diffusion Policy 는 가중치의 지수이동평균(EMA)을 함께 씁니다. BatchNorm 이 들고 다니는 이동 평균 통계는 EMA와 어긋나기 때문에, 원 논문 구현은 BatchNorm 을 <b>GroupNorm 으로 바꿔</b> 씁니다. LeRobot 의 <code>use_group_norm</code> 기본값은 <code>False</code> 이므로 논문 설정을 재현하려면 직접 켜야 합니다. 켜면 채널 \(C\) 를 \(C/16\) 개 그룹으로 묶어 정규화합니다.
+        </div>
+      </div>
+
+      <div class="block">
+        <h3>큰 모델들은 무엇을 쓰나</h3>
+        <table class="tbl">
+          <tr><th>모델</th><th>비전 백본</th></tr>
+          <tr><td>ACT, Diffusion Policy</td><td>ResNet18 (ImageNet 사전학습)</td></tr>
+          <tr><td>π0</td><td>PaliGemma 안의 SigLIP 계열 ViT. 언어 모델과 한 몸입니다</td></tr>
+          <tr><td>GR00T N1</td><td>Eagle-2 비전 언어 모델의 이미지 인코더</td></tr>
+          <tr><td>OpenVLA</td><td>DINOv2 와 SigLIP 두 백본의 특징을 이어 붙여 사용</td></tr>
+        </table>
+        <p class="body-text">흐름이 보입니다. 작업별로 데이터를 모아 배우는 정책은 작은 CNN 하나면 되고, 언어 지시를 알아듣고 처음 보는 물체까지 다루려는 모델은 웹으로 학습된 거대한 ViT 를 통째로 가져옵니다.</p>
+      </div>
+
+      <div class="callout">
+        <b>현장에서 자주 겪는 일</b>
+        카메라 해상도를 올려도 성능이 그만큼 오르지는 않습니다. 토큰 수와 계산량만 늘어납니다. 손목 카메라와 바깥 카메라는 역할이 달라서, 손목은 접촉 직전의 정밀한 위치를, 바깥은 전체 배치를 봅니다. 조명이나 배경이 바뀌면 백본 특징이 통째로 흔들리므로, 증강으로 메우기보다 데이터 수집 때 조명을 여러 번 바꿔 찍는 쪽이 확실합니다. 마지막으로 이미지 정규화 상수를 학습과 추론에서 다르게 쓰면 아무 오류 없이 성능만 떨어집니다.
+      </div>
+
+      <div class="block">
+        <h3>원문</h3>
+        <a class="linkbox" href="https://arxiv.org/abs/1512.03385" target="_blank">
+          <span class="ico">PDF</span>
+          <span class="meta"><b>Deep Residual Learning for Image Recognition (ResNet)</b><span>arxiv.org/abs/1512.03385</span></span>
+        </a>
+        <a class="linkbox" href="https://arxiv.org/abs/2010.11929" target="_blank">
+          <span class="ico">PDF</span>
+          <span class="meta"><b>An Image is Worth 16x16 Words (ViT)</b><span>arxiv.org/abs/2010.11929</span></span>
+        </a>
+        <a class="linkbox" href="https://arxiv.org/abs/2304.07193" target="_blank">
+          <span class="ico">PDF</span>
+          <span class="meta"><b>DINOv2: Learning Robust Visual Features without Supervision</b><span>arxiv.org/abs/2304.07193</span></span>
+        </a>
+      </div>
+
+      <div class="quiz" id="quiz-vb">
+        <div class="quiz-head"><span class="icon">Quiz</span><h3>간단한 퀴즈</h3></div>
+        <div class="quiz-question" data-answer="c">
+          <p class="q-text">1. 잔차 연결 \(y = \mathcal{F}(x) + x\) 가 해결한 문제는?</p>
+          <label class="q-option"><input type="radio" name="q-vb-1" value="a"> 이미지 해상도가 너무 큰 문제</label>
+          <label class="q-option"><input type="radio" name="q-vb-1" value="b"> 라벨이 부족한 문제</label>
+          <label class="q-option"><input type="radio" name="q-vb-1" value="c"> 깊게 쌓을수록 학습 오차까지 커지던 문제</label>
+          <label class="q-option"><input type="radio" name="q-vb-1" value="d"> 추론 속도가 느린 문제</label>
+          <div class="q-feedback"></div>
+        </div>
+        <div class="quiz-question" data-answer="b">
+          <p class="q-text">2. Diffusion Policy 가 특징맵에서 키포인트 좌표를 뽑는 방법은?</p>
+          <label class="q-option"><input type="radio" name="q-vb-2" value="a"> 전역 평균 풀링</label>
+          <label class="q-option"><input type="radio" name="q-vb-2" value="b"> 공간 소프트맥스</label>
+          <label class="q-option"><input type="radio" name="q-vb-2" value="c"> 패치 임베딩</label>
+          <label class="q-option"><input type="radio" name="q-vb-2" value="d"> 잔차 연결</label>
+          <div class="q-feedback"></div>
+        </div>
+        <div class="quiz-question" data-answer="d">
+          <p class="q-text">3. 224 이미지를 패치 16으로 자르면 토큰은 몇 개인가?</p>
+          <label class="q-option"><input type="radio" name="q-vb-3" value="a"> 14개</label>
+          <label class="q-option"><input type="radio" name="q-vb-3" value="b"> 49개</label>
+          <label class="q-option"><input type="radio" name="q-vb-3" value="c"> 64개</label>
+          <label class="q-option"><input type="radio" name="q-vb-3" value="d"> 196개</label>
+          <div class="q-feedback"></div>
+        </div>
+        <button class="quiz-check-btn" onclick="checkQuiz('quiz-vb')">정답 확인</button>
+        <div class="quiz-result" id="quiz-vb-result"></div>
+      </div>
+    </section>
 <!-- ============ PAGE DIFFUSION : 확산 모델 ============ -->
     <section class="page" data-type="theory" id="page-diffusion">
-      <div class="crumb">LEVEL 4 학습 기반 조작 <span class="sep">›</span> 39 확산 모델 (Diffusion)</div>
+      <div class="crumb">LEVEL 4 학습 기반 조작 <span class="sep">›</span> 40 확산 모델 (Diffusion)</div>
       <div class="page-head">
         <h2>확산 모델 (Diffusion)</h2>
         <span class="badge theory">이론 강의</span>
@@ -5636,7 +5841,7 @@ for t in reversed(range(T)):
     </section>
 <!-- ============ PAGE FLOW : 플로우 매칭 ============ -->
     <section class="page" data-type="theory" id="page-flow">
-      <div class="crumb">LEVEL 4 학습 기반 조작 <span class="sep">›</span> 40 플로우 매칭 (Flow)</div>
+      <div class="crumb">LEVEL 4 학습 기반 조작 <span class="sep">›</span> 41 플로우 매칭 (Flow)</div>
       <div class="page-head">
         <h2>플로우 매칭 (Flow)</h2>
         <span class="badge theory">이론 강의</span>
@@ -5742,7 +5947,7 @@ for t in reversed(range(T)):
     </section>
 <!-- ============ PAGE ACT ============ -->
     <section class="page" data-type="theory" id="page-act">
-      <div class="crumb">LEVEL 4 학습 기반 조작 <span class="sep">›</span> 41 ACT — 행동 묶음과 트랜스포머</div>
+      <div class="crumb">LEVEL 4 학습 기반 조작 <span class="sep">›</span> 42 ACT — 행동 묶음과 트랜스포머</div>
       <div class="page-head">
         <h2>ACT — 행동 묶음과 트랜스포머</h2>
         <span class="badge theory">이론 강의</span>
@@ -5842,7 +6047,7 @@ actions = action_head(decoder(dec_in, encoder(tokens)))        <span class="cm">
     </section>
 <!-- ============ PAGE DIFFUSION POLICY ============ -->
     <section class="page" data-type="theory" id="page-diffusion-policy">
-      <div class="crumb">LEVEL 4 학습 기반 조작 <span class="sep">›</span> 42 Diffusion Policy</div>
+      <div class="crumb">LEVEL 4 학습 기반 조작 <span class="sep">›</span> 43 Diffusion Policy</div>
       <div class="page-head">
         <h2>Diffusion Policy</h2>
         <span class="badge theory">이론 강의</span>
@@ -5890,7 +6095,7 @@ actions = action_head(decoder(dec_in, encoder(tokens)))        <span class="cm">
     </section>
 <!-- ============ PAGE PI0 ============ -->
     <section class="page" data-type="theory" id="page-pi0">
-      <div class="crumb">LEVEL 4 학습 기반 조작 <span class="sep">›</span> 43 π0 — 비전, 언어, 행동 모델</div>
+      <div class="crumb">LEVEL 4 학습 기반 조작 <span class="sep">›</span> 44 π0 — 비전, 언어, 행동 모델</div>
       <div class="page-head">
         <h2>π0 — 비전, 언어, 행동 모델</h2>
         <span class="badge theory">이론 강의</span>
@@ -5933,7 +6138,7 @@ actions = action_head(decoder(dec_in, encoder(tokens)))        <span class="cm">
     </section>
 <!-- ============ PAGE GR00T ============ -->
     <section class="page" data-type="theory" id="page-groot">
-      <div class="crumb">LEVEL 4 학습 기반 조작 <span class="sep">›</span> 44 GR00T — 휴머노이드 파운데이션 모델</div>
+      <div class="crumb">LEVEL 4 학습 기반 조작 <span class="sep">›</span> 45 GR00T — 휴머노이드 파운데이션 모델</div>
       <div class="page-head">
         <h2>GR00T — 휴머노이드 파운데이션 모델</h2>
         <span class="badge theory">이론 강의</span>
@@ -5979,7 +6184,7 @@ actions = action_head(decoder(dec_in, encoder(tokens)))        <span class="cm">
     </section>
 <!-- ============ PAGE ACTION REPRESENTATION / UMI ============ -->
     <section class="page" data-type="theory" id="page-action-rep">
-      <div class="crumb">LEVEL 4 학습 기반 조작 <span class="sep">›</span> 45 행동을 무엇으로 적을 것인가 (UMI)</div>
+      <div class="crumb">LEVEL 4 학습 기반 조작 <span class="sep">›</span> 46 행동을 무엇으로 적을 것인가 (UMI)</div>
       <div class="page-head">
         <h2>행동을 무엇으로 적을 것인가 (UMI)</h2>
         <span class="badge theory">이론 강의</span>
@@ -6164,7 +6369,7 @@ if pose_rep == 'relative':
     </section>
 <!-- ============ PAGE DATASET : 데이터셋과 정규화 ============ -->
     <section class="page" data-type="theory" id="page-dataset">
-      <div class="crumb">LEVEL 4 학습 기반 조작 <span class="sep">›</span> 46 데이터셋과 정규화 (LeRobot)</div>
+      <div class="crumb">LEVEL 4 학습 기반 조작 <span class="sep">›</span> 47 데이터셋과 정규화 (LeRobot)</div>
       <div class="page-head">
         <h2>데이터셋과 정규화 (LeRobot)</h2>
         <span class="badge theory">이론 강의</span>
@@ -6281,7 +6486,7 @@ sample["action_is_pad"]             <span class="cm"># 에피소드 끝을 넘�
     </section>
 <!-- ============ PAGE OVERLEAF : Overleaf 시작하기 ============ -->
     <section class="page" data-type="hands" id="page-overleaf">
-      <div class="crumb">LEVEL 5 LaTeX (Overleaf) <span class="sep">›</span> 47 Overleaf 시작하기</div>
+      <div class="crumb">LEVEL 5 LaTeX (Overleaf) <span class="sep">›</span> 48 Overleaf 시작하기</div>
       <div class="page-head">
         <h2>Overleaf 시작하기</h2>
         <span class="badge hands">실습 가이드</span>
@@ -6337,7 +6542,7 @@ sample["action_is_pad"]             <span class="cm"># 에피소드 끝을 넘�
     </section>
 <!-- ============ PAGE LATEX : LaTeX 문서 구조 & 수식 ============ -->
     <section class="page" data-type="hands" id="page-latex">
-      <div class="crumb">LEVEL 5 LaTeX (Overleaf) <span class="sep">›</span> 48 LaTeX 문서 구조 & 수식</div>
+      <div class="crumb">LEVEL 5 LaTeX (Overleaf) <span class="sep">›</span> 49 LaTeX 문서 구조 & 수식</div>
       <div class="page-head">
         <h2>LaTeX 문서 구조 & 수식</h2>
         <span class="badge hands">실습 가이드</span>
@@ -6503,16 +6708,17 @@ sample["action_is_pad"]             <span class="cm"># 에피소드 끝을 넘�
     {id:'page-aiworker-dualarm', num:'36', title:'도전 과제 — 양팔로 원과 삼각형', type:'hands', level:'LEVEL 3'},
     {id:'page-nn-basics', num:'37', title:'뉴럴네트워크 기초', type:'theory', level:'LEVEL 4'},
     {id:'page-transformer', num:'38', title:'트랜스포머', type:'theory', level:'LEVEL 4'},
-    {id:'page-diffusion', num:'39', title:'확산 모델 (Diffusion)', type:'theory', level:'LEVEL 4'},
-    {id:'page-flow', num:'40', title:'플로우 매칭 (Flow)', type:'theory', level:'LEVEL 4'},
-    {id:'page-act', num:'41', title:'ACT', type:'theory', level:'LEVEL 4'},
-    {id:'page-diffusion-policy', num:'42', title:'Diffusion Policy', type:'theory', level:'LEVEL 4'},
-    {id:'page-pi0', num:'43', title:'π0 (VLA)', type:'theory', level:'LEVEL 4'},
-    {id:'page-groot', num:'44', title:'GR00T', type:'theory', level:'LEVEL 4'},
-    {id:'page-action-rep', num:'45', title:'행동 표현과 UMI', type:'theory', level:'LEVEL 4'},
-    {id:'page-dataset', num:'46', title:'데이터셋과 정규화', type:'theory', level:'LEVEL 4'},
-    {id:'page-overleaf', num:'47', title:'Overleaf 시작하기', type:'hands', level:'LEVEL 5'},
-    {id:'page-latex', num:'48', title:'LaTeX 문서 구조 & 수식', type:'hands', level:'LEVEL 5'},
+    {id:'page-vision', num:'39', title:'비전 백본 (ResNet, ViT)', type:'theory', level:'LEVEL 4'},
+    {id:'page-diffusion', num:'40', title:'확산 모델 (Diffusion)', type:'theory', level:'LEVEL 4'},
+    {id:'page-flow', num:'41', title:'플로우 매칭 (Flow)', type:'theory', level:'LEVEL 4'},
+    {id:'page-act', num:'42', title:'ACT', type:'theory', level:'LEVEL 4'},
+    {id:'page-diffusion-policy', num:'43', title:'Diffusion Policy', type:'theory', level:'LEVEL 4'},
+    {id:'page-pi0', num:'44', title:'π0 (VLA)', type:'theory', level:'LEVEL 4'},
+    {id:'page-groot', num:'45', title:'GR00T', type:'theory', level:'LEVEL 4'},
+    {id:'page-action-rep', num:'46', title:'행동 표현과 UMI', type:'theory', level:'LEVEL 4'},
+    {id:'page-dataset', num:'47', title:'데이터셋과 정규화', type:'theory', level:'LEVEL 4'},
+    {id:'page-overleaf', num:'48', title:'Overleaf 시작하기', type:'hands', level:'LEVEL 5'},
+    {id:'page-latex', num:'49', title:'LaTeX 문서 구조 & 수식', type:'hands', level:'LEVEL 5'},
     {id:'page-cert', num:'🎓', title:'인증서 발급', type:'cert', level:'CERTIFICATE'},
   ];
 
@@ -7873,6 +8079,76 @@ sample["action_is_pad"]             <span class="cm"># 에피소드 끝을 넘�
       if(page) new MutationObserver(autoPlay).observe(page, {attributes:true, attributeFilter:['class']});
       autoPlay();
     })();
+  })();
+</script>
+<script>
+  /* ── 패치 크기와 토큰 수 (비전 백본) ── */
+  (function(){
+    const root = document.getElementById('vbk'); if(!root) return;
+    const NS = 'http://www.w3.org/2000/svg';
+    const el = (t,a) => { const n = document.createElementNS(NS,t); for(const k in a) n.setAttribute(k,a[k]); return n; };
+    const txt = (x,y,fill,size,anchor,content) => {
+      const n = el('text',{x,y,fill,'font-size':size,'text-anchor':anchor||'start'});
+      n.textContent = content; return n;
+    };
+    const gImg = document.getElementById('vbk-img'), gBar = document.getElementById('vbk-bar'),
+          gLab = document.getElementById('vbk-lab');
+    const out = document.getElementById('vbk-out'), sl = document.getElementById('vbk-p'),
+          sv = document.getElementById('vbk-pv');
+
+    const PS = [8, 14, 16, 28, 32, 56], IMG = 224;
+    const OX = 36, OY = 72, S = 196;                 // 이미지 사각형
+    const LX = 300, BX = 384, BW = 150, BY = 72, BG = 30;  // 막대 영역
+    const MAXP = Math.pow((IMG/PS[0])*(IMG/PS[0]), 2);
+
+    const fmt = v => v.toLocaleString('en-US');
+
+    function draw(idx){
+      const P = PS[idx], n = IMG/P, tok = n*n, pair = tok*tok;
+      gImg.innerHTML = ''; gBar.innerHTML = ''; gLab.innerHTML = '';
+
+      // ── 왼쪽: 패치로 자른 이미지
+      gImg.appendChild(el('rect',{x:OX, y:OY, width:S, height:S, rx:3,
+                                  fill:'#0B1A30', stroke:'#2E4F74','stroke-width':1}));
+      const cell = S/n, thin = n > 16 ? 0.5 : 1;
+      for(let i = 1; i < n; i++){
+        gImg.appendChild(el('line',{x1:OX+cell*i, y1:OY, x2:OX+cell*i, y2:OY+S,
+                                    stroke:'#1C3A5E','stroke-width':thin}));
+        gImg.appendChild(el('line',{x1:OX, y1:OY+cell*i, x2:OX+S, y2:OY+cell*i,
+                                    stroke:'#1C3A5E','stroke-width':thin}));
+      }
+      gImg.appendChild(el('rect',{x:OX, y:OY, width:cell, height:cell,
+                                  fill:'#FFB454','fill-opacity':0.85}));
+      gLab.appendChild(txt(OX, OY-32, '#E8EDF4', 12, 'start', `패치 ${P} × ${P} 로 자르기`));
+      gLab.appendChild(txt(OX, OY-15, '#8CA3C4', 10.5, 'start', `가로세로 ${n} 칸이므로 토큰 ${tok} 개`));
+      gLab.appendChild(txt(OX+cell+7, OY+Math.max(cell, 11), '#FFB454', 10.5, 'start', '토큰 1개'));
+      gLab.appendChild(txt(OX+S/2, OY+S+20, '#5D7EA3', 10.5, 'middle', '패치 하나가 선형사영을 거쳐 토큰 하나가 됩니다'));
+
+      // ── 오른쪽: 어텐션 쌍 비교 (로그 축)
+      gLab.appendChild(txt(LX, OY-32, '#E8EDF4', 12, 'start', '어텐션이 보는 토큰 쌍 N²'));
+      gLab.appendChild(txt(LX, OY-15, '#8CA3C4', 10.5, 'start', '막대는 로그 축입니다'));
+      PS.forEach((p, k) => {
+        const m = IMG/p, tk = m*m, pr = tk*tk, cur = k === idx;
+        const y = BY + k*BG, w = BW*Math.log(pr)/Math.log(MAXP);
+        gBar.appendChild(txt(LX, y+11, cur ? '#FFB454' : '#8CA3C4', 11, 'start', `P=${p}`));
+        gBar.appendChild(txt(LX+42, y+11, cur ? '#E8EDF4' : '#5D7EA3', 10.5, 'end', `${tk}`));
+        gBar.appendChild(el('rect',{x:BX, y:y+2, width:Math.max(2,w), height:11, rx:2,
+                                    fill: cur ? '#FFB454' : '#2E4F74'}));
+        gBar.appendChild(txt(BX, y+25, cur ? '#8CA3C4' : '#3E5A7E', 9.5, 'start', fmt(pr)));
+      });
+      gBar.appendChild(el('line',{x1:BX-10, y1:BY, x2:BX-10, y2:BY+BG*PS.length-6,
+                                  stroke:'#1C3A5E','stroke-width':1}));
+
+      // ── 숫자
+      sv.textContent = `${P} px`;
+      const rel = tok/49;
+      out.textContent =
+        `패치 ${P} × ${P}      토큰 ${tok} 개      어텐션 쌍 ${fmt(pair)} 개\n` +
+        `ResNet18 의 7 × 7 특징맵(토큰 49개)과 견주면 토큰 ${rel.toFixed(1)} 배, 어텐션 ${(rel*rel).toFixed(1)} 배`;
+    }
+
+    sl.addEventListener('input', () => draw(+sl.value));
+    draw(+sl.value);
   })();
 </script>
 {% include analytics.html %}
