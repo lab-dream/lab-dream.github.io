@@ -5176,17 +5176,26 @@ $ git push origin main</pre>
       <div class="block">
         <h3>설치</h3>
         <p class="body-text">셋 중 환경에 맞는 하나를 고릅니다.</p>
-        <pre><span class="cm"># 1) conda 환경이라면 (가장 무난합니다)</span>
-$ conda install pinocchio -c conda-forge
-
-<span class="cm"># 2) uv/venv 로 파이썬 환경을 따로 쓴다면 (리눅스)</span>
+        <pre><span class="cm"># 1) uv/venv 로 파이썬 환경을 따로 쓴다면 (리눅스, 맥 모두)</span>
 $ pip install pin
+
+<span class="cm"># 2) conda 환경이라면</span>
+$ conda install pinocchio -c conda-forge
 
 <span class="cm"># 3) ROS 2 와 함께 쓴다면 (버전이 섞이지 않아 안전합니다)</span>
 $ sudo apt install ros-$ROS_DISTRO-pinocchio</pre>
         <pre>$ python3 -c "import pinocchio; print(pinocchio.__version__)"
 4.1.0</pre>
         <p class="body-text">파이썬 패키지 이름은 <code>pin</code> 인데 임포트할 때는 <code>pinocchio</code> 입니다. 관례상 <code>import pinocchio as pin</code> 으로 줄여 씁니다.</p>
+        <div class="callout danger">
+          <b>파이썬 3.10 이상이어야 합니다</b>
+          <code>pin</code> 의 미리 빌드된 패키지는 3.10 부터 있습니다. 3.9 환경에서 <code>pip install pin</code> 을 하면 소스를 직접 빌드하려다 <code>No matching distribution found for cmeel-boost</code> 같은 엉뚱한 메시지를 내고 멈춥니다. 패키지 이름을 잘못 쓴 것처럼 보이지만 원인은 파이썬 버전입니다. <code>python3 -V</code> 로 먼저 확인하세요.
+        </div>
+        <div class="callout">
+          <b>맥에서도 됩니다</b>
+          Apple Silicon 맥에서 <code>pip install pin</code> 한 줄로 설치됩니다. 실제로 macOS 26.5 / M 시리즈 / 파이썬 3.12 에서 Pinocchio 4.1.0 이 10초 만에 깔리는 것을 확인했습니다. 리눅스 전용이라는 설명을 간혹 보게 되는데 지금은 맞지 않습니다.
+          <br><br>다만 MuJoCo 쪽에 맥 전용 사정이 하나 있습니다. <code>mujoco.viewer.launch_passive</code> 로 창을 띄우려면 맥에서는 <code>python</code> 이 아니라 <b><code>mjpython</code></b> 으로 실행해야 합니다. MuJoCo 를 설치하면 같이 깔리는 명령입니다. 연구실 표준 환경은 Ubuntu 이지만, 노트북에서 먼저 돌려 볼 때 알아 두면 편합니다.
+        </div>
       </div>
 
       <div class="block">
@@ -5611,9 +5620,14 @@ for name in ("arm_l_link7", "arm_r_link7"):
     j = model.joint(f"arm_l_joint{i}")
     print("arm_l_joint", i, np.rad2deg(j.range))</pre>
         <p class="body-text">출력해보면 왼팔 <code>joint2</code>는 0°~180°, 오른팔 <code>joint2</code>는 -180°~0° 범위입니다. 좌우 팔이 거울 대칭으로 설계되어 있어서 <b>같은 각도 배열을 양팔에 그대로 넣으면 한쪽은 관절 한계에 걸립니다.</b> 팔꿈치가 적당히 접힌, 몸통과 충돌하지 않는 자세를 뷰어로 보면서 직접 찾으세요. 시작점으로는 아래 정도가 무난합니다.</p>
-        <pre>READY_L_DEG = [0,  30, 0, -60, 0, 30, 0]
-READY_R_DEG = [0, -30, 0, -60, 0, 30, 0]   <span class="cm"># joint2 부호가 반대</span></pre>
-        <p class="body-text">완전히 펴진 자세는 특이 자세(singularity)에 가까워 <code>J @ J.T</code>의 역행렬이 불안정해집니다. 앞 페이지에서 <code>READY_POSE_DEG</code>를 일부러 접힌 자세로 잡은 이유도 같습니다.</p>
+        <pre>READY_L_DEG = [0,  60, 0, -90, 0, 45, 0]
+READY_R_DEG = [0, -60, 0, -90, 0, 45, 0]   <span class="cm"># joint2 부호가 반대</span></pre>
+        <p class="body-text">완전히 펴진 자세는 특이 자세에 가까워 \(J J^{\top}\) 의 역행렬이 불안정해집니다. 앞 페이지에서 준비 자세를 일부러 접힌 쪽으로 잡은 이유도 같습니다.</p>
+        <div class="callout danger">
+          <b>이 숫자는 그냥 고른 값이 아닙니다</b>
+          팔을 덜 접은 <code>[0, 30, 0, -60, 0, 30, 0]</code> 도 뷰어로 보면 멀쩡합니다. 그런데 그 자세에서 원을 그리면 <b>원의 아래쪽 구간에서 자코비안의 최소 특이값이 0 까지 떨어집니다.</b> 눈에 보이는 결과는 반지름이 60mm 에서 48mm 로 찌그러지고 평면을 7mm 벗어나는 것입니다. 코드는 멀쩡한데 도형만 이상하게 나오니 원인을 찾기 어렵습니다.
+          <br><br>위에 적은 자세는 원과 삼각형 전 구간에서 최소 특이값이 0.085 아래로 내려가지 않습니다. <b>준비 자세를 바꿀 때는 뷰어 모양만 보지 말고 경로 전체에서 최소 특이값을 찍어 보세요.</b> <code>np.linalg.svd(J, compute_uv=False)[-1]</code> 한 줄이면 됩니다. 6편에서 조작성을 이야기한 것이 여기서 이렇게 돌아옵니다.
+        </div>
       </div>
 
       <div class="block">
@@ -5649,7 +5663,7 @@ def clik_step(q, name, q_cols, v_cols, target, gain=0.5):
 
     J   = pin.getFrameJacobian(pin_model, pin_data, fid, LWA)[:3, v_cols]   <span class="cm"># 3 x 7</span>
     err = target - pin_data.oMf[fid].translation
-    dq  = np.linalg.pinv(J) @ err
+    dq  = J.T @ np.linalg.solve(J @ J.T + 1e-3 * np.eye(3), err)            <span class="cm"># 감쇠 최소자승</span>
 
     q[q_cols] += gain * dq
     return err
@@ -5674,6 +5688,14 @@ with mujoco.viewer.launch_passive(model, data) as viewer:
         trace_r.append(pin_data.oMf[pin_model.getFrameId("arm_r_link7")].translation.copy())</pre>
         <p class="body-text">두 팔을 번갈아 그리는 게 아니라 <b>매 스텝 두 팔 모두 보정을 한 번씩</b> 받는 구조입니다. 그리고 <code>mj_step</code> 은 더 이상 기구학에 관여하지 않습니다. 화면을 갱신하고 물리를 한 칸 굴릴 뿐입니다.</p>
         <p class="body-text">궤적도 Pinocchio 쪽에서 기록했습니다. MuJoCo 의 <code>xpos</code> 로 기록해도 같은 값이 나와야 하니, 둘 다 저장해 두고 끝에서 비교해 보면 좋은 확인이 됩니다.</p>
+        <div class="callout danger">
+          <b><code>np.linalg.pinv</code> 를 그대로 쓰면 터집니다</b>
+          37편에서 <code>1e-3</code> 짜리 감쇠를 넣은 이유가 여기서 드러납니다. 같은 루프를 <code>np.linalg.pinv(J) @ err</code> 로 바꿔 돌리면 150 스텝쯤에서 <b>관절이 한계를 1400도 넘겨</b> 날아갑니다. 7자유도의 남는 자유도가 떠돌다 특이점에 들어가는 순간 <code>pinv</code> 가 거대한 관절 속도를 뱉기 때문입니다. 감쇠 항 하나를 더하면 같은 조건에서 발산 없이 돕니다.
+        </div>
+        <div class="callout">
+          <b>맞춰 볼 수 있는 숫자</b>
+          위 준비 자세에 <code>gain = 1.0</code>, 한 바퀴 600 스텝, 감쇠 <code>1e-3</code> 으로 3바퀴를 돌리면 추종 오차 평균 <b>0.6mm</b>, 원의 반지름 편차 최대 <b>0.01mm</b>, 삼각형의 평면 이탈 최대 <b>0.03mm</b> 가 나옵니다. 요구사항의 5mm 기준은 넉넉히 통과합니다. 여러분 숫자가 이보다 한 자릿수 이상 나쁘면 준비 자세나 감쇠를 먼저 의심하세요.
+        </div>
         <div class="callout danger">
           <b><code>getFrameJacobian</code> 앞에는 <code>computeJointJacobians</code> 가 필요합니다</b>
           <code>getFrameJacobian</code> 은 이미 계산된 값을 꺼내 쓰는 함수라, 앞에서 <code>computeJointJacobians(model, data, q)</code> 를 부르지 않으면 <b>지난 스텝의 자코비안</b>을 그대로 돌려줍니다. 오류는 나지 않고 수렴만 이상해집니다. 한 번에 끝내고 싶으면 <code>pin.computeFrameJacobian(model, data, q, fid, LWA)</code> 를 쓰세요. 매번 FK 를 다시 도는 대신 호출 한 번으로 끝납니다.
@@ -5748,7 +5770,8 @@ pin_data = pin_model.createData()      <span class="cm"># 프레임을 추가했
           <tr><td>준비 자세에서 팔이 몸통을 파고듦</td><td>좌우 팔에 같은 각도를 넣었음 — <code>joint2</code>는 부호가 반대</td></tr>
           <tr><td>삼각형이 둥글게 나옴</td><td>스텝당 진행량이 너무 커서 CLIK이 꼭짓점을 따라가지 못하고 뒤처짐 → <code>STEPS_PER_LAP</code>을 늘리거나 <code>gain</code>을 올림</td></tr>
           <tr><td>도형이 찌그러짐</td><td>도형 평면이 팔의 가동 범위 끝에 걸쳐 있음 → 반지름을 줄이거나 중심을 몸쪽으로</td></tr>
-          <tr><td><code>LinAlgError: Singular matrix</code></td><td>특이 자세 — <code>np.linalg.pinv</code>로 바꾸고 준비 자세를 다시 잡음</td></tr>
+          <tr><td>도형이 한쪽만 찌그러짐 (반지름이 줄어듦)</td><td>그 구간에서 특이점을 지남 — 경로 전체에서 최소 특이값을 찍어 보고 준비 자세를 바꿈</td></tr>
+          <tr><td>잘 따라가다 갑자기 팔이 날아감</td><td>감쇠 없는 <code>pinv</code> 사용 — <code>J.T @ solve(J@J.T + 1e-3*I, err)</code> 로 교체</td></tr>
           <tr><td>팔꿈치가 계속 돌아감</td><td>여유 자유도가 떠도는 것 — 위 널스페이스 항이나 <code>np.clip</code> 적용</td></tr>
           <tr><td>뷰어가 버벅임</td><td><code>viewer.sync()</code>를 매 스텝 대신 2~5스텝마다 호출</td></tr>
           <tr><td>두 모델의 손끝 위치가 다름</td><td>관절 인덱스를 잘못 짝지었거나 씬 파일(<code>scene_ffw_bg2.xml</code>)을 Pinocchio 에 넣었음. 힌트 2의 검산을 통과한 뒤에 진행</td></tr>
