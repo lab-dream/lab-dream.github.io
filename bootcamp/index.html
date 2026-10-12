@@ -1594,7 +1594,7 @@ print(sp.simplify(J.det()))                 <span class="cm"># l1*l2*sin(theta2)
         <div class="eq">\[ {}^{i+1}\omega_{i+1} = {}^{i+1}_{\;\;i}R\;{}^{i}\omega_i + \dot\theta_{i+1}\,{}^{i+1}\hat{Z}_{i+1} \]
 \[ {}^{i+1}v_{i+1} = {}^{i+1}_{\;\;i}R\left({}^{i}v_i + {}^{i}\omega_i \times {}^{i}P_{i+1}\right) \]</div>
         <p class="body-text">베이스에서 출발해 링크를 따라 올라가며 적용하고, 마지막 프레임에서 멈추면 그 프레임 기준의 geometric Jacobian이 나옵니다. 끝단 프레임에서 멈추면 앞에서 본 body Jacobian과 같은 것입니다. PoE에서 \(\mathrm{Ad}\) 를 누적해 열을 쌓던 계산을, 행렬 지수 대신 링크별 회전행렬로 풀어 쓴 형태라고 보면 됩니다.</p>
-        <p class="body-text">Craig가 자코비안에 \({}^{0}J\), \({}^{N}J\) 처럼 위첨자를 붙이는 것도 같은 이유입니다. 자코비안은 어느 프레임 기준인지 밝히지 않으면 의미가 정해지지 않습니다. 이 책의 위첨자와 Modern Robotics의 space, body 구분은 같은 말을 다르게 적은 것입니다.</p>
+        <p class="body-text">Craig가 자코비안에 \({}^{0}J\), \({}^{N}J\) 처럼 위첨자를 붙이는 것도 같은 이유입니다. 자코비안은 어느 프레임 기준인지 밝히지 않으면 의미가 정해지지 않습니다. 다만 이 위첨자를 Modern Robotics의 space, body 에 그대로 포개면 안 됩니다. \({}^{N}J\) 는 body 자코비안과 같지만 <b>\({}^{0}J\) 는 space 자코비안이 아닙니다.</b> space 와 body 를 먼저 보고 난 뒤, 아래 "교재와 라이브러리의 이름 대응"에서 셋을 한 표로 정리합니다.</p>
         <table class="tbl">
           <tr><th>유도 경로</th><th>방법</th><th>나오는 것</th><th>기본 좌표계</th></tr>
           <tr><td>Craig ①</td><td>FK 식을 관절각으로 편미분</td><td>analytic</td><td>FK를 적은 프레임, 보통 base</td></tr>
@@ -1664,6 +1664,23 @@ T_sb = se3(R, p)
 print(np.allclose(adjoint(T_sb) @ J_body, J_space))   <span class="cm"># True</span></pre>
         <div class="eq">\[ J_{\text{body}}=\begin{bmatrix} R^{\top}J_r \\ R^{\top}J_p \end{bmatrix}, \qquad J_{\text{space}}=\begin{bmatrix} J_r \\ J_p + [p]\,J_r \end{bmatrix} \]<span class="eq-note">\(J_p, J_r\) 은 MuJoCo 가 준 <code>jacp</code>, <code>jacr</code></span></div>
         <p class="body-text">회전 부분은 세 경우 모두 "같은 각속도"이고 적는 좌표계만 다릅니다. 선속도 부분만 <b>기준점</b>이 달라서 \([p]\,J_r\) 항이 붙습니다. \(\dot p = v_s + \omega \times p\)를 \(v_s\) 기준으로 정리하면 바로 이 코드가 나옵니다.</p>
+      </div>
+
+      <div class="block">
+        <h3>교재와 라이브러리의 이름 대응</h3>
+        <p class="body-text">같은 세 가지를 책마다 다른 이름으로 부릅니다. 식이 안 맞을 때 제일 먼저 펴 볼 표입니다.</p>
+        <table class="tbl">
+          <tr><th>기준점 / 축</th><th>Modern Robotics</th><th>Craig</th><th>Pinocchio</th><th>MuJoCo</th></tr>
+          <tr><td>끝단 원점 / 끝단 축</td><td>body \(J_b\)</td><td>\({}^{N}J\)</td><td><code>LOCAL</code></td><td>직접 주지 않음</td></tr>
+          <tr><td><b>끝단 원점 / 월드 축</b></td><td>hybrid</td><td><b>\({}^{0}J\)</b></td><td><b><code>LOCAL_WORLD_ALIGNED</code></b></td><td><b><code>jacp</code>, <code>jacr</code></b></td></tr>
+          <tr><td>월드 원점 / 월드 축</td><td>space \(J_s\)</td><td>쓰지 않음</td><td><code>WORLD</code></td><td>직접 주지 않음</td></tr>
+        </table>
+        <p class="body-text">가운데 줄만 굵게 한 이유가 있습니다. <b>손끝의 실제 속도 \(\dot p\) 를 그대로 주는 것은 가운데 줄뿐</b>이라서, 시뮬레이터와 라이브러리가 기본으로 내놓는 것도 대개 이쪽입니다.</p>
+        <div class="callout danger">
+          <b>Craig 의 \({}^{0}J\) 는 space 자코비안이 아닙니다</b>
+          위첨자 0 은 "월드 축으로 적었다"는 뜻이지 "기준점을 월드 원점으로 옮겼다"는 뜻이 아닙니다. 기준점은 여전히 끝단입니다. 그래서 Craig 의 \({}^{0}J\) 는 hybrid 이고, 방금 본 \([p]J_r\) 항이 붙은 space 자코비안과는 다릅니다. 반대로 \({}^{N}J\) 는 body 자코비안과 정확히 같습니다.
+          <br><br>정리하면 <b>Craig \({}^{0}J\) = MuJoCo <code>jacp</code>/<code>jacr</code> = Pinocchio <code>LOCAL_WORLD_ALIGNED</code></b> 셋이 같은 것입니다. Craig 로 배운 식을 Pinocchio 에 옮길 때 이름만 보고 <code>WORLD</code> 를 고르면 \(\omega \times p\) 만큼 조용히 어긋납니다. 끝단이 베이스에서 1m 떨어져 있고 \(\omega\) 가 1rad/s 면 1m/s 차이입니다.
+        </div>
       </div>
 
       <div class="block">
@@ -5239,10 +5256,10 @@ print(model.nq, model.nv)   <span class="cm"># 예: 19 18</span></pre>
         <h3>자코비안 — 어느 기준으로 볼 것인지 고릅니다</h3>
         <p class="body-text">수학 기초 5편에서 바디 자코비안과 공간 자코비안을 나눠 본 것이 여기서 그대로 인자가 됩니다. Pinocchio 는 두루뭉술하게 넘어가지 않고 매번 기준을 적게 합니다.</p>
         <table class="tbl">
-          <tr><th>인자</th><th>기준점과 축</th><th>5편에서 부른 이름</th></tr>
-          <tr><td><code>pin.ReferenceFrame.LOCAL</code></td><td>기준점도 축도 그 프레임</td><td>바디 자코비안 \(J_b\)</td></tr>
-          <tr><td><code>pin.ReferenceFrame.WORLD</code></td><td>기준점도 축도 월드</td><td>공간 자코비안 \(J_s\)</td></tr>
-          <tr><td><code>pin.ReferenceFrame.LOCAL_WORLD_ALIGNED</code></td><td>기준점은 프레임 원점, 축은 월드</td><td>하이브리드 자코비안</td></tr>
+          <tr><th>인자</th><th>기준점과 축</th><th>5편에서 부른 이름</th><th>Craig</th><th>MuJoCo</th></tr>
+          <tr><td><code>pin.ReferenceFrame.LOCAL</code></td><td>기준점도 축도 그 프레임</td><td>바디 자코비안 \(J_b\)</td><td>\({}^{N}J\)</td><td>직접 주지 않음</td></tr>
+          <tr><td><code>pin.ReferenceFrame.WORLD</code></td><td>기준점도 축도 월드</td><td>공간 자코비안 \(J_s\)</td><td>쓰지 않음</td><td>직접 주지 않음</td></tr>
+          <tr><td><code>pin.ReferenceFrame.LOCAL_WORLD_ALIGNED</code></td><td>기준점은 프레임 원점, 축은 월드</td><td>하이브리드 자코비안</td><td><b>\({}^{0}J\)</b></td><td><b><code>mj_jacBody</code></b></td></tr>
         </table>
         <p class="body-text"><b>MuJoCo 의 <code>mj_jacBody</code> 가 주는 것이 마지막 줄입니다.</b> 35편의 CLIK 코드를 Pinocchio 로 옮길 때 <code>LOCAL_WORLD_ALIGNED</code> 를 쓰면 숫자가 그대로 맞고, 기본값인 <code>LOCAL</code> 을 그냥 쓰면 회전한 만큼 다른 값이 나옵니다.</p>
         <pre>J_local = pin.computeFrameJacobian(model, data, q, fid, pin.ReferenceFrame.LOCAL)
@@ -5253,8 +5270,14 @@ assert np.allclose(J_lwa[:3], R @ J_local[:3])   <span class="cm"># 선속도 �
 assert np.allclose(J_lwa[3:], R @ J_local[3:])   <span class="cm"># 각속도 부분</span></pre>
         <p class="body-text">위 두 줄이 5편에서 \(J_s = \mathrm{Ad}_{T_{sb}} J_b\) 로 적었던 그 관계입니다. <code>LOCAL_WORLD_ALIGNED</code> 는 원점을 옮기지 않고 축만 돌리므로 Adjoint 에서 평행이동 항이 빠지고 회전만 남은 모습입니다.</p>
         <div class="callout danger">
+          <b>이름이 <code>WORLD</code> 라고 해서 Craig 의 \({}^{0}J\) 가 아닙니다</b>
+          Craig 교재로 배운 \({}^{0}J\), 즉 순기구학을 관절각으로 미분해 얻는 그 자코비안은 <code>LOCAL_WORLD_ALIGNED</code> 입니다. <code>WORLD</code> 는 기준점까지 월드 원점으로 옮긴 공간 자코비안이라서, 선속도가 손끝의 속도 \(\dot p\) 가 아니라 \(\dot p - \omega \times p\) 입니다. 손끝이 베이스에서 1m 떨어져 있고 \(\omega\) 가 1rad/s 면 두 값이 1m/s 어긋납니다. 오류 없이 조용히 틀리므로 더 고약합니다.
+          <br><br>정리하면 <b>Craig \({}^{0}J\) = MuJoCo <code>mj_jacBody</code> = Pinocchio <code>LOCAL_WORLD_ALIGNED</code></b> 셋이 같은 것입니다.
+        </div>
+        <div class="callout danger">
           <b>6차원 벡터의 순서가 교과서와 다릅니다</b>
-          Modern Robotics 를 비롯한 여러 교과서는 \(\mathcal{V} = (\omega, v)\) 로 <b>각속도를 앞에</b> 둡니다. Pinocchio 는 반대로 <b>선속도가 앞</b>입니다. \(\mathcal{V} = (v, \omega)\) 이므로 <code>J[:3]</code> 이 선속도, <code>J[3:]</code> 이 각속도입니다. <code>pin.log6(M).vector</code> 도 같은 순서입니다. 순서가 바뀌면 Adjoint 행렬의 블록 위치도 따라 바뀌니, 교과서 식을 코드로 옮길 때 이 한 가지만 조심하면 됩니다.
+          Modern Robotics 는 \(\mathcal{V} = (\omega, v)\) 로 <b>각속도를 앞에</b> 둡니다. Pinocchio 는 반대로 <b>선속도가 앞</b>입니다. \(\mathcal{V} = (v, \omega)\) 이므로 <code>J[:3]</code> 이 선속도, <code>J[3:]</code> 이 각속도이고, <code>pin.log6(M).vector</code> 도 같은 순서입니다. 순서가 바뀌면 Adjoint 행렬의 블록 위치도 따라 바뀌니, 교과서 식을 코드로 옮길 때 이것만 조심하면 됩니다.
+          <br><br>Craig 교재는 \(\mathcal{V} = (v, \omega)\) 로 Pinocchio 와 순서가 같습니다. Craig 로 배웠다면 이 부분은 그대로 옮겨 써도 됩니다.
         </div>
       </div>
 
