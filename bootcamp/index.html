@@ -5118,13 +5118,356 @@ $ git push origin main</pre>
       </div>
 
       <div class="callout hands">
+        <b>다음 — Pinocchio</b>
+        여기까지 한 팔로 손끝을 원하는 한 점까지 보냈습니다. 지금 쓴 <code>mj_forward</code> 와 <code>mj_jacBody</code> 는 시뮬레이터 안의 함수입니다. 실제 로봇에는 시뮬레이터가 없고, 같은 계산을 해 줄 라이브러리가 따로 필요합니다. 다음 두 편에서 그 도구를 익힌 다음 도전 과제로 갑니다.
+      </div>
+    </section>
+<!-- ============ PAGE PINOCCHIO : 시작 ============ -->
+    <section class="page" data-type="hands" id="page-pinocchio">
+      <div class="crumb">LEVEL 3 URDF와 기구학 <span class="sep">›</span> 36 Pinocchio 시작 — 실제 로봇의 모델 계산</div>
+      <div class="page-head">
+        <h2>Pinocchio 시작 — 실제 로봇의 모델 계산</h2>
+        <span class="badge hands">실습 가이드</span>
+      </div>
+      <p class="lead">MuJoCo는 가상의 세계를 굴려 봅니다. 실제 로봇에는 굴릴 세계가 없습니다. 엔코더가 지금 각도를 알려 주고, 우리는 <b style="color:var(--text)">이 각도에서 중력을 버티려면 토크가 얼마인가</b>를 1초에 1000번 계산해야 합니다. Pinocchio 가 그 계산을 맡습니다.</p>
+
+      <div class="goal-box">
+        <div class="lbl">이 페이지를 마치면</div>
+        <ul>
+          <li>시뮬레이터와 모델 라이브러리의 역할 차이를 말할 수 있다</li>
+          <li>URDF 를 불러와 순기구학을 계산할 수 있다</li>
+          <li><code>model</code> 과 <code>data</code> 를 왜 나눠 두는지 안다</li>
+          <li>관절 프레임과 프레임을 구분해서 손끝 자세를 읽을 수 있다</li>
+          <li>자코비안의 세 가지 기준을 고르고, MuJoCo 와 같은 값을 얻을 수 있다</li>
+        </ul>
+      </div>
+
+      <div class="block">
+        <h3>시뮬레이터와 모델 라이브러리는 다른 물건입니다</h3>
+        <table class="tbl">
+          <tr><th></th><th>MuJoCo</th><th>Pinocchio</th></tr>
+          <tr><td>하는 일</td><td>접촉까지 포함해 시간을 적분</td><td>주어진 상태에서 모델 값을 계산</td></tr>
+          <tr><td>입력</td><td>제어 입력과 현재 상태</td><td>\(q,\ \dot q,\ \ddot q\) 또는 \(\tau\)</td></tr>
+          <tr><td>출력</td><td>다음 순간의 상태</td><td>순기구학, 자코비안, 질량행렬, 중력 토크</td></tr>
+          <tr><td>모델 형식</td><td>MJCF (xml)</td><td>URDF (+ SRDF)</td></tr>
+          <tr><td>실제 로봇에서</td><td>보통 올리지 않습니다</td><td>제어기 안에서 매 주기 돕니다</td></tr>
+        </table>
+        <p class="body-text">MuJoCo 에도 <code>mj_jacBody</code> 나 <code>mj_rne</code> 처럼 모델 값을 주는 함수가 있습니다. 차이는 <b>어디에 올려 쓰느냐</b>입니다. ROS 2 제어 노드나 MPC 솔버 안에 들어가는 쪽은 거의 Pinocchio 입니다. URDF 를 그대로 먹고, C++ 헤더만 포함하면 되고, 뒤에서 볼 해석적 미분까지 주기 때문입니다.</p>
+        <p class="body-text">그래서 둘은 경쟁 관계가 아닙니다. 연구실에서 쓰는 흐름은 보통 이렇습니다. <b>MuJoCo 로 정책이나 제어기를 만들어 보고, 실제 로봇에 올릴 때는 그 안의 모델 계산을 Pinocchio 로 바꿔 끼웁니다.</b></p>
+      </div>
+
+      <div class="block">
+        <h3>설치</h3>
+        <p class="body-text">셋 중 환경에 맞는 하나를 고릅니다.</p>
+        <pre><span class="cm"># 1) conda 환경이라면 (가장 무난합니다)</span>
+$ conda install pinocchio -c conda-forge
+
+<span class="cm"># 2) uv/venv 로 파이썬 환경을 따로 쓴다면 (리눅스)</span>
+$ pip install pin
+
+<span class="cm"># 3) ROS 2 와 함께 쓴다면 (버전이 섞이지 않아 안전합니다)</span>
+$ sudo apt install ros-$ROS_DISTRO-pinocchio</pre>
+        <pre>$ python3 -c "import pinocchio; print(pinocchio.__version__)"
+4.1.0</pre>
+        <p class="body-text">파이썬 패키지 이름은 <code>pin</code> 인데 임포트할 때는 <code>pinocchio</code> 입니다. 관례상 <code>import pinocchio as pin</code> 으로 줄여 씁니다.</p>
+      </div>
+
+      <div class="block">
+        <h3>URDF 준비하기</h3>
+        <p class="body-text">OMY 는 xacro 로 되어 있으니 URDF 로 펼쳐 둡니다. 31편에서 찾아본 그 패키지입니다.</p>
+        <pre>$ PKG=$(ros2 pkg prefix open_manipulator_description)/share/open_manipulator_description
+$ find $PKG -name "*.urdf.xacro"
+$ xacro $PKG/urdf/&lt;찾은 파일&gt;.urdf.xacro > ~/omy.urdf</pre>
+        <p class="body-text">지금 당장 URDF 가 없어도 괜찮습니다. Pinocchio 가 들고 다니는 예제 팔로 아래 내용을 전부 따라 할 수 있습니다.</p>
+        <pre>model = pin.buildSampleModelManipulator()   <span class="cm"># URDF 없이 바로 쓰는 6축 예제 팔</span></pre>
+      </div>
+
+      <div class="block">
+        <h3>model 과 data</h3>
+        <p class="body-text">Pinocchio 를 쓰면 이 두 글자를 평생 봅니다.</p>
+        <ul class="plain">
+          <li><b><code>model</code></b> — 변하지 않는 것. 링크의 질량과 관성, 관절의 축과 한계, 프레임 목록. 한 번 만들어 두고 계속 씁니다</li>
+          <li><b><code>data</code></b> — 알고리즘이 결과를 적어 넣는 작업 공간. 매 주기 값이 바뀝니다</li>
+        </ul>
+        <p class="body-text">왜 나눠 둘까요. <b>제어 주기마다 메모리를 새로 잡지 않기 위해서</b>입니다. 1kHz 루프에서 행렬을 매번 할당하면 그것만으로 주기를 놓칩니다. 스레드를 여러 개 쓴다면 <code>data</code> 를 스레드마다 하나씩 만들고 <code>model</code> 은 공유하면 됩니다.</p>
+        <pre>import numpy as np
+import pinocchio as pin
+
+np.set_printoptions(precision=3, suppress=True)
+
+model = pin.buildModelFromUrdf("/home/user/omy.urdf")   <span class="cm"># URDF 한 줄로 끝</span>
+data  = model.createData()
+
+print(model.name, "nq =", model.nq, " nv =", model.nv)
+
+q = pin.neutral(model)                 <span class="cm"># 중립 자세 (실제로는 엔코더에서 읽습니다)</span>
+pin.forwardKinematics(model, data, q)  <span class="cm"># 모든 관절의 위치와 자세를 계산</span>
+
+for name, oMi in zip(model.names, data.oMi):
+    print(f"{name:&lt;16} {oMi.translation.T}")</pre>
+        <p class="body-text"><code>data.oMi[i]</code> 는 "월드(o)에서 본 관절 i 의 자세"라는 뜻입니다. <code>oMi</code> 라는 이름 자체가 \(^{o}M_{i}\) 를 읽은 것입니다. 수학 기초 3편에서 \(T_{sb}\) 로 적던 그 변환이고, Pinocchio 에서는 <code>pin.SE3</code> 객체로 들어 있어 <code>.translation</code>, <code>.rotation</code>, <code>.actInv(...)</code>, <code>.inverse()</code> 를 바로 쓸 수 있습니다.</p>
+      </div>
+
+      <div class="block">
+        <h3>관절 프레임과 프레임은 다릅니다</h3>
+        <p class="body-text">URDF 의 <b>링크</b>와 <b>고정 관절</b>은 Pinocchio 에서 관절이 되지 않습니다. 자유도가 없으니 <b>프레임</b>으로 들어갑니다. 손끝은 보통 고정 관절 끝에 달려 있으므로 프레임으로 찾아야 합니다.</p>
+        <pre>fid = model.getFrameId("link6")        <span class="cm"># 이름을 모르면 아래 줄로 전부 출력</span>
+<span class="cm"># for f in model.frames: print(f.name, f.type)</span>
+
+pin.framesForwardKinematics(model, data, q)   <span class="cm"># forwardKinematics + 프레임까지 갱신</span>
+oMf = data.oMf[fid]
+
+print("손끝 위치:", oMf.translation)
+print("손끝 자세:\n", oMf.rotation)</pre>
+        <div class="callout danger">
+          <b>입문자가 가장 많이 하는 실수</b>
+          <code>data.oMi</code> 는 관절, <code>data.oMf</code> 는 프레임입니다. 손끝 프레임을 쓰려 했는데 마지막 관절의 자세를 읽고 있으면 고정 관절만큼 어긋난 값이 나옵니다. 몇 센티미터씩 틀린 채로 멀쩡히 돌아가기 때문에 찾기도 어렵습니다. 그리고 <code>forwardKinematics</code> 만 부르면 <code>oMf</code> 는 갱신되지 않습니다. <code>framesForwardKinematics</code> 를 쓰거나 <code>updateFramePlacements</code> 를 뒤에 붙이세요.
+        </div>
+      </div>
+
+      <div class="block">
+        <h3>nq 와 nv 가 다를 수 있습니다</h3>
+        <p class="body-text">회전 관절만 있는 팔이면 \(n_q = n_v\) 입니다. 그런데 휴머노이드처럼 베이스가 떠 있거나 무한 회전 관절이 있으면, 자세를 쿼터니언이나 \((\cos\theta, \sin\theta)\) 쌍으로 저장하기 때문에 \(n_q > n_v\) 가 됩니다. 떠 있는 베이스 하나만 붙어도 \(n_q = n_v + 1\) 입니다.</p>
+        <pre>model = pin.buildModelFromUrdf(path, pin.JointModelFreeFlyer())   <span class="cm"># 베이스가 떠 있는 로봇</span>
+print(model.nq, model.nv)   <span class="cm"># 예: 19 18</span></pre>
+        <p class="body-text">그래서 <code>q += v * dt</code> 는 <b>틀린 코드</b>입니다. 길이부터 맞지 않고, 맞더라도 쿼터니언이 단위 길이를 잃습니다. 올바른 방법은 다양체 위에서 더하는 것입니다.</p>
+        <div class="eq">\[ q_{k+1} \;=\; q_k \oplus (v\,\Delta t) \qquad\longleftrightarrow\qquad \texttt{q = pin.integrate(model, q, v*dt)} \]</div>
+        <p class="body-text">반대 방향은 <code>v = pin.difference(model, q1, q2)</code> 입니다. 수학 기초 4편의 지수사상과 로그사상이 라이브러리 함수로 그대로 나온 것이고, 팔만 다루더라도 이 습관을 들여 두면 나중에 휴머노이드로 넘어갈 때 코드를 고칠 일이 없습니다.</p>
+      </div>
+
+      <div class="block">
+        <h3>자코비안 — 어느 기준으로 볼 것인지 고릅니다</h3>
+        <p class="body-text">수학 기초 5편에서 바디 자코비안과 공간 자코비안을 나눠 본 것이 여기서 그대로 인자가 됩니다. Pinocchio 는 두루뭉술하게 넘어가지 않고 매번 기준을 적게 합니다.</p>
+        <table class="tbl">
+          <tr><th>인자</th><th>기준점과 축</th><th>5편에서 부른 이름</th></tr>
+          <tr><td><code>pin.ReferenceFrame.LOCAL</code></td><td>기준점도 축도 그 프레임</td><td>바디 자코비안 \(J_b\)</td></tr>
+          <tr><td><code>pin.ReferenceFrame.WORLD</code></td><td>기준점도 축도 월드</td><td>공간 자코비안 \(J_s\)</td></tr>
+          <tr><td><code>pin.ReferenceFrame.LOCAL_WORLD_ALIGNED</code></td><td>기준점은 프레임 원점, 축은 월드</td><td>하이브리드 자코비안</td></tr>
+        </table>
+        <p class="body-text"><b>MuJoCo 의 <code>mj_jacBody</code> 가 주는 것이 마지막 줄입니다.</b> 35편의 CLIK 코드를 Pinocchio 로 옮길 때 <code>LOCAL_WORLD_ALIGNED</code> 를 쓰면 숫자가 그대로 맞고, 기본값인 <code>LOCAL</code> 을 그냥 쓰면 회전한 만큼 다른 값이 나옵니다.</p>
+        <pre>J_local = pin.computeFrameJacobian(model, data, q, fid, pin.ReferenceFrame.LOCAL)
+J_lwa   = pin.computeFrameJacobian(model, data, q, fid, pin.ReferenceFrame.LOCAL_WORLD_ALIGNED)
+
+R = data.oMf[fid].rotation
+assert np.allclose(J_lwa[:3], R @ J_local[:3])   <span class="cm"># 선속도 부분</span>
+assert np.allclose(J_lwa[3:], R @ J_local[3:])   <span class="cm"># 각속도 부분</span></pre>
+        <p class="body-text">위 두 줄이 5편에서 \(J_s = \mathrm{Ad}_{T_{sb}} J_b\) 로 적었던 그 관계입니다. <code>LOCAL_WORLD_ALIGNED</code> 는 원점을 옮기지 않고 축만 돌리므로 Adjoint 에서 평행이동 항이 빠지고 회전만 남은 모습입니다.</p>
+        <div class="callout danger">
+          <b>6차원 벡터의 순서가 교과서와 다릅니다</b>
+          Modern Robotics 를 비롯한 여러 교과서는 \(\mathcal{V} = (\omega, v)\) 로 <b>각속도를 앞에</b> 둡니다. Pinocchio 는 반대로 <b>선속도가 앞</b>입니다. \(\mathcal{V} = (v, \omega)\) 이므로 <code>J[:3]</code> 이 선속도, <code>J[3:]</code> 이 각속도입니다. <code>pin.log6(M).vector</code> 도 같은 순서입니다. 순서가 바뀌면 Adjoint 행렬의 블록 위치도 따라 바뀌니, 교과서 식을 코드로 옮길 때 이 한 가지만 조심하면 됩니다.
+        </div>
+      </div>
+
+      <div class="block">
+        <h3>35편과 숫자 맞춰 보기</h3>
+        <p class="body-text">같은 자세에서 MuJoCo 와 Pinocchio 의 손끝 위치와 자코비안이 같은지 확인해 보세요. 이것이 모델을 제대로 옮겼는지 보는 가장 빠른 방법입니다.</p>
+        <pre><span class="cm"># MuJoCo 쪽</span>
+mujoco.mj_forward(m, d)
+mujoco.mj_jacBody(m, d, jacp, jacr, m.body("link6").id)
+
+<span class="cm"># Pinocchio 쪽 (같은 관절각 q 로)</span>
+pin.framesForwardKinematics(model, data, q)
+J = pin.computeFrameJacobian(model, data, q, fid, pin.ReferenceFrame.LOCAL_WORLD_ALIGNED)
+
+print(np.abs(d.body("link6").xpos - data.oMf[fid].translation).max())
+print(np.abs(jacp[:, :6] - J[:3, :6]).max())</pre>
+        <p class="body-text">위치가 어긋나면 프레임을 잘못 잡았거나 (<code>oMi</code> 와 <code>oMf</code>), MJCF 와 URDF 의 원점 정의가 다른 것입니다. 자코비안만 어긋나면 기준 프레임 인자를 확인하세요.</p>
+      </div>
+
+      <div class="block">
+        <h3>자가 점검</h3>
+        <ul class="checklist" id="cl-pinocchio">
+          <li><input type="checkbox"><span>Pinocchio 를 설치하고 버전을 확인했다</span></li>
+          <li><input type="checkbox"><span>URDF 또는 예제 모델을 불러와 <code>nq</code> 와 <code>nv</code> 를 출력했다</span></li>
+          <li><input type="checkbox"><span><code>model</code> 과 <code>data</code> 를 나눠 둔 이유를 설명할 수 있다</span></li>
+          <li><input type="checkbox"><span><code>data.oMi</code> 와 <code>data.oMf</code> 의 차이를 설명할 수 있다</span></li>
+          <li><input type="checkbox"><span>손끝 프레임의 위치와 자세를 읽었다</span></li>
+          <li><input type="checkbox"><span>자코비안 세 기준의 차이를 말할 수 있고, MuJoCo 와 같은 값을 얻었다</span></li>
+        </ul>
+      </div>
+
+      <div class="block evidence-section">
+        <h3>인증 스크린샷 첨부</h3>
+        <p class="body-text" style="margin-top:-4px;">MuJoCo 와 Pinocchio 의 손끝 위치 차이를 출력한 콘솔 화면을 캡처해 올려두세요. 인증서 발급 시 증빙자료로 자동 첨부됩니다.</p>
+        <div class="evidence-widget" id="ev-page-pinocchio"></div>
+      </div>
+
+      <div class="callout hands">
+        <b>다음 — 동역학</b>
+        여기까지는 기구학입니다. 위치와 속도만 다뤘습니다. 다음 편에서 질량과 중력이 들어옵니다. 팔이 왜 처지는지, 그것을 버티려면 토크가 얼마나 필요한지를 계산합니다. 실제 로봇에서 Pinocchio 를 쓰는 이유의 대부분이 거기에 있습니다.
+      </div>
+    </section>
+<!-- ============ PAGE PINOCCHIO DYNAMICS ============ -->
+    <section class="page" data-type="hands" id="page-pinocchio-dyn">
+      <div class="crumb">LEVEL 3 URDF와 기구학 <span class="sep">›</span> 37 Pinocchio 동역학 — 중력보상과 역기구학</div>
+      <div class="page-head">
+        <h2>Pinocchio 동역학 — 중력보상과 역기구학</h2>
+        <span class="badge hands">실습 가이드</span>
+      </div>
+      <p class="lead">로봇을 실제로 움직이는 순간 기구학만으로는 모자랍니다. 팔은 중력에 처지고, 빠르게 움직이면 관성이 버팁니다. 그 힘을 숫자로 내놓는 것이 동역학이고, Pinocchio 가 가장 잘하는 일입니다.</p>
+
+      <div class="goal-box">
+        <div class="lbl">이 페이지를 마치면</div>
+        <ul>
+          <li>로봇 동역학 식의 각 항이 어떤 함수에 대응하는지 안다</li>
+          <li>중력보상 토크를 계산할 수 있다</li>
+          <li>\(J^{\top}\) 로 손끝의 힘을 관절 토크로 옮길 수 있다</li>
+          <li>프레임 기준 CLIK 으로 역기구학을 풀 수 있다</li>
+          <li>실제 로봇에 올리기 전에 확인할 것을 안다</li>
+        </ul>
+      </div>
+
+      <div class="block">
+        <h3>식 한 줄과 함수 네 개</h3>
+        <div class="eq">\[ M(q)\,\ddot q \;+\; C(q,\dot q)\,\dot q \;+\; g(q) \;=\; \tau \;+\; J^{\top} F_{\text{ext}} \]</div>
+        <p class="body-text">왼쪽은 로봇이 내는 힘, 오른쪽은 밖에서 넣는 힘입니다. 각 항이 함수 하나씩에 대응합니다.</p>
+        <table class="tbl">
+          <tr><th>항</th><th>함수</th><th>복잡도</th><th>언제 쓰나</th></tr>
+          <tr><td>\(M(q)\)</td><td><code>pin.crba</code></td><td>\(O(n^2)\)</td><td>임피던스 제어, QP 의 비용함수와 제약</td></tr>
+          <tr><td>\(C\dot q + g\)</td><td><code>pin.nonLinearEffects</code></td><td>\(O(n)\)</td><td>보상해야 할 나머지 전부</td></tr>
+          <tr><td>\(g(q)\)</td><td><code>pin.computeGeneralizedGravity</code></td><td>\(O(n)\)</td><td>중력보상</td></tr>
+          <tr><td>\(\tau = \text{ID}(q,\dot q,\ddot q)\)</td><td><code>pin.rnea</code></td><td>\(O(n)\)</td><td>원하는 움직임에 필요한 토크</td></tr>
+          <tr><td>\(\ddot q = \text{FD}(q,\dot q,\tau)\)</td><td><code>pin.aba</code></td><td>\(O(n)\)</td><td>시뮬레이션, 예측</td></tr>
+        </table>
+        <p class="body-text">여기서 중요한 사실 하나. <b>역동역학은 질량행렬을 만들지 않고도 풀립니다.</b> RNEA 는 뿌리에서 끝으로 속도와 가속도를 전파하고, 끝에서 뿌리로 힘을 모으는 두 번의 순회로 끝납니다. 그래서 \(O(n)\) 입니다. 관절이 50개인 휴머노이드에서도 마이크로초 단위로 끝나는 이유가 이것입니다.</p>
+      </div>
+
+      <div class="block">
+        <h3>중력보상 — 가장 먼저 쓰게 되는 기능</h3>
+        <pre>q = pin.neutral(model)          <span class="cm"># 실제로는 엔코더에서 읽은 현재 각도</span>
+tau_g = pin.computeGeneralizedGravity(model, data, q)
+
+<span class="cm"># 같은 값을 RNEA 로도 구할 수 있습니다 (속도 0, 가속도 0)</span>
+zero = np.zeros(model.nv)
+assert np.allclose(tau_g, pin.rnea(model, data, q, zero, zero))
+
+print("중력보상 토크 [Nm]:", tau_g)</pre>
+        <p class="body-text">토크 제어가 되는 로봇이라면 이 값을 그대로 흘려 주는 것만으로 팔이 제자리에 뜹니다. 사람이 손으로 밀면 밀리는 대로 따라오고, 놓으면 그 자리에 머뭅니다. <b>중력보상 모드</b>라고 부르는 그 상태입니다.</p>
+        <p class="body-text">Level 4 에서 다룰 모방학습 데이터를 모을 때 사람이 로봇 팔을 직접 잡고 끌고 다니는 방식(kinesthetic teaching)이 바로 이 모드 위에서 돌아갑니다. 중력보상이 어긋나 있으면 시연 데이터 전체가 처지거나 떠오르는 쪽으로 치우칩니다.</p>
+      </div>
+
+      <div class="block">
+        <h3>손끝에 힘을 걸기 — 작업공간 임피던스</h3>
+        <p class="body-text">손끝을 어떤 위치로 끌어당기고 싶다고 합시다. 관절 각도를 계산해서 위치 제어로 보낼 수도 있지만, 토크 제어가 되면 더 직접적인 길이 있습니다. <b>원하는 힘을 정하고 \(J^{\top}\) 로 관절 토크로 옮기는 것</b>입니다.</p>
+        <div class="eq">\[ \tau \;=\; J^{\top}\big(K_p\,(x_d - x) \;-\; K_d\,\dot x\big) \;+\; g(q) \]</div>
+        <pre>fid = model.getFrameId("link6")
+Kp = np.diag([400.0, 400.0, 400.0])
+Kd = np.diag([ 40.0,  40.0,  40.0])
+
+def torque(q, v, x_des):
+    pin.framesForwardKinematics(model, data, q)
+    pin.computeJointJacobians(model, data, q)
+    J6 = pin.getFrameJacobian(model, data, fid, pin.ReferenceFrame.LOCAL_WORLD_ALIGNED)
+    J  = J6[:3]                       <span class="cm"># 선속도 세 줄만 (Pinocchio 는 선속도가 앞)</span>
+
+    x    = data.oMf[fid].translation
+    xdot = J @ v
+
+    f = Kp @ (x_des - x) - Kd @ xdot          <span class="cm"># 손끝에 걸고 싶은 힘 [N]</span>
+    return J.T @ f + pin.computeGeneralizedGravity(model, data, q)</pre>
+        <p class="body-text">\(J^{\top}\) 가 힘을 토크로 옮기는 근거는 수학 기초 5편의 가상일 관계입니다. 손끝에서 한 일과 관절에서 한 일이 같아야 하므로 \(\tau^{\top}\dot q = F^{\top}\dot x\) 이고, \(\dot x = J \dot q\) 를 넣으면 \(\tau = J^{\top}F\) 가 나옵니다.</p>
+        <div class="callout">
+          <b>중력 항을 빼먹으면 생기는 일</b>
+          팔이 목표보다 항상 조금 아래에 머뭅니다. \(K_p\) 를 올리면 줄어들지만 완전히 사라지지 않고, 대신 로봇이 딱딱해집니다. 현장에서 "왜 자꾸 아래로 처지지" 싶을 때 제일 먼저 확인할 곳입니다.
+        </div>
+      </div>
+
+      <div class="block">
+        <h3>CLIK 역기구학 — 35편과 같은 문제, 다른 도구</h3>
+        <p class="body-text">이번에는 위치뿐 아니라 자세까지 맞춥니다. 오차를 6차원으로 재야 하는데, 회전의 오차를 빼기로 잴 수는 없으므로 로그사상을 씁니다. 수학 기초 4편에서 본 그 \(\log\) 입니다.</p>
+        <pre>fid   = model.getFrameId("link6")
+oMdes = pin.SE3(np.eye(3), np.array([0.335, -0.113, 0.619]))   <span class="cm"># 목표 자세</span>
+
+q    = pin.neutral(model)
+eps  = 1e-4      <span class="cm"># 수렴 판정</span>
+DT   = 1e-1      <span class="cm"># 한 스텝에 얼마나 갈지</span>
+damp = 1e-12     <span class="cm"># 특이점 근처에서 터지지 않게 하는 감쇠</span>
+
+for i in range(1000):
+    pin.framesForwardKinematics(model, data, q)
+    fMd = data.oMf[fid].actInv(oMdes)        <span class="cm"># 목표를 현재 손끝 기준으로 본 변환</span>
+    err = pin.log(fMd).vector                <span class="cm"># 6차원 오차 (선 3 + 각 3)</span>
+    if np.linalg.norm(err) &lt; eps:
+        print(f"{i} 번 만에 수렴"); break
+
+    J = pin.computeFrameJacobian(model, data, q, fid)   <span class="cm"># 기본값 LOCAL</span>
+    J = -pin.Jlog6(fMd.inverse()) @ J
+    v = -J.T @ np.linalg.solve(J @ J.T + damp * np.eye(6), err)
+    q = pin.integrate(model, q, v * DT)
+
+print("결과 q:", q)
+print("남은 오차:", np.linalg.norm(err))</pre>
+        <p class="body-text">두 줄만 설명하면 충분합니다. <code>Jlog6</code> 는 "로그로 잰 오차"가 관절 속도에 대해 어떻게 변하는지를 보정하는 항입니다. 빼도 대개 수렴하지만 회전 오차가 클 때 수렴이 느려집니다. 공식 예제가 쓰는 방식 그대로입니다. <code>damp</code> 를 넣은 역행렬은 감쇠 최소자승이고, 특이 자세 근처에서 관절 속도가 발산하는 것을 막습니다. 35편에서 <code>np.linalg.inv(J @ J.T)</code> 가 특이행렬이라며 터졌던 그 문제의 정식 해법입니다.</p>
+        <p class="body-text">자세는 상관없고 위치만 맞추고 싶다면 <code>err[:3]</code> 과 <code>J[:3]</code> 만 쓰면 됩니다. 35편에서 한 것이 정확히 그것입니다.</p>
+      </div>
+
+      <div class="block">
+        <h3>MuJoCo 와 숫자 맞춰 보기</h3>
+        <p class="body-text">같은 로봇이라면 두 라이브러리의 동역학 값도 같아야 합니다. 안 맞으면 코드가 아니라 <b>모델</b>이 다른 것입니다.</p>
+        <table class="tbl">
+          <tr><th>양</th><th>MuJoCo</th><th>Pinocchio</th></tr>
+          <tr><td>질량행렬 \(M\)</td><td><code>mj_fullM(m, M, d.qM)</code></td><td><code>pin.crba(model, data, q)</code></td></tr>
+          <tr><td>\(C\dot q + g\)</td><td><code>d.qfrc_bias</code></td><td><code>pin.nonLinearEffects(model, data, q, v)</code></td></tr>
+          <tr><td>역동역학</td><td><code>mj_rne</code>, <code>mj_inverse</code></td><td><code>pin.rnea(model, data, q, v, a)</code></td></tr>
+          <tr><td>자코비안</td><td><code>mj_jacBody</code></td><td><code>computeFrameJacobian(..., LOCAL_WORLD_ALIGNED)</code></td></tr>
+        </table>
+        <p class="body-text">값이 어긋날 때 의심할 곳은 셋입니다.</p>
+        <ul class="plain">
+          <li><b>로터 관성</b> — MJCF 의 <code>armature</code> 는 질량행렬 대각에 더해지는 항입니다. URDF 에는 이런 칸이 없으므로 Pinocchio 쪽에 <code>model.armature</code> 로 같은 값을 넣어야 맞습니다</li>
+          <li><b>댐핑과 마찰</b> — MJCF 에만 적혀 있는 경우가 많습니다. MuJoCo 쪽에서는 <code>qfrc_passive</code> 로 따로 빠져 있으니 비교할 때 섞이지 않게 하세요</li>
+          <li><b>질량과 관성 자체</b> — URDF 와 MJCF 를 각각 손으로 만들었다면 둘이 다를 수 있습니다. 링크별 질량 합부터 비교해 보세요</li>
+        </ul>
+        <p class="body-text"><code>pin.crba</code> 는 대칭인 질량행렬을 그대로 돌려줍니다. 예전 버전에서 위쪽 삼각만 채워 주던 시절의 코드를 그대로 베끼면 혼란스러우니, 지금 버전 기준으로 쓰면 됩니다.</p>
+      </div>
+
+      <div class="block">
+        <h3>왜 MPC 와 최적화가 Pinocchio 를 고르는가</h3>
+        <p class="body-text">여기가 Pinocchio 의 진짜 강점입니다. 알고리즘의 <b>해석적 미분</b>을 함께 제공합니다.</p>
+        <pre>pin.computeRNEADerivatives(model, data, q, v, a)
+<span class="cm"># data.dtau_dq, data.dtau_dv, data.M 에 미분이 들어옵니다</span>
+
+pin.computeABADerivatives(model, data, q, v, tau)
+<span class="cm"># data.ddq_dq, data.ddq_dv</span></pre>
+        <p class="body-text">최적제어나 MPC 는 매 반복마다 "이 토크를 조금 바꾸면 궤적이 얼마나 바뀌는가"를 알아야 합니다. 수치 미분으로 구하면 느리고 부정확합니다. 그래서 Crocoddyl, TSID 같은 제어와 최적화 라이브러리가 Pinocchio 위에 올라가 있습니다. C++ 템플릿으로 짜여 있어 CasADi 같은 기호 연산 타입으로도 인스턴스화되고, 코드 생성까지 이어집니다.</p>
+      </div>
+
+      <div class="block">
+        <h3>실제 로봇에 올리기 전에</h3>
+        <ul class="plain">
+          <li><b>URDF 의 질량과 관성이 맞아야 합니다.</b> 중력보상의 품질은 URDF 의 품질입니다. CAD 에서 뽑은 값이 그대로 들어 있는지, 손으로 대충 채운 값이 남아 있지는 않은지 확인하세요. 링크 하나의 질량이 틀리면 그 아래 관절 전부가 틀립니다</li>
+          <li><b>감속기 마찰은 모델 밖입니다.</b> 하모닉 드라이브의 정지 마찰은 중력 토크와 비슷한 크기일 수 있습니다. 중력보상만으로 팔이 안 움직인다면 대개 마찰입니다. 따로 식별해서 더해야 합니다</li>
+          <li><b>토크 제어가 되는 로봇이어야 합니다.</b> 위치 명령만 받는 팔에서는 중력보상 토크를 보낼 곳이 없습니다. 이 경우 Pinocchio 는 기구학과 궤적 계획 쪽으로 씁니다</li>
+          <li><b>제어 주기 안에 끝나야 합니다.</b> 6축이면 계산 자체는 마이크로초 단위지만 파이썬 호출 비용이 그보다 큽니다. 1kHz 루프라면 C++ 로 가세요. 파이썬은 검증과 실험용입니다</li>
+          <li><b>처음 올릴 때는 비상정지에 손을 올려 두세요.</b> 부호 하나가 뒤집히면 중력보상이 중력가속이 됩니다. 1편의 안전수칙 그대로입니다</li>
+        </ul>
+      </div>
+
+      <div class="block">
+        <h3>자가 점검</h3>
+        <ul class="checklist" id="cl-pinocchio-dyn">
+          <li><input type="checkbox"><span>동역학 식의 각 항과 Pinocchio 함수를 짝지을 수 있다</span></li>
+          <li><input type="checkbox"><span>중력보상 토크를 계산하고 <code>rnea</code> 결과와 같은지 확인했다</span></li>
+          <li><input type="checkbox"><span>\(J^{\top}\) 로 손끝 힘을 관절 토크로 옮기는 이유를 설명할 수 있다</span></li>
+          <li><input type="checkbox"><span>CLIK 으로 위치와 자세를 함께 맞춰 수렴시켰다</span></li>
+          <li><input type="checkbox"><span>MuJoCo 와 질량행렬 또는 중력 토크를 비교해 보았다</span></li>
+          <li><input type="checkbox"><span>실제 로봇에 올리기 전 확인할 것을 세 가지 이상 말할 수 있다</span></li>
+        </ul>
+      </div>
+
+      <div class="block evidence-section">
+        <h3>인증 스크린샷 첨부</h3>
+        <p class="body-text" style="margin-top:-4px;">중력보상 토크를 출력한 화면이나, CLIK 이 수렴한 콘솔 화면을 캡처해 올려두세요. 인증서 발급 시 증빙자료로 자동 첨부됩니다.</p>
+        <div class="evidence-widget" id="ev-page-pinocchio-dyn"></div>
+      </div>
+
+      <div class="callout hands">
         <b>다음 — 도전 과제</b>
-        여기까지 한 팔로 손끝을 원하는 한 점까지 보냈습니다. 다음 페이지는 정답 코드가 없는 도전 과제입니다. 양팔 로봇 AI Worker로 두 손이 <b>동시에</b> 서로 다른 도형을 그리게 만듭니다. 출발점은 이 페이지의 CLIK 루프를 팔마다 한 번씩, 같은 루프 안에서 돌리는 것입니다.
+        이제 두 도구를 다 손에 쥐었습니다. 다음은 정답 코드가 없는 도전 과제입니다. 양팔 로봇 AI Worker 로 두 손이 동시에 서로 다른 도형을 그리게 만듭니다. MuJoCo 로 풀어도 되고, 여유가 있다면 같은 문제를 Pinocchio 로 한 번 더 풀어 두 결과를 비교해 보세요.
       </div>
     </section>
 <!-- ============ PAGE AIWORKER DUALARM : 도전 과제 — 양팔로 원과 삼각형 ============ -->
     <section class="page" data-type="hands" id="page-aiworker-dualarm">
-      <div class="crumb">LEVEL 3 URDF와 기구학 <span class="sep">›</span> 36 도전 과제 — 양팔로 원과 삼각형</div>
+      <div class="crumb">LEVEL 3 URDF와 기구학 <span class="sep">›</span> 38 도전 과제 — 양팔로 원과 삼각형</div>
       <div class="page-head">
         <h2>도전 과제 — 양팔로 원과 삼각형</h2>
         <span class="badge hands">도전 과제</span>
@@ -5361,7 +5704,7 @@ $ git push origin main</pre>
     </section>
 <!-- ============ PAGE NN BASICS : 뉴럴네트워크 기초 ============ -->
     <section class="page" data-type="theory" id="page-nn-basics">
-      <div class="crumb">LEVEL 4 학습 기반 조작 <span class="sep">›</span> 37 뉴럴네트워크 기초</div>
+      <div class="crumb">LEVEL 4 학습 기반 조작 <span class="sep">›</span> 39 뉴럴네트워크 기초</div>
       <div class="page-head">
         <h2>뉴럴네트워크 기초</h2>
         <span class="badge theory">이론 강의</span>
@@ -5452,7 +5795,7 @@ $ git push origin main</pre>
     </section>
 <!-- ============ PAGE TRANSFORMER : 트랜스포머 ============ -->
     <section class="page" data-type="theory" id="page-transformer">
-      <div class="crumb">LEVEL 4 학습 기반 조작 <span class="sep">›</span> 38 트랜스포머</div>
+      <div class="crumb">LEVEL 4 학습 기반 조작 <span class="sep">›</span> 40 트랜스포머</div>
       <div class="page-head">
         <h2>트랜스포머</h2>
         <span class="badge theory">이론 강의</span>
@@ -5527,7 +5870,7 @@ $ git push origin main</pre>
     </section>
 <!-- ============ PAGE VISION BACKBONE ============ -->
     <section class="page" data-type="theory" id="page-vision">
-      <div class="crumb">LEVEL 4 학습 기반 조작 <span class="sep">›</span> 39 비전 백본 (ResNet, ViT)</div>
+      <div class="crumb">LEVEL 4 학습 기반 조작 <span class="sep">›</span> 41 비전 백본 (ResNet, ViT)</div>
       <div class="page-head">
         <h2>비전 백본 — ResNet과 ViT</h2>
         <span class="badge theory">이론 강의</span>
@@ -5732,7 +6075,7 @@ $ git push origin main</pre>
     </section>
 <!-- ============ PAGE DIFFUSION : 확산 모델 ============ -->
     <section class="page" data-type="theory" id="page-diffusion">
-      <div class="crumb">LEVEL 4 학습 기반 조작 <span class="sep">›</span> 40 확산 모델 (Diffusion)</div>
+      <div class="crumb">LEVEL 4 학습 기반 조작 <span class="sep">›</span> 42 확산 모델 (Diffusion)</div>
       <div class="page-head">
         <h2>확산 모델 (Diffusion)</h2>
         <span class="badge theory">이론 강의</span>
@@ -5841,7 +6184,7 @@ for t in reversed(range(T)):
     </section>
 <!-- ============ PAGE FLOW : 플로우 매칭 ============ -->
     <section class="page" data-type="theory" id="page-flow">
-      <div class="crumb">LEVEL 4 학습 기반 조작 <span class="sep">›</span> 41 플로우 매칭 (Flow)</div>
+      <div class="crumb">LEVEL 4 학습 기반 조작 <span class="sep">›</span> 43 플로우 매칭 (Flow)</div>
       <div class="page-head">
         <h2>플로우 매칭 (Flow)</h2>
         <span class="badge theory">이론 강의</span>
@@ -5947,7 +6290,7 @@ for t in reversed(range(T)):
     </section>
 <!-- ============ PAGE ACT ============ -->
     <section class="page" data-type="theory" id="page-act">
-      <div class="crumb">LEVEL 4 학습 기반 조작 <span class="sep">›</span> 42 ACT — 행동 묶음과 트랜스포머</div>
+      <div class="crumb">LEVEL 4 학습 기반 조작 <span class="sep">›</span> 44 ACT — 행동 묶음과 트랜스포머</div>
       <div class="page-head">
         <h2>ACT — 행동 묶음과 트랜스포머</h2>
         <span class="badge theory">이론 강의</span>
@@ -6047,7 +6390,7 @@ actions = action_head(decoder(dec_in, encoder(tokens)))        <span class="cm">
     </section>
 <!-- ============ PAGE DIFFUSION POLICY ============ -->
     <section class="page" data-type="theory" id="page-diffusion-policy">
-      <div class="crumb">LEVEL 4 학습 기반 조작 <span class="sep">›</span> 43 Diffusion Policy</div>
+      <div class="crumb">LEVEL 4 학습 기반 조작 <span class="sep">›</span> 45 Diffusion Policy</div>
       <div class="page-head">
         <h2>Diffusion Policy</h2>
         <span class="badge theory">이론 강의</span>
@@ -6095,7 +6438,7 @@ actions = action_head(decoder(dec_in, encoder(tokens)))        <span class="cm">
     </section>
 <!-- ============ PAGE PI0 ============ -->
     <section class="page" data-type="theory" id="page-pi0">
-      <div class="crumb">LEVEL 4 학습 기반 조작 <span class="sep">›</span> 44 π0 — 비전, 언어, 행동 모델</div>
+      <div class="crumb">LEVEL 4 학습 기반 조작 <span class="sep">›</span> 46 π0 — 비전, 언어, 행동 모델</div>
       <div class="page-head">
         <h2>π0 — 비전, 언어, 행동 모델</h2>
         <span class="badge theory">이론 강의</span>
@@ -6138,7 +6481,7 @@ actions = action_head(decoder(dec_in, encoder(tokens)))        <span class="cm">
     </section>
 <!-- ============ PAGE GR00T ============ -->
     <section class="page" data-type="theory" id="page-groot">
-      <div class="crumb">LEVEL 4 학습 기반 조작 <span class="sep">›</span> 45 GR00T — 휴머노이드 파운데이션 모델</div>
+      <div class="crumb">LEVEL 4 학습 기반 조작 <span class="sep">›</span> 47 GR00T — 휴머노이드 파운데이션 모델</div>
       <div class="page-head">
         <h2>GR00T — 휴머노이드 파운데이션 모델</h2>
         <span class="badge theory">이론 강의</span>
@@ -6184,7 +6527,7 @@ actions = action_head(decoder(dec_in, encoder(tokens)))        <span class="cm">
     </section>
 <!-- ============ PAGE ACTION REPRESENTATION / UMI ============ -->
     <section class="page" data-type="theory" id="page-action-rep">
-      <div class="crumb">LEVEL 4 학습 기반 조작 <span class="sep">›</span> 46 행동을 무엇으로 적을 것인가 (UMI)</div>
+      <div class="crumb">LEVEL 4 학습 기반 조작 <span class="sep">›</span> 48 행동을 무엇으로 적을 것인가 (UMI)</div>
       <div class="page-head">
         <h2>행동을 무엇으로 적을 것인가 (UMI)</h2>
         <span class="badge theory">이론 강의</span>
@@ -6369,7 +6712,7 @@ if pose_rep == 'relative':
     </section>
 <!-- ============ PAGE DATASET : 데이터셋과 정규화 ============ -->
     <section class="page" data-type="theory" id="page-dataset">
-      <div class="crumb">LEVEL 4 학습 기반 조작 <span class="sep">›</span> 47 데이터셋과 정규화 (LeRobot)</div>
+      <div class="crumb">LEVEL 4 학습 기반 조작 <span class="sep">›</span> 49 데이터셋과 정규화 (LeRobot)</div>
       <div class="page-head">
         <h2>데이터셋과 정규화 (LeRobot)</h2>
         <span class="badge theory">이론 강의</span>
@@ -6486,7 +6829,7 @@ sample["action_is_pad"]             <span class="cm"># 에피소드 끝을 넘�
     </section>
 <!-- ============ PAGE OVERLEAF : Overleaf 시작하기 ============ -->
     <section class="page" data-type="hands" id="page-overleaf">
-      <div class="crumb">LEVEL 5 LaTeX (Overleaf) <span class="sep">›</span> 48 Overleaf 시작하기</div>
+      <div class="crumb">LEVEL 5 LaTeX (Overleaf) <span class="sep">›</span> 50 Overleaf 시작하기</div>
       <div class="page-head">
         <h2>Overleaf 시작하기</h2>
         <span class="badge hands">실습 가이드</span>
@@ -6542,7 +6885,7 @@ sample["action_is_pad"]             <span class="cm"># 에피소드 끝을 넘�
     </section>
 <!-- ============ PAGE LATEX : LaTeX 문서 구조 & 수식 ============ -->
     <section class="page" data-type="hands" id="page-latex">
-      <div class="crumb">LEVEL 5 LaTeX (Overleaf) <span class="sep">›</span> 49 LaTeX 문서 구조 & 수식</div>
+      <div class="crumb">LEVEL 5 LaTeX (Overleaf) <span class="sep">›</span> 51 LaTeX 문서 구조 & 수식</div>
       <div class="page-head">
         <h2>LaTeX 문서 구조 & 수식</h2>
         <span class="badge hands">실습 가이드</span>
@@ -6705,20 +7048,22 @@ sample["action_is_pad"]             <span class="cm"># 에피소드 끝을 넘�
     {id:'page-mujoco-basics', num:'33', title:'MuJoCo 기초', type:'hands', level:'LEVEL 3'},
     {id:'page-mujoco-control', num:'34', title:'MuJoCo 관절 제어', type:'hands', level:'LEVEL 3'},
     {id:'page-mujoco-integration', num:'35', title:'MuJoCo 순기구학과 자코비안 (CLIK)', type:'hands', level:'LEVEL 3'},
-    {id:'page-aiworker-dualarm', num:'36', title:'도전 과제 — 양팔로 원과 삼각형', type:'hands', level:'LEVEL 3'},
-    {id:'page-nn-basics', num:'37', title:'뉴럴네트워크 기초', type:'theory', level:'LEVEL 4'},
-    {id:'page-transformer', num:'38', title:'트랜스포머', type:'theory', level:'LEVEL 4'},
-    {id:'page-vision', num:'39', title:'비전 백본 (ResNet, ViT)', type:'theory', level:'LEVEL 4'},
-    {id:'page-diffusion', num:'40', title:'확산 모델 (Diffusion)', type:'theory', level:'LEVEL 4'},
-    {id:'page-flow', num:'41', title:'플로우 매칭 (Flow)', type:'theory', level:'LEVEL 4'},
-    {id:'page-act', num:'42', title:'ACT', type:'theory', level:'LEVEL 4'},
-    {id:'page-diffusion-policy', num:'43', title:'Diffusion Policy', type:'theory', level:'LEVEL 4'},
-    {id:'page-pi0', num:'44', title:'π0 (VLA)', type:'theory', level:'LEVEL 4'},
-    {id:'page-groot', num:'45', title:'GR00T', type:'theory', level:'LEVEL 4'},
-    {id:'page-action-rep', num:'46', title:'행동 표현과 UMI', type:'theory', level:'LEVEL 4'},
-    {id:'page-dataset', num:'47', title:'데이터셋과 정규화', type:'theory', level:'LEVEL 4'},
-    {id:'page-overleaf', num:'48', title:'Overleaf 시작하기', type:'hands', level:'LEVEL 5'},
-    {id:'page-latex', num:'49', title:'LaTeX 문서 구조 & 수식', type:'hands', level:'LEVEL 5'},
+    {id:'page-pinocchio', num:'36', title:'Pinocchio 시작 — 모델 계산', type:'hands', level:'LEVEL 3'},
+    {id:'page-pinocchio-dyn', num:'37', title:'Pinocchio 동역학 — 중력보상과 IK', type:'hands', level:'LEVEL 3'},
+    {id:'page-aiworker-dualarm', num:'38', title:'도전 과제 — 양팔로 원과 삼각형', type:'hands', level:'LEVEL 3'},
+    {id:'page-nn-basics', num:'39', title:'뉴럴네트워크 기초', type:'theory', level:'LEVEL 4'},
+    {id:'page-transformer', num:'40', title:'트랜스포머', type:'theory', level:'LEVEL 4'},
+    {id:'page-vision', num:'41', title:'비전 백본 (ResNet, ViT)', type:'theory', level:'LEVEL 4'},
+    {id:'page-diffusion', num:'42', title:'확산 모델 (Diffusion)', type:'theory', level:'LEVEL 4'},
+    {id:'page-flow', num:'43', title:'플로우 매칭 (Flow)', type:'theory', level:'LEVEL 4'},
+    {id:'page-act', num:'44', title:'ACT', type:'theory', level:'LEVEL 4'},
+    {id:'page-diffusion-policy', num:'45', title:'Diffusion Policy', type:'theory', level:'LEVEL 4'},
+    {id:'page-pi0', num:'46', title:'π0 (VLA)', type:'theory', level:'LEVEL 4'},
+    {id:'page-groot', num:'47', title:'GR00T', type:'theory', level:'LEVEL 4'},
+    {id:'page-action-rep', num:'48', title:'행동 표현과 UMI', type:'theory', level:'LEVEL 4'},
+    {id:'page-dataset', num:'49', title:'데이터셋과 정규화', type:'theory', level:'LEVEL 4'},
+    {id:'page-overleaf', num:'50', title:'Overleaf 시작하기', type:'hands', level:'LEVEL 5'},
+    {id:'page-latex', num:'51', title:'LaTeX 문서 구조 & 수식', type:'hands', level:'LEVEL 5'},
     {id:'page-cert', num:'🎓', title:'인증서 발급', type:'cert', level:'CERTIFICATE'},
   ];
 
