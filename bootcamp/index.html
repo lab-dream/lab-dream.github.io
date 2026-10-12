@@ -5495,12 +5495,13 @@ pin.computeABADerivatives(model, data, q, v, tau)
         <h2>도전 과제 — 양팔로 원과 삼각형</h2>
         <span class="badge hands">도전 과제</span>
       </div>
-      <p class="lead">지금까지는 팔 하나(OMY)로 손끝을 한 점까지 보냈습니다. 이번엔 ROBOTIS의 양팔 로봇 <b style="color:var(--text)">AI Worker (FFW)</b>로, <b style="color:var(--text)">왼손은 원</b>, <b style="color:var(--text)">오른손은 삼각형</b>을 <b style="color:var(--text)">동시에</b> 그립니다. 이 페이지는 정답 코드를 주지 않으니, 앞 페이지의 CLIK 루프와 아래 힌트만으로 직접 완성해보세요.</p>
+      <p class="lead">지금까지는 팔 하나(OMY)로 손끝을 한 점까지 보냈습니다. 이번엔 ROBOTIS의 양팔 로봇 <b style="color:var(--text)">AI Worker (FFW)</b>로, <b style="color:var(--text)">왼손은 원</b>, <b style="color:var(--text)">오른손은 삼각형</b>을 <b style="color:var(--text)">동시에</b> 그립니다. 한 가지가 더 바뀝니다. <b style="color:var(--text)">기구학 계산은 MuJoCo 가 아니라 Pinocchio 로 합니다.</b> MuJoCo 는 화면에 그리고 물리를 굴리는 일만 맡습니다. 실제 로봇에 올릴 때 코드가 어떤 모양이 되는지를 미리 해 보는 것입니다. 정답 코드는 주지 않으니 앞의 CLIK 루프와 아래 힌트만으로 직접 완성해보세요.</p>
 
       <div class="goal-box">
         <div class="lbl">이 과제를 마치면</div>
         <ul>
-          <li>관절 이름으로 <code>qpos</code>, 자코비안 열, <code>ctrl</code> 인덱스를 각각 찾아 쓸 수 있다</li>
+          <li>같은 로봇을 MuJoCo 와 Pinocchio 에 각각 올리고 두 모델이 같은지 검증할 수 있다</li>
+          <li>관절 이름으로 <code>qpos</code>, <code>ctrl</code>, Pinocchio 의 \(q\) 와 자코비안 열 인덱스를 각각 찾아 쓸 수 있다</li>
           <li>7자유도 팔 두 개를 한 루프 안에서 독립적으로 CLIK 제어할 수 있다</li>
           <li>작업공간에서 원과 삼각형 같은 닫힌 경로를 매개변수 하나로 만들 수 있다</li>
           <li>손끝 궤적을 기록해 그림으로 검증할 수 있다</li>
@@ -5508,12 +5509,19 @@ pin.computeABADerivatives(model, data, q, v, tau)
       </div>
 
       <div class="block">
-        <h3>모델 내려받기 — 저장소는 같습니다</h3>
-        <pre>$ uv add mujoco matplotlib
+        <h3>준비 — 같은 모델을 두 번 읽습니다</h3>
+        <pre>$ uv add mujoco pin matplotlib
 $ git clone https://github.com/ROBOTIS-GIT/robotis_mujoco_menagerie.git
 $ ls robotis_mujoco_menagerie/robotis_ffw</pre>
-        <p class="body-text">MuJoCo 기초 페이지에서 OMY 모델을 받았던 <b>그 저장소</b>에 AI Worker 모델도 같이 들어있습니다. 이미 clone 해뒀다면 <code>git pull</code>만 하면 됩니다. <code>robotis_ffw</code> 안에는 <code>ffw_bg2</code>, <code>ffw_sg2</code>, <code>ffw_sh5</code> 세 버전이 있는데, 이 과제는 양팔 + 리프트 구성인 <b>BG2</b> 기준입니다.</p>
-        <pre>MODEL_PATH = "robotis_mujoco_menagerie/robotis_ffw/scene_ffw_bg2.xml"</pre>
+        <p class="body-text">MuJoCo 기초 페이지에서 OMY 모델을 받았던 <b>그 저장소</b>에 AI Worker 모델도 같이 들어있습니다. 이미 clone 해뒀다면 <code>git pull</code>만 하면 됩니다. <code>robotis_ffw</code> 안에는 <code>ffw_bg2</code>, <code>ffw_sg2</code>, <code>ffw_sh5</code> 세 버전이 있는데, 이 과제는 양팔과 리프트 구성인 <b>BG2</b> 기준입니다.</p>
+        <p class="body-text">이번에는 <b>역할을 나눕니다.</b> 화면에 그리고 물리를 굴리는 것은 MuJoCo, 손끝 위치와 자코비안은 <b>Pinocchio</b> 입니다. 실제 로봇에서는 MuJoCo 자리에 진짜 하드웨어가 들어가고 Pinocchio 쪽 코드는 그대로 남습니다. 그 구조를 미리 만들어 보는 것이 이 과제의 숨은 목적입니다.</p>
+        <pre>MJ_PATH  = "robotis_mujoco_menagerie/robotis_ffw/scene_ffw_bg2.xml"   <span class="cm"># 바닥과 조명까지 — MuJoCo 용</span>
+PIN_PATH = "robotis_mujoco_menagerie/robotis_ffw/ffw_bg2.xml"         <span class="cm"># 로봇만 — Pinocchio 용</span></pre>
+        <div class="callout">
+          <b>Pinocchio 는 MJCF 도 읽습니다</b>
+          36편에서는 URDF 를 읽었지만, Pinocchio 3 부터 MJCF 파서가 들어 있습니다. <code>pin.buildModelFromMJCF(PIN_PATH)</code> 한 줄이면 MuJoCo 와 <b>같은 파일</b>에서 모델을 만들 수 있습니다. URDF 를 따로 구할 필요가 없고, 무엇보다 두 모델이 어긋날 일이 없습니다. 씬 파일 대신 로봇 파일을 주는 이유는 바닥과 조명이 로봇의 일부가 아니기 때문입니다.
+          <br><br>파서가 이 파일의 어떤 요소에서 멈춘다면, ROBOTIS 의 ROS 2 패키지 <code>ffw_description</code> 안에 URDF 가 있으니 36편 방식으로 바꿔 끼우면 됩니다. 그리퍼 4개를 하나로 묶는 <code>equality</code> 제약은 Pinocchio 쪽으로 넘어오지 않는데, 팔만 쓰는 이 과제에서는 상관없습니다.
+        </div>
         <a class="linkbox" href="https://github.com/ROBOTIS-GIT/robotis_mujoco_menagerie" target="_blank">
           <span class="ico">GIT</span>
           <span class="meta"><b>robotis_mujoco_menagerie — ROBOTIS 로봇 MuJoCo 모델 모음</b><span>github.com/ROBOTIS-GIT/robotis_mujoco_menagerie</span></span>
@@ -5526,7 +5534,7 @@ $ ls robotis_mujoco_menagerie/robotis_ffw</pre>
         <pre>import mujoco
 import numpy as np
 
-model = mujoco.MjModel.from_xml_path(MODEL_PATH)
+model = mujoco.MjModel.from_xml_path(MJ_PATH)
 data = mujoco.MjData(model)
 
 print("관절 수 njnt :", model.njnt, " 자유도 nv :", model.nv)
@@ -5550,26 +5558,55 @@ for i in range(model.nu):
       </div>
 
       <div class="block">
-        <h3>힌트 1 — 이름으로 인덱스 찾기</h3>
-        <pre>def arm_index(prefix):
-    """prefix 예: "arm_l" / "arm_r" → (qpos 인덱스, 자코비안 열 인덱스, ctrl 인덱스)"""
-    qpos_id, dof_id, ctrl_id = [], [], []
-    for i in range(1, 8):
-        j = model.joint(f"{prefix}_joint{i}")
-        qpos_id.append(int(j.qposadr[0]))   <span class="cm"># data.qpos 에서의 위치</span>
-        dof_id.append(int(j.dofadr[0]))     <span class="cm"># 자코비안의 열 번호</span>
-        ctrl_id.append(model.actuator(f"{prefix}_joint{i}").id)   <span class="cm"># data.ctrl 에서의 위치</span>
-    return np.array(qpos_id), np.array(dof_id), np.array(ctrl_id)
+        <h3>힌트 1 — 이름으로 인덱스 찾기 (양쪽 모두)</h3>
+        <p class="body-text">이제 배열이 네 종류입니다. MuJoCo 의 <code>qpos</code> 와 <code>ctrl</code>, 그리고 Pinocchio 의 \(q\) 와 자코비안 열. <b>순서가 같을 것이라고 가정하지 말고</b> 전부 이름으로 찾으세요.</p>
+        <pre>import pinocchio as pin
 
-L_QPOS, L_DOF, L_CTRL = arm_index("arm_l")
-R_QPOS, R_DOF, R_CTRL = arm_index("arm_r")
-print("왼팔  qpos:", L_QPOS, " dof:", L_DOF, " ctrl:", L_CTRL)
-print("오른팔 qpos:", R_QPOS, " dof:", R_DOF, " ctrl:", R_CTRL)</pre>
-        <p class="body-text"><code>qposadr</code>(관절 위치 배열에서의 시작 주소), <code>dofadr</code>(자유도 번호 = 자코비안의 열 번호), <code>actuator(...).id</code>(제어 입력 배열에서의 위치)는 <b>서로 다른 배열의 인덱스</b>입니다. 앞 페이지의 OMY에서는 이 셋이 우연히 0~5로 같았을 뿐입니다. 출력해보면 <code>ctrl</code>만 값이 다르게 나오는 걸 확인할 수 있습니다. 이 모델은 자유 관절(free joint)이 없어 <code>qpos</code>와 <code>dof</code>는 일치하지만, 개념이 다르므로 습관적으로 구분해서 쓰세요.</p>
+pin_model = pin.buildModelFromMJCF(PIN_PATH)
+pin_data  = pin_model.createData()
+print("Pinocchio  nq =", pin_model.nq, " nv =", pin_model.nv)
+
+def arm_index(prefix):
+    """prefix 예: "arm_l" / "arm_r" → MuJoCo qpos, MuJoCo ctrl, Pinocchio q, Pinocchio v"""
+    qpos_id, ctrl_id, pq, pv = [], [], [], []
+    for i in range(1, 8):
+        name = f"{prefix}_joint{i}"
+        qpos_id.append(int(model.joint(name).qposadr[0]))   <span class="cm"># data.qpos 에서의 위치</span>
+        ctrl_id.append(model.actuator(name).id)             <span class="cm"># data.ctrl 에서의 위치</span>
+        jid = pin_model.getJointId(name)                    <span class="cm"># Pinocchio 의 관절 번호</span>
+        pq.append(pin_model.idx_qs[jid])                    <span class="cm"># q 에서의 위치</span>
+        pv.append(pin_model.idx_vs[jid])                    <span class="cm"># 자코비안의 열 번호</span>
+    return tuple(np.array(a) for a in (qpos_id, ctrl_id, pq, pv))
+
+L_QPOS, L_CTRL, L_Q, L_V = arm_index("arm_l")
+R_QPOS, R_CTRL, R_Q, R_V = arm_index("arm_r")
+print("왼팔  mj_qpos:", L_QPOS, " mj_ctrl:", L_CTRL, " pin_q:", L_Q, " pin_v:", L_V)</pre>
+        <p class="body-text">출력해보면 <code>ctrl</code> 만 값이 다릅니다. 액추에이터가 19개뿐이라 그리퍼 쪽에서 번호가 밀리기 때문입니다. 앞 페이지의 OMY 에서는 이 인덱스들이 우연히 0부터 5로 모두 같았을 뿐입니다.</p>
+        <p class="body-text">이 로봇은 자유 부유 베이스가 없고 모든 관절이 1자유도라 <code>idx_q</code> 와 <code>idx_v</code> 가 같은 값으로 나옵니다. 그래도 둘을 나눠 받아 두세요. 휴머노이드로 옮기는 순간 둘이 어긋나고, 그때 36편에서 본 <code>pin.integrate</code> 가 필요해집니다.</p>
       </div>
 
       <div class="block">
-        <h3>힌트 2 — 준비 자세는 좌우가 거울 대칭</h3>
+        <h3>힌트 2 — 두 모델이 같은 로봇인지 먼저 확인</h3>
+        <p class="body-text">여기서 틀리면 뒤는 볼 것도 없습니다. <b>같은 관절각을 양쪽에 넣고 손끝 위치를 비교</b>하세요. 36편에서 OMY 로 한 것과 같은 검산입니다.</p>
+        <pre>rng = np.random.default_rng(0)
+q = pin.neutral(pin_model)
+q[L_Q] = rng.uniform(-0.5, 0.5, 7)    <span class="cm"># 0 자세는 축 부호 실수를 숨깁니다</span>
+q[R_Q] = rng.uniform(-0.5, 0.5, 7)
+
+data.qpos[L_QPOS] = q[L_Q]            <span class="cm"># 같은 각도를 MuJoCo 에도</span>
+data.qpos[R_QPOS] = q[R_Q]
+mujoco.mj_forward(model, data)
+pin.framesForwardKinematics(pin_model, pin_data, q)
+
+for name in ("arm_l_link7", "arm_r_link7"):
+    fid = pin_model.getFrameId(name)
+    d = np.abs(data.body(name).xpos - pin_data.oMf[fid].translation).max()
+    print(f"{name}  위치 차이 {d:.2e} m")       <span class="cm"># 1e-6 보다 작아야 합니다</span></pre>
+        <p class="body-text">MJCF 하나에서 두 모델을 만들었으니 원래 같아야 맞습니다. 그래도 확인하는 이유는, 이 검산이 통과하면 그 뒤로 나오는 모든 숫자를 믿을 수 있기 때문입니다. 어긋난다면 관절 인덱스를 잘못 짝지었거나 (<code>oMi</code> 와 <code>oMf</code> 혼동 포함) 다른 파일을 읽은 것입니다.</p>
+      </div>
+
+      <div class="block">
+        <h3>힌트 3 — 준비 자세는 좌우가 거울 대칭</h3>
         <pre>for i in range(1, 8):
     j = model.joint(f"arm_l_joint{i}")
     print("arm_l_joint", i, np.rad2deg(j.range))</pre>
@@ -5580,7 +5617,7 @@ READY_R_DEG = [0, -30, 0, -60, 0, 30, 0]   <span class="cm"># joint2 부호가 �
       </div>
 
       <div class="block">
-        <h3>힌트 3 — 도형은 매개변수 하나로</h3>
+        <h3>힌트 4 — 도형은 매개변수 하나로</h3>
         <p class="body-text">절대 좌표를 하드코딩하지 마세요. 준비 자세에서 읽은 <b>각 손끝의 현재 위치를 도형의 중심</b>으로 삼고, 거기서의 상대 오프셋으로 경로를 만들면 준비 자세를 바꿔도 코드가 그대로 돕니다. 아래는 몸통 정면(Y-Z 평면)에 그리는 경우입니다.</p>
         <pre>def circle(center, s, r=0.06):
     """s: 0→1 한 바퀴"""
@@ -5600,37 +5637,53 @@ def triangle(center, s, side=0.12):
       </div>
 
       <div class="block">
-        <h3>힌트 4 — 한 루프에서 두 팔</h3>
-        <pre>jacp = np.zeros((3, model.nv))
-jacr = np.zeros((3, model.nv))
+        <h3>힌트 5 — 한 루프에서 두 팔, 계산은 Pinocchio</h3>
+        <p class="body-text">상태 \(q\) 는 이제 <b>Pinocchio 쪽 배열 하나</b>가 원본입니다. MuJoCo 에는 그 결과를 복사해 넣어 화면만 갱신합니다. 실제 로봇이라면 \(q\) 를 엔코더에서 읽고, 계산한 목표를 모터로 내려보내는 자리입니다.</p>
+        <pre>LWA = pin.ReferenceFrame.LOCAL_WORLD_ALIGNED   <span class="cm"># 35편 mj_jacBody 와 같은 기준</span>
 
-def clik_step(prefix, qpos_id, dof_id, ctrl_id, target, gain=0.5):
-    body = f"{prefix}_link7"
-    mujoco.mj_jacBody(model, data, jacp, jacr, model.body(body).id)
-    J = jacp[:, dof_id]                       <span class="cm"># 3 x 7 — 이 팔의 열만 골라낸다</span>
-    error = target - data.body(body).xpos
-    dq = J.T @ np.linalg.inv(J @ J.T) @ error  <span class="cm"># 또는 np.linalg.pinv(J) @ error</span>
-    data.qpos[qpos_id] += gain * dq
-    data.ctrl[ctrl_id] = data.qpos[qpos_id]
+def clik_step(q, name, q_cols, v_cols, target, gain=0.5):
+    """q 를 제자리에서 고치고 이번 스텝의 오차를 돌려줍니다."""
+    fid = pin_model.getFrameId(name)
+    pin.framesForwardKinematics(pin_model, pin_data, q)
+    pin.computeJointJacobians(pin_model, pin_data, q)
 
-<span class="cm"># ... 준비 자세로 보내고 mj_forward 한 뒤 중심 위치를 읽어둔다 ...</span>
+    J   = pin.getFrameJacobian(pin_model, pin_data, fid, LWA)[:3, v_cols]   <span class="cm"># 3 x 7</span>
+    err = target - pin_data.oMf[fid].translation
+    dq  = np.linalg.pinv(J) @ err
+
+    q[q_cols] += gain * dq
+    return err
+
+<span class="cm"># ... 준비 자세로 q 를 채우고 FK 한 번 돌려 두 손끝의 중심 위치를 읽어둔다 ...</span>
 
 with mujoco.viewer.launch_passive(model, data) as viewer:
     for step in range(N_STEPS):
         s = (step / STEPS_PER_LAP) % 1.0
-        mujoco.mj_forward(model, data)
-        clik_step("arm_l", L_QPOS, L_DOF, L_CTRL, circle(center_l, s))
-        clik_step("arm_r", R_QPOS, R_DOF, R_CTRL, triangle(center_r, s))
+
+        e_l = clik_step(q, "arm_l_link7", L_Q, L_V, circle(center_l, s))
+        e_r = clik_step(q, "arm_r_link7", R_Q, R_V, triangle(center_r, s))
+
+        data.qpos[L_QPOS] = q[L_Q]      <span class="cm"># 계산 결과를 화면으로</span>
+        data.qpos[R_QPOS] = q[R_Q]
+        data.ctrl[L_CTRL] = q[L_Q]
+        data.ctrl[R_CTRL] = q[R_Q]
         mujoco.mj_step(model, data)
         viewer.sync()
-        trace_l.append(data.body("arm_l_link7").xpos.copy())
-        trace_r.append(data.body("arm_r_link7").xpos.copy())</pre>
-        <p class="body-text">두 팔을 번갈아 그리는 게 아니라, <b>매 스텝 두 팔 모두 CLIK 보정을 한 번씩</b> 받는 구조입니다. 앞 페이지와 똑같이 <code>qpos</code>를 직접 덮어쓰는 "기구학 확인" 방식이므로, 이건 진짜 제어가 아니라는 점도 그대로입니다.</p>
+
+        trace_l.append(pin_data.oMf[pin_model.getFrameId("arm_l_link7")].translation.copy())
+        trace_r.append(pin_data.oMf[pin_model.getFrameId("arm_r_link7")].translation.copy())</pre>
+        <p class="body-text">두 팔을 번갈아 그리는 게 아니라 <b>매 스텝 두 팔 모두 보정을 한 번씩</b> 받는 구조입니다. 그리고 <code>mj_step</code> 은 더 이상 기구학에 관여하지 않습니다. 화면을 갱신하고 물리를 한 칸 굴릴 뿐입니다.</p>
+        <p class="body-text">궤적도 Pinocchio 쪽에서 기록했습니다. MuJoCo 의 <code>xpos</code> 로 기록해도 같은 값이 나와야 하니, 둘 다 저장해 두고 끝에서 비교해 보면 좋은 확인이 됩니다.</p>
+        <div class="callout danger">
+          <b><code>getFrameJacobian</code> 앞에는 <code>computeJointJacobians</code> 가 필요합니다</b>
+          <code>getFrameJacobian</code> 은 이미 계산된 값을 꺼내 쓰는 함수라, 앞에서 <code>computeJointJacobians(model, data, q)</code> 를 부르지 않으면 <b>지난 스텝의 자코비안</b>을 그대로 돌려줍니다. 오류는 나지 않고 수렴만 이상해집니다. 한 번에 끝내고 싶으면 <code>pin.computeFrameJacobian(model, data, q, fid, LWA)</code> 를 쓰세요. 매번 FK 를 다시 도는 대신 호출 한 번으로 끝납니다.
+        </div>
       </div>
 
       <div class="callout">
         <b>두 팔인데 자코비안은 왜 하나로 충분한가</b>
-        <code>mj_jacBody</code>는 로봇 로봇의 <b>전체 자유도</b>(<code>nv</code> = 25)를 모두 포함한 3×25 자코비안을 돌려줍니다. 거기서 왼팔 7열만 뽑으면 "다른 관절은 그대로 두고 왼팔만 움직였을 때 왼손이 어떻게 움직이나"가 됩니다. 두 팔은 베이스를 공유하지만 서로의 열에는 전혀 나타나지 않으므로, 팔마다 따로 풀어도 수학적으로 정확합니다. 반대로 <code>lift_joint</code>를 자코비안에 포함시키면 두 팔이 <b>같은 열</b>을 공유하게 되어 한쪽 팔의 보정이 다른 팔의 손끝을 밀어버립니다. 그래서 이 과제에서는 리프트와 머리를 고정합니다.
+        <code>getFrameJacobian</code> 은 로봇의 <b>전체 자유도</b>(<code>nv</code> = 25)를 모두 포함한 6×25 자코비안을 돌려줍니다. 거기서 왼팔 7열만 뽑으면 "다른 관절은 그대로 두고 왼팔만 움직였을 때 왼손이 어떻게 움직이나"가 됩니다. 뽑지 않은 열에는 무엇이 들어 있을까요. 오른팔 열은 <b>전부 0</b> 입니다. 왼손은 오른팔 관절의 영향을 받지 않으니까요. 직접 출력해서 확인해 보세요. 자코비안의 구조가 로봇의 트리 구조를 그대로 비춘다는 것이 눈에 들어옵니다.
+        <br><br>반대로 <code>lift_joint</code> 열은 <b>양쪽 손 모두 0이 아닙니다.</b> 리프트는 두 팔이 함께 올라타 있는 관절이라, 포함시키면 한쪽 팔의 보정이 다른 팔의 손끝을 밀어버립니다. 그래서 이 과제에서는 리프트와 머리를 고정합니다.
       </div>
 
       <div class="callout">
@@ -5647,13 +5700,15 @@ with mujoco.viewer.launch_passive(model, data) as viewer:
         <h3>과제 요구사항</h3>
         <table class="tbl">
           <tr><th>#</th><th>요구사항</th></tr>
-          <tr><td>1</td><td>AI Worker(<code>scene_ffw_bg2.xml</code>)를 띄우고, 두 팔을 관절 한계와 자기 충돌이 없는 준비 자세로 보낸다</td></tr>
-          <tr><td>2</td><td>왼손은 <b>반지름 6cm 원</b>, 오른손은 <b>한 변 12cm 정삼각형</b>을 그린다 (중심은 각 손의 준비 자세 위치, 평면은 자유)</td></tr>
-          <tr><td>3</td><td>두 도형을 <b>한 루프 안에서 동시에</b> 그린다 — 한 팔씩 순서대로 그리면 안 됨</td></tr>
-          <tr><td>4</td><td>한 바퀴 2~3초 속도로 <b>3바퀴 이상</b> 반복해도 발산하지 않는다</td></tr>
-          <tr><td>5</td><td>리프트와 머리 관절은 움직이지 않는다</td></tr>
-          <tr><td>6</td><td>두 손의 궤적을 기록해 <b>matplotlib로 한 장에</b> 그려 저장한다 (원은 원으로, 삼각형은 삼각형으로 보여야 함)</td></tr>
-          <tr><td>7</td><td>콘솔에 <b>평균 오차와 최대 오차</b>(m)를 출력한다</td></tr>
+          <tr><td>1</td><td>AI Worker 를 MuJoCo 와 Pinocchio 양쪽에 올리고, 같은 관절각에서 두 손끝 위치가 \(10^{-6}\)m 이내로 일치하는 것을 출력으로 보인다</td></tr>
+          <tr><td>2</td><td>두 팔을 관절 한계와 자기 충돌이 없는 준비 자세로 보낸다</td></tr>
+          <tr><td>3</td><td>왼손은 <b>반지름 6cm 원</b>, 오른손은 <b>한 변 12cm 정삼각형</b>을 그린다 (중심은 각 손의 준비 자세 위치, 평면은 자유)</td></tr>
+          <tr><td>4</td><td>두 도형을 <b>한 루프 안에서 동시에</b> 그린다 — 한 팔씩 순서대로 그리면 안 됨</td></tr>
+          <tr><td>5</td><td>손끝 위치와 자코비안은 <b>Pinocchio 로</b> 계산한다 — MuJoCo 는 화면과 물리만 맡는다</td></tr>
+          <tr><td>6</td><td>한 바퀴 2~3초 속도로 <b>3바퀴 이상</b> 반복해도 발산하지 않는다</td></tr>
+          <tr><td>7</td><td>리프트와 머리 관절은 움직이지 않는다</td></tr>
+          <tr><td>8</td><td>두 손의 궤적을 기록해 <b>matplotlib로 한 장에</b> 그려 저장한다 (원은 원으로, 삼각형은 삼각형으로 보여야 함)</td></tr>
+          <tr><td>9</td><td>콘솔에 <b>평균 오차와 최대 오차</b>(m)를 출력한다</td></tr>
         </table>
         <p class="body-text">성공 기준: 원 궤적의 반지름 편차와 삼각형 각 변의 직선 편차가 <b>5mm 이내</b>, 그리고 꼭짓점 3곳을 모두 지나갈 것. Python 기초 3에서 배운 matplotlib과 NumPy를 그대로 쓰면 됩니다. 궤적 배열에서 Y와 Z 성분만 뽑아 <code>plt.plot</code> 하면 2D 도형이 됩니다.</p>
       </div>
@@ -5675,7 +5730,13 @@ with mujoco.viewer.launch_passive(model, data) as viewer:
           <li><b>속도를 다르게</b> — 원은 2초에 한 바퀴, 삼각형은 3초에 한 바퀴로 두 손의 주기를 다르게 합니다.</li>
           <li><b>평면 기울이기</b> — 회전행렬을 곱해 비스듬한 평면에 그립니다.</li>
           <li><b>꼭짓점에서 감속</b> — 삼각형의 꼭짓점 근처에서 진행 속도를 줄이는 S-curve를 적용해 오차 스파이크를 줄입니다.</li>
-          <li><b>펜 끝 기준</b> — 그리퍼로 펜을 쥐었다고 가정하고, <code>arm_*_link7</code>에서 일정 오프셋만큼 떨어진 점을 끝단으로 삼습니다. (<code>mj_jacBody</code> 대신 <code>mj_jac</code>로 임의의 점을 기준으로 자코비안을 구할 수 있습니다.)</li>
+          <li><b>펜 끝 기준</b> — 그리퍼로 펜을 쥐었다고 가정하고, <code>arm_*_link7</code>에서 일정 오프셋만큼 떨어진 점을 끝단으로 삼습니다. Pinocchio 에서는 프레임을 하나 새로 만들어 붙이면 그다음은 코드가 똑같습니다.
+<pre>parent = pin_model.getFrameId("arm_l_link7")
+jid    = pin_model.frames[parent].parentJoint
+placement = pin_model.frames[parent].placement * pin.SE3(np.eye(3), np.array([0, 0, -0.15]))
+pin_model.addFrame(pin.Frame("pen_l", jid, parent, placement, pin.FrameType.OP_FRAME))
+pin_data = pin_model.createData()      <span class="cm"># 프레임을 추가했으면 data 를 다시 만들어야 합니다</span></pre></li>
+          <li><b>두 팔을 한 번에 풀기</b> — 지금은 팔마다 따로 풀지만, 두 과제를 세로로 쌓아 6×25 하나로 풀 수도 있습니다. <code>J = np.vstack([J_left_3xnv, J_right_3xnv])</code>, <code>err = np.concatenate([e_l, e_r])</code> 로 두고 한 번에 유사역행렬을 걸면, <code>lift_joint</code> 를 풀어 줘도 두 손이 서로를 밀지 않습니다. 공유 관절이 있는 양팔 로봇에서는 이쪽이 정석입니다.</li>
         </ul>
       </div>
 
@@ -5690,6 +5751,10 @@ with mujoco.viewer.launch_passive(model, data) as viewer:
           <tr><td><code>LinAlgError: Singular matrix</code></td><td>특이 자세 — <code>np.linalg.pinv</code>로 바꾸고 준비 자세를 다시 잡음</td></tr>
           <tr><td>팔꿈치가 계속 돌아감</td><td>여유 자유도가 떠도는 것 — 위 널스페이스 항이나 <code>np.clip</code> 적용</td></tr>
           <tr><td>뷰어가 버벅임</td><td><code>viewer.sync()</code>를 매 스텝 대신 2~5스텝마다 호출</td></tr>
+          <tr><td>두 모델의 손끝 위치가 다름</td><td>관절 인덱스를 잘못 짝지었거나 씬 파일(<code>scene_ffw_bg2.xml</code>)을 Pinocchio 에 넣었음. 힌트 2의 검산을 통과한 뒤에 진행</td></tr>
+          <tr><td>로봇이 엉뚱한 방향으로 감</td><td>자코비안 기준을 <code>LOCAL</code>(기본값)이나 <code>WORLD</code>로 둠 — 35편과 같은 결과를 원하면 <code>LOCAL_WORLD_ALIGNED</code></td></tr>
+          <tr><td>손끝이 링크 원점과 어긋남</td><td><code>data.oMi</code>(관절)와 <code>data.oMf</code>(프레임)를 혼동함</td></tr>
+          <tr><td>수렴이 이상하게 느림</td><td><code>getFrameJacobian</code> 앞에 <code>computeJointJacobians</code> 를 빠뜨려 지난 스텝의 자코비안을 쓰고 있음</td></tr>
         </table>
       </div>
 
@@ -5704,7 +5769,9 @@ $ git push origin main</pre>
         <h3>자가 점검</h3>
         <ul class="checklist" id="cl-aiworker-dualarm">
           <li><input type="checkbox"><span>AI Worker(BG2) 모델을 뷰어로 띄우고 관절과 액추에이터 개수를 출력했다</span></li>
-          <li><input type="checkbox"><span>관절 이름으로 <code>qpos</code>, 자코비안 열, <code>ctrl</code> 인덱스를 찾아 썼다</span></li>
+          <li><input type="checkbox"><span>같은 MJCF 를 Pinocchio 에도 올리고 두 모델의 손끝 위치가 일치하는 것을 확인했다</span></li>
+          <li><input type="checkbox"><span>관절 이름으로 MuJoCo 의 <code>qpos</code>, <code>ctrl</code> 과 Pinocchio 의 \(q\), 자코비안 열 인덱스를 찾아 썼다</span></li>
+          <li><input type="checkbox"><span>자코비안을 <code>LOCAL_WORLD_ALIGNED</code> 기준으로 뽑아 썼고, 왜 그 기준인지 설명할 수 있다</span></li>
           <li><input type="checkbox"><span>두 팔을 좌우 대칭 준비 자세로 보냈다</span></li>
           <li><input type="checkbox"><span>왼손은 원, 오른손은 삼각형을 한 루프에서 동시에 그렸다</span></li>
           <li><input type="checkbox"><span>3바퀴 이상 발산 없이 반복했다</span></li>
@@ -5722,7 +5789,7 @@ $ git push origin main</pre>
 
       <div class="callout hands">
         <b>Level 3 완료</b>
-        URDF로 로봇 구조를 표현하고, 기구학으로 관절과 손끝의 관계를 손으로 유도하고, MuJoCo로 그 계산을 자동화해 한 팔을 목표 지점까지 보낸 다음, 마지막으로 양팔 로봇에서 두 손이 동시에 서로 다른 경로를 따르게 만들었습니다. 여기까지가 손으로 적는 규칙에 기반한 제어입니다. 이어지는 Level 4에서는 반대로 데이터에서 행동을 배우는 쪽을 다룹니다.
+        URDF 로 로봇 구조를 표현하고, 기구학으로 관절과 손끝의 관계를 손으로 유도하고, MuJoCo 로 그 계산을 자동화해 한 팔을 목표 지점까지 보낸 다음, Pinocchio 로 같은 계산을 실제 로봇에서 쓰는 방식으로 옮기고, 마지막으로 양팔 로봇에서 두 손이 동시에 서로 다른 경로를 따르게 만들었습니다. 마지막 과제의 코드에서 MuJoCo 를 들어내고 그 자리에 진짜 로봇의 엔코더와 모터를 연결하면 그대로 돌아갑니다. 여기까지가 손으로 적는 규칙에 기반한 제어입니다. 이어지는 Level 4 에서는 반대로 데이터에서 행동을 배우는 쪽을 다룹니다.
       </div>
     </section>
 <!-- ============ PAGE NN BASICS : 뉴럴네트워크 기초 ============ -->
