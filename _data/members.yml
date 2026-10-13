@@ -135,6 +135,7 @@
       image: /assets/img/research/patacon.jpg
       video: /assets/video/patacon-replanning.mp4
       links:
+        arxiv: https://arxiv.org/abs/2610.13195
         project: /patacon_paper/
 
 - name: Junho An
@@ -156,6 +157,7 @@
         tangent-bundle search in parallel on the GPU.
       tags: [Motion Planning, Constrained Manifold]
       links:
+        arxiv: https://arxiv.org/abs/2610.13195
         project: /patacon_paper/
 
 - name: Hwang Young Sang

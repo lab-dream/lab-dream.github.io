@@ -40,15 +40,15 @@
 - title: "PATACON: GPU-Parallel Tangent-Bundle RRT-Connect for Constrained Motion Planning"
   authors: "Gahyun Oh, Junho An, Suhyun Jeon, Suhan Park"
   venue: Preprint
-  venue_full: 제약 조건 하 모션 플래닝 (arXiv 공개 예정)
+  venue_full: "arXiv:2610.13195 — 제약 조건 하 모션 플래닝"
   year: 2026
   type: preprint
-  note: arXiv soon
   selected: true
   topics: [motion-planning]
   image: /assets/img/research/patacon.jpg
   video: /assets/video/patacon-replanning.mp4
   links:
+    arxiv: https://arxiv.org/abs/2610.13195
     project: /patacon_paper/
     video: /patacon_paper/assets/video/patacon-paper-video.mp4
 
