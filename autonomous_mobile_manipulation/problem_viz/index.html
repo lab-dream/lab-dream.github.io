@@ -1,0 +1,1393 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="자율이동조작 중간고사의 로봇을 직접 움직여 보고, 식이 어떻게 나오는지 한 줄씩 따라가는 페이지.">
+
+<style>
+  /* what the Artifact viewer supplies and a web server does not */
+  html { color-scheme: light; }
+  body { margin: 0; }
+  img { max-width: 100%; }
+  [hidden] { display: none !important; }
+</style>
+<title>중간고사 로봇 해설</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nanum+Myeongjo:wght@400;700;800&family=Noto+Sans+KR:wght@400;500;700&family=IBM+Plex+Mono:wght@400;600&display=swap">
+
+<style>
+/* Layout: scene tabs over a two-pane stage — drawing left, derivation and
+   live numbers right — collapsing to one column at phone width. */
+:root {
+  --bg:      #FAF7F2;
+  --surface: #FFFFFF;
+  --sunk:    #F0ECE4;
+  --line:    #DFD6C9;
+  --fg:      #241C19;
+  --muted:   #706159;
+  --maroon:  #6B2130;
+  --good:    #2E6E52;
+  --bad:     #B4652A;
+  --display: 'Nanum Myeongjo', 'Apple SD Gothic Neo', serif;
+  --body:    'Noto Sans KR', system-ui, sans-serif;
+  --mono:    'IBM Plex Mono', ui-monospace, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #17120F; --surface: #211A16; --sunk: #2B231D; --line: #3D332B;
+    --fg: #EFE8E0; --muted: #A2948A; --maroon: #D4808F;
+    --good: #6FBF95; --bad: #E0A070; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #17120F; --surface: #211A16; --sunk: #2B231D; --line: #3D332B;
+  --fg: #EFE8E0; --muted: #A2948A; --maroon: #D4808F;
+  --good: #6FBF95; --bad: #E0A070; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg);
+  font-family: var(--body); font-size: 15px; line-height: 1.65; margin: 0;
+}
+.wrap {
+  max-width: 1140px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 56px;
+}
+header h1 {
+  font-family: var(--display); font-weight: 800;
+  font-size: clamp(26px, 5vw, 40px); line-height: 1.2;
+  margin: 0 0 6px; text-wrap: balance; color: var(--maroon);
+}
+header p.lede { margin: 0; color: var(--muted); max-width: 62ch; }
+header .meta {
+  margin-top: 10px; font-family: var(--mono); font-size: 12px;
+  color: var(--muted); letter-spacing: .02em;
+}
+
+nav.scenes {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  margin: 24px 0 18px; padding-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+}
+nav.scenes button {
+  font: 500 13px/1.3 var(--body); color: var(--muted);
+  background: transparent; border: 1px solid var(--line);
+  border-radius: 999px; padding: 7px 13px; cursor: pointer;
+  transition: background .15s, color .15s, border-color .15s;
+}
+nav.scenes button:hover { color: var(--fg); border-color: var(--muted); }
+nav.scenes button[aria-selected="true"] {
+  background: var(--maroon); border-color: var(--maroon); color: #fff;
+}
+nav.scenes button .qn {
+  font-family: var(--mono); font-size: 11px; opacity: .75; margin-right: 6px;
+}
+
+.stage { display: grid; grid-template-columns: 1.1fr .9fr; gap: 22px; }
+@media (max-width: 880px) { .stage { grid-template-columns: 1fr; } }
+
+.panelbox {
+  background: var(--surface); border: 1px solid var(--line);
+  border-radius: 10px; padding: 16px 18px; min-width: 0;
+}
+.viewbox { padding: 10px 10px 4px; }
+svg.robot { display: block; width: 100%; height: auto; max-width: 100%; }
+
+h2.scene {
+  font-family: var(--display); font-weight: 700;
+  font-size: 20px; margin: 0 0 4px; color: var(--fg); text-wrap: balance;
+}
+p.qref {
+  font-family: var(--mono); font-size: 11.5px; color: var(--maroon);
+  margin: 0 0 12px; letter-spacing: .03em;
+}
+.panelbox p { margin: 0 0 11px; }
+.panelbox p:last-child { margin-bottom: 0; }
+em.hl { font-style: normal; color: var(--maroon); font-weight: 700; }
+
+/* ---- derivation, revealed a step at a time ---- */
+.deriv { margin: 14px 0 4px; display: grid; gap: 0; }
+.deriv .step {
+  border-left: 2px solid var(--line); padding: 7px 0 7px 13px;
+  opacity: .28; transition: opacity .3s, border-color .3s;
+}
+.deriv .step.on { opacity: 1; }
+.deriv .step.cur { border-left-color: var(--maroon); }
+.deriv .eq { font-size: 13.5px; line-height: 1.75; }
+.deriv .eq b { color: var(--maroon); font-weight: 600; }
+.deriv .math { overflow-x: auto; overflow-y: hidden; padding: 3px 0 1px; }
+.deriv .math math { font-size: 1.22em; }
+.deriv .math mstyle[mathvariant="bold"] { color: var(--maroon); }
+math { font-family: var(--display); }
+.deriv .why { font-size: 12.5px; color: var(--muted); margin-top: 2px; }
+.derivbar {
+  display: flex; gap: 7px; align-items: center; margin-top: 12px;
+  flex-wrap: wrap;
+}
+.derivbar .count {
+  font-family: var(--mono); font-size: 12px; color: var(--muted);
+  margin-left: auto; font-variant-numeric: tabular-nums;
+}
+
+/* ---- controls ---- */
+.ctrls { display: grid; gap: 9px; margin: 14px 0 4px; }
+.row { display: grid; grid-template-columns: 2.2em 1fr 4.4em; gap: 9px;
+       align-items: center; }
+.row label { font-family: var(--mono); font-size: 12.5px; color: var(--muted); }
+.row output {
+  font-family: var(--mono); font-size: 12.5px; text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+input[type=range] { width: 100%; accent-color: var(--maroon); min-width: 0; }
+
+.btnrow { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
+.btnrow button, .derivbar button {
+  font: 500 12.5px/1.3 var(--body); cursor: pointer;
+  background: var(--sunk); color: var(--fg);
+  border: 1px solid var(--line); border-radius: 7px; padding: 7px 11px;
+  transition: border-color .15s, background .15s;
+}
+.btnrow button:hover, .derivbar button:hover { border-color: var(--maroon); }
+.btnrow button[data-on="1"] {
+  background: var(--maroon); border-color: var(--maroon); color: #fff;
+}
+button:focus-visible, nav.scenes button:focus-visible {
+  outline: 2px solid var(--maroon); outline-offset: 2px;
+}
+button[disabled] { opacity: .4; cursor: default; }
+
+/* ---- O/X list ---- */
+.oxlist { display: grid; gap: 5px; margin: 12px 0 2px; }
+.oxlist button {
+  display: grid; grid-template-columns: 2.1em 1fr 1.8em; gap: 8px;
+  align-items: start; text-align: left; width: 100%;
+  font: 400 13px/1.5 var(--body); color: var(--fg);
+  background: transparent; border: 1px solid transparent;
+  border-radius: 7px; padding: 6px 8px; cursor: pointer;
+}
+.oxlist button:hover { background: var(--sunk); }
+.oxlist button[data-on="1"] {
+  background: var(--sunk); border-color: var(--maroon);
+}
+.oxlist .num { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.oxlist .ans {
+  font-family: var(--mono); font-weight: 600; text-align: right; font-size: 13px;
+}
+.oxlist .ans.o { color: var(--good); }
+.oxlist .ans.x { color: var(--bad); }
+
+/* ---- matrices and readouts ---- */
+.mat {
+  font-family: var(--mono); font-size: 12.5px;
+  font-variant-numeric: tabular-nums;
+  background: var(--sunk); border: 1px solid var(--line);
+  border-radius: 8px; padding: 10px 12px; margin: 12px 0; overflow-x: auto;
+}
+.mat table { border-collapse: collapse; }
+.mat td { padding: 1px 9px 1px 0; text-align: right; }
+.mat td.rowlab { text-align: left; color: var(--muted); padding-right: 14px; }
+.mat caption {
+  text-align: left; color: var(--muted); font-size: 11px;
+  padding-bottom: 5px; letter-spacing: .03em;
+}
+.mat td.col-hot { color: var(--maroon); font-weight: 600; }
+
+.facts { display: grid; gap: 7px; margin-top: 12px; }
+.fact {
+  display: flex; justify-content: space-between; gap: 12px;
+  align-items: baseline; border-bottom: 1px dotted var(--line);
+  padding-bottom: 5px;
+}
+.fact span { color: var(--muted); font-size: 13px; min-width: 0; }
+.fact b {
+  font-family: var(--mono); font-size: 13px; font-weight: 600;
+  font-variant-numeric: tabular-nums; white-space: nowrap;
+}
+.fact b.ok { color: var(--good); }
+.fact b.no { color: var(--bad); }
+
+.note {
+  font-size: 13px; color: var(--muted);
+  border-left: 2px solid var(--line); padding-left: 11px; margin-top: 14px;
+}
+footer {
+  margin-top: 34px; padding-top: 16px; border-top: 1px solid var(--line);
+  color: var(--muted); font-size: 12.5px;
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <header>
+    <h1>중간고사 로봇 해설</h1>
+    <p class="lede">문제지의 로봇을 직접 움직여 보고, 식이 어떻게 나오는지
+      한 줄씩 따라가는 페이지입니다. 숫자는 전부 지금 자세에서 실시간으로
+      계산한 값이라, 시험 자세로 두면 정답지의 값이 그대로 나옵니다.</p>
+    <p class="meta">자율이동조작 · 광운대학교 로봇학부 · 박수한</p>
+  </header>
+
+  <nav class="scenes" role="tablist" aria-label="장면"></nav>
+
+  <div class="stage">
+    <div class="panelbox viewbox">
+      <svg class="robot" viewBox="0 0 560 430" role="img"
+           aria-label="로봇 그림"></svg>
+      <div class="btnrow" id="poses"></div>
+    </div>
+    <div class="panelbox" id="panel"></div>
+  </div>
+
+  <footer>
+    축척은 1&nbsp;단위 = 1&nbsp;m입니다. 열 순서는 <span
+    style="font-family:var(--mono)">(b, q₁, q₂, q₃)</span>, 행 순서는 <span
+    style="font-family:var(--mono)">(x, y, θ)</span>.
+  </footer>
+</div>
+
+<script>
+"use strict";
+
+/* ------------------------------------------------------------------ math */
+const L = [1, 1, 1];
+const EXAM = { b: 0.6, q: [0, Math.PI / 2, -Math.PI / 2] };
+const STRAIGHT = { b: 0.6, q: [0, 0, 0] };
+const state = { b: EXAM.b, q: EXAM.q.slice(), scene: 0, t: 0,
+                playing: true, step: 0, ox: 0 };
+
+const cum = q => { const p = []; let s = 0; for (const a of q) { s += a; p.push(s); } return p; };
+
+function fk(b, q) {
+  const p = cum(q); let x = 0, y = b;
+  for (let i = 0; i < 3; i++) { x += L[i] * Math.cos(p[i]); y += L[i] * Math.sin(p[i]); }
+  return { x, y, th: p[2] };
+}
+function pts(b, q) {
+  const p = cum(q), out = [{ x: 0, y: b }]; let x = 0, y = b;
+  for (let i = 0; i < 3; i++) {
+    x += L[i] * Math.cos(p[i]); y += L[i] * Math.sin(p[i]); out.push({ x, y });
+  }
+  return out;
+}
+function jac(b, q) {
+  const p = cum(q);
+  const J = [[0, 0, 0, 0], [1, 0, 0, 0], [0, 0, 0, 0]];
+  for (let i = 0; i < 3; i++) {
+    let sx = 0, sy = 0;
+    for (let k = i; k < 3; k++) { sx += L[k] * Math.sin(p[k]); sy += L[k] * Math.cos(p[k]); }
+    J[0][i + 1] = -sx; J[1][i + 1] = sy; J[2][i + 1] = 1;
+  }
+  return J;
+}
+function jacSpace(b, q) {                       // rows (wz, vx, vy)
+  const P = pts(b, q), Js = [[0, 0, 0, 0], [0, 0, 0, 0], [1, 0, 0, 0]];
+  for (let i = 0; i < 3; i++) {
+    Js[0][i + 1] = 1; Js[1][i + 1] = P[i].y; Js[2][i + 1] = -P[i].x;
+  }
+  return Js;
+}
+const det3 = m =>
+  m[0][0] * (m[1][1] * m[2][2] - m[1][2] * m[2][1])
+  - m[0][1] * (m[1][0] * m[2][2] - m[1][2] * m[2][0])
+  + m[0][2] * (m[1][0] * m[2][1] - m[1][1] * m[2][0]);
+function inv3(m) {
+  const d = det3(m);
+  const c = (r, s) => {
+    const rows = [0, 1, 2].filter(i => i !== r), cols = [0, 1, 2].filter(j => j !== s);
+    const mm = rows.map(i => cols.map(j => m[i][j]));
+    return ((r + s) % 2 ? -1 : 1) * (mm[0][0] * mm[1][1] - mm[0][1] * mm[1][0]);
+  };
+  const out = [[0, 0, 0], [0, 0, 0], [0, 0, 0]];
+  for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) out[j][i] = c(i, j) / d;
+  return out;
+}
+const mulMV = (M, v) => M.map(r => r.reduce((s, a, i) => s + a * v[i], 0));
+const dot = (a, b) => a.reduce((s, x, i) => s + x * b[i], 0);
+const norm = a => Math.sqrt(dot(a, a));
+
+function nullVec(J) {
+  const n = [0, 1, 2, 3].map(k =>
+    (k % 2 ? -1 : 1) * det3(J.map(r => r.filter((_, j) => j !== k))));
+  const s = norm(n);
+  if (s < 1e-12) return [0, 0, 0, 0];
+  const u = n.map(v => v / s);
+  return u[1] < 0 ? u.map(v => -v) : u;
+}
+const JJt = J => [0, 1, 2].map(i => [0, 1, 2].map(j => dot(J[i], J[j])));
+function minNorm(J, V) {
+  const y = mulMV(inv3(JJt(J)), V);
+  return [0, 1, 2, 3].map(k => J[0][k] * y[0] + J[1][k] * y[1] + J[2][k] * y[2]);
+}
+function weighted(J, V, w) {
+  const Jw = J.map(r => r.map((a, k) => a / w[k]));
+  const M = [0, 1, 2].map(i => [0, 1, 2].map(j => dot(Jw[i], J[j])));
+  const y = mulMV(inv3(M), V);
+  return [0, 1, 2, 3].map(k => (J[0][k] * y[0] + J[1][k] * y[1] + J[2][k] * y[2]) / w[k]);
+}
+const LIM = { lo: [-1, -Math.PI / 2, 0, -Math.PI / 2 - 0.3],
+              hi: [1, Math.PI / 2, Math.PI / 2 + 0.2, 0],
+              vmax: [1, 1.5, 1.5, 1.5], dt: 0.5 };
+function velBox(b, q) {
+  const cur = [b, ...q], out = [];
+  for (let i = 0; i < 4; i++) {
+    const rawHi = (LIM.hi[i] - cur[i]) / LIM.dt, rawLo = (LIM.lo[i] - cur[i]) / LIM.dt;
+    out.push({ lo: Math.max(rawLo, -LIM.vmax[i]), hi: Math.min(rawHi, LIM.vmax[i]),
+               rawHi, rawLo, posHi: rawHi < LIM.vmax[i], posLo: rawLo > -LIM.vmax[i] });
+  }
+  return out;
+}
+const M_DYN = [4, 2, 1, 1], H_DYN = [0, 6, 2, 1], TAU_MAX = [50, 10, 5, 5];
+
+/* ------------------------------------------------------------- rendering */
+const svg = document.querySelector("svg.robot");
+const SVGNS = "http://www.w3.org/2000/svg";
+let VIEW = { x0: -1.15, x1: 3.45, y0: -1.55, y1: 2.45, w: 560, h: 430 };
+let S = 1, OX = 0, OY = 0;
+function setView(x0, x1, y0, y1) {
+  VIEW = { x0, x1, y0, y1, w: 560, h: 430 };
+  S = Math.min(VIEW.w / (x1 - x0), VIEW.h / (y1 - y0));
+  OX = (VIEW.w - (x1 - x0) * S) / 2;
+  OY = (VIEW.h - (y1 - y0) * S) / 2;
+}
+setView(-1.15, 3.45, -1.55, 2.45);
+const PX = x => (x - VIEW.x0) * S + OX;
+const PY = y => VIEW.h - ((y - VIEW.y0) * S + OY);
+
+function el(tag, attrs, parent) {
+  const e = document.createElementNS(SVGNS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  (parent || svg).appendChild(e);
+  return e;
+}
+const C = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+function line(x1, y1, x2, y2, stroke, w, dash) {
+  const a = { x1: PX(x1), y1: PY(y1), x2: PX(x2), y2: PY(y2), stroke,
+              "stroke-width": w || 1.2, "stroke-linecap": "round" };
+  if (dash) a["stroke-dasharray"] = dash;
+  return el("line", a);
+}
+function txt(x, y, s, fill, size, anchor) {
+  const t = el("text", { x: PX(x), y: PY(y), fill, "font-size": size || 12,
+    "text-anchor": anchor || "middle", "font-family": "var(--mono)" });
+  t.textContent = s;
+  return t;
+}
+function arrow(x, y, dx, dy, stroke, w) {
+  if (Math.hypot(dx, dy) < 1e-6) return;
+  line(x, y, x + dx, y + dy, stroke, w || 2.2);
+  const a = Math.atan2(dy, dx), h = 0.11, sp = 0.42;
+  line(x + dx, y + dy, x + dx - h * Math.cos(a - sp), y + dy - h * Math.sin(a - sp), stroke, w || 2.2);
+  line(x + dx, y + dy, x + dx - h * Math.cos(a + sp), y + dy - h * Math.sin(a + sp), stroke, w || 2.2);
+}
+const circ = (x, y, r, fill, stroke, w) => el("circle", { cx: PX(x), cy: PY(y),
+  r: r * S, fill: fill || "none", stroke: stroke || "none", "stroke-width": w || 1.5 });
+
+function drawFrame(opts) {
+  const o = opts || {}, sl = C("--muted"), ln = C("--line");
+  line(VIEW.x0 + .05, 0, VIEW.x1 - .05, 0, ln, 1);
+  line(0, VIEW.y0 + .05, 0, VIEW.y1 - .05, ln, 1);
+  txt(VIEW.x1 - .12, -0.22, "x", sl, 12);
+  txt(-0.2, VIEW.y1 - .2, "y", sl, 12);
+  if (o.ticks !== false)
+    for (const t of [1, 2, 3])
+      if (t < VIEW.x1 - .2) { line(t, -.04, t, .04, ln, 1); txt(t, -0.26, String(t), sl, 10.5); }
+  if (o.rail !== false) {
+    line(0, -1, 0, 1, sl, 2);
+    for (const s of [-1, 1]) line(-.07, s, .07, s, sl, 2.6);
+    txt(-0.52, 1, "b=+1", sl, 10);
+    txt(-0.52, -1, "b=−1", sl, 10);
+  }
+}
+
+function drawRobot(b, q, opts) {
+  const o = opts || {}, P = pts(b, q), mr = C("--maroon"), sf = C("--surface");
+  if (o.ghost) {
+    for (let i = 0; i < 3; i++) line(P[i].x, P[i].y, P[i + 1].x, P[i + 1].y, C("--line"), 5);
+    return P;
+  }
+  for (let i = 0; i < 3; i++) {
+    const hot = o.links && o.links.includes(i);
+    line(P[i].x, P[i].y, P[i + 1].x, P[i + 1].y, hot ? C("--good") : mr, hot ? 7 : 5.5);
+  }
+  el("rect", { x: PX(0) - 9, y: PY(b) - 9, width: 18, height: 18, rx: 3,
+               fill: C("--sunk"), stroke: mr, "stroke-width": 1.6 });
+  for (const p of P) circ(p.x, p.y, 4 / S, sf, mr, 1.6);
+  const h = P[3], th = q[0] + q[1] + q[2];
+  circ(h.x, h.y, 6.5 / S, mr);
+  arrow(h.x, h.y, 0.28 * Math.cos(th), 0.28 * Math.sin(th), mr, 1.8);
+  return P;
+}
+
+/* a small wheeled puck, used by the O/X scenes */
+function puck(x, y, th, color, r) {
+  const rr = r || 0.17;
+  circ(x, y, rr, C("--surface"), color, 2.4);
+  arrow(x, y, rr * 1.7 * Math.cos(th), rr * 1.7 * Math.sin(th), color, 2);
+  // the wheel axle, which is what a differential drive cannot slide along
+  line(x - rr * Math.cos(th + Math.PI / 2), y - rr * Math.sin(th + Math.PI / 2),
+       x + rr * Math.cos(th + Math.PI / 2), y + rr * Math.sin(th + Math.PI / 2),
+       color, 3);
+}
+
+/* ---------------------------------------------------------- O/X content */
+const fmt = (v, d) => (Math.abs(v) < 5e-5 ? 0 : v).toFixed(d === undefined ? 3 : d);
+const deg = r => fmt(r * 180 / Math.PI, 1);
+
+const OXS = [
+  { ans: "O", s: "고정형 매니퓰레이터의 작업공간은 팔 길이로 제한되지만, 이동 베이스를 붙이면 그 제한이 사라진다.",
+    view: [-1.6, 3.9, -2.4, 2.9], rail: true, ticks: true,
+    why: "고정형 팔이 닿는 곳은 반지름 3 m 원 하나뿐입니다. 베이스가 레일을 따라 움직이면 그 원이 <em class='hl'>레일을 따라 쓸려</em> 띠가 됩니다. 목표가 원 밖에 있어도 베이스를 옮기면 닿습니다.",
+    draw(t) {
+      const sl = C("--muted"), mr = C("--maroon"), gd = C("--good");
+      circ(0, 0, 3, "none", sl, 1.2);
+      txt(2.1, -2.0, "고정형: 반지름 3 m", sl, 11);
+      const b = 1.0 * Math.sin(t * 0.8);
+      for (let k = -1; k <= 1; k += 0.25) circ(0, k, 3, "none", C("--line"), .7);
+      circ(0, b, 3, "none", gd, 1.6);
+      drawRobot(b, [0.5, -0.5, 0.3]);
+      const tgt = { x: 2.6, y: 2.2 };
+      circ(tgt.x, tgt.y, 0.1, gd);
+      txt(tgt.x + .1, tgt.y + .3, "목표", gd, 11, "start");
+    } },
+
+  { ans: "X", s: "논홀로노믹 베이스는 옆 방향으로 순간 속도를 낼 수 없으므로, 옆쪽 위치로 이동할 수도 없다.",
+    view: [-2.2, 2.6, -1.6, 1.8],
+    why: "앞부분은 맞습니다 — 차동구동은 바퀴축 방향으로 못 미끄러집니다. 하지만 <em class='hl'>결론이 틀렸습니다.</em> 앞뒤와 회전을 섞으면 옆자리에 도달합니다. 평행주차가 그것입니다.",
+    draw(t) {
+      const mr = C("--maroon"), gd = C("--good"), bd = C("--bad"), sl = C("--muted");
+      const goal = { x: 0, y: -1.0 };
+      circ(goal.x, goal.y, 0.2, "none", gd, 1.6);
+      txt(goal.x, goal.y - .42, "가려는 자리", gd, 11);
+      // the sideways velocity it can never have
+      arrow(0, 0, 0, -0.55, bd, 2.4);
+      txt(0.72, -0.34, "이 속도는 없다", bd, 11);
+      line(-.18, -.18, .18, -.5, bd, 2.2); line(-.18, -.5, .18, -.18, bd, 2.2);
+      // a three-point park, played as one loop
+      const u = (t * 0.45) % 3;
+      let x = 0, y = 0, th = 0;
+      if (u < 1) { const k = u; x = -1.1 * k; y = -0.5 * k * k; th = -0.75 * k; }
+      else if (u < 2) { const k = u - 1; x = -1.1 + 1.1 * k; y = -0.5 - 0.5 * k; th = -0.75 + 0.75 * k; }
+      else { const k = u - 2; x = 0; y = -1.0; th = 0; }
+      puck(x, y, th, mr);
+      txt(-1.75, 1.3, "앞 → 뒤 → 정렬", sl, 11, "start");
+    } },
+
+  { ans: "X", s: "오도메트리의 위치 오차는 주행을 계속하면 평균적으로 상쇄되어 줄어든다.",
+    view: [-0.6, 4.4, -1.4, 2.0],
+    why: "바퀴 회전을 <em class='hl'>적분</em>해서 위치를 얻으므로, 미끄러짐과 반지름 오차가 더해지기만 하고 지워지지 않습니다. 시간이 갈수록 참값과 추정값이 벌어집니다.",
+    draw(t) {
+      const mr = C("--maroon"), bd = C("--bad"), sl = C("--muted");
+      const u = Math.min((t * 0.5) % 4, 3.4);
+      const path = (s, slip) => ({ x: s, y: 0.5 * Math.sin(s * 1.1) + slip * s * s * 0.07,
+                                   th: Math.atan2(0.55 * Math.cos(s * 1.1) + slip * 2 * s * 0.07, 1) });
+      let d1 = "", d2 = "";
+      for (let s = 0; s <= u; s += 0.05) {
+        const a = path(s, 0), b2 = path(s, 1);
+        d1 += (s ? "L" : "M") + PX(a.x) + " " + PY(a.y);
+        d2 += (s ? "L" : "M") + PX(b2.x) + " " + PY(b2.y);
+      }
+      el("path", { d: d1, fill: "none", stroke: mr, "stroke-width": 2.4 });
+      el("path", { d: d2, fill: "none", stroke: bd, "stroke-width": 2.4,
+                   "stroke-dasharray": "6 5" });
+      const a = path(u, 0), b2 = path(u, 1);
+      puck(a.x, a.y, a.th, mr, 0.13);
+      puck(b2.x, b2.y, b2.th, bd, 0.13);
+      line(a.x, a.y, b2.x, b2.y, sl, 1.4, "3 3");
+      txt((a.x + b2.x) / 2 + .35, (a.y + b2.y) / 2,
+          "오차 " + fmt(Math.hypot(a.x - b2.x, a.y - b2.y), 2) + " m", sl, 11, "start");
+      txt(0.1, 1.75, "실제 경로", mr, 11, "start");
+      txt(0.1, 1.45, "바퀴로 추정한 경로", bd, 11, "start");
+    } },
+
+  { ans: "O", s: "swerve 또는 메카넘 베이스는 제자리 회전과 평행 이동을 동시에 수행할 수 있다.",
+    view: [-2.0, 2.8, -1.5, 1.9],
+    why: "홀로노믹 베이스는 평면의 세 자유도에 <em class='hl'>입력도 셋</em>이라 제약식이 없습니다. 몸을 돌리면서 동시에 옆으로 미끄러질 수 있습니다.",
+    draw(t) {
+      const mr = C("--maroon"), sl = C("--muted");
+      const u = t * 0.7;
+      const x = 1.2 * Math.sin(u), y = 0.7 * Math.sin(u * 0.8);
+      const th = u * 1.3;
+      for (let k = 0; k < 18; k++) {
+        const uu = u - k * 0.08;
+        circ(1.2 * Math.sin(uu), 0.7 * Math.sin(uu * 0.8), 0.035,
+             C("--line"));
+      }
+      // body square that spins while the centre translates
+      const r = 0.3;
+      const pt = a => ({ x: x + r * Math.cos(th + a), y: y + r * Math.sin(th + a) });
+      const cs = [0, Math.PI / 2, Math.PI, 3 * Math.PI / 2].map(pt);
+      for (let i = 0; i < 4; i++)
+        line(cs[i].x, cs[i].y, cs[(i + 1) % 4].x, cs[(i + 1) % 4].y, mr, 3);
+      for (const c of cs) circ(c.x, c.y, 0.07, C("--surface"), mr, 2);
+      arrow(x, y, 0.42 * Math.cos(th), 0.42 * Math.sin(th), mr, 2.2);
+      txt(-1.85, 1.4, "중심은 미끄러지고, 몸은 돈다", sl, 11, "start");
+    } },
+
+  { ans: "O", s: "베이스 3, 리프트 1, 팔 7×2로 이루어진 AI Worker FFW-SG2의 자유도는 18이다.",
+    view: [-0.4, 4.6, -0.8, 3.0], rail: false, ticks: false,
+    why: "자유도는 그냥 더합니다. <em class='hl'>3 + 1 + 14 = 18.</em> 베이스가 평면이라 셋, 리프트가 하나, 팔이 7개씩 둘입니다.",
+    draw(t) {
+      const mr = C("--maroon"), gd = C("--good"), sl = C("--muted");
+      const stage = Math.floor((t * 0.6) % 4);
+      const bars = [["베이스 x, y, ψ", 3], ["리프트", 1], ["왼팔 7", 7], ["오른팔 7", 7]];
+      let acc = 0;
+      bars.forEach(([lab, n], i) => {
+        const yy = 2.5 - i * 0.62, on = i <= stage;
+        for (let k = 0; k < n; k++)
+          el("rect", { x: PX(0.6 + k * 0.26), y: PY(yy) - 11,
+            width: 0.2 * S, height: 22, rx: 3,
+            fill: on ? (i === stage ? gd : mr) : C("--line") });
+        txt(0.5, yy - 0.08, lab, on ? C("--fg") : sl, 11.5, "end");
+        if (on) acc += n;
+      });
+      txt(2.6, 0.2, "합계 " + acc, gd, 20);
+      txt(2.6, -0.3, "3 + 1 + 7 + 7 = 18", sl, 12);
+    } },
+
+  { ans: "O", s: "휴머노이드의 floating base 6자유도에는 구동기가 달려 있지 않다.",
+    view: [-2.2, 2.6, -1.3, 2.3], rail: false, ticks: false,
+    why: "골반의 6자유도에는 모터가 없습니다(underactuated). 관절을 아무리 흔들어도 <em class='hl'>발이 바닥을 밀어야</em> 몸이 움직입니다. 접촉력이 유일한 입력입니다.",
+    draw(t) {
+      const mr = C("--maroon"), bd = C("--bad"), gd = C("--good"), sl = C("--muted");
+      line(-2.0, -0.9, 2.4, -0.9, sl, 2.4);
+      const sw = 0.33 * Math.sin(t * 1.5);
+      const hip = { x: 0, y: 0.75 };
+      circ(hip.x, hip.y + 0.55, 0.19, C("--surface"), mr, 2.4);
+      line(hip.x, hip.y + 0.36, hip.x, hip.y, mr, 5);
+      for (const s of [-1, 1]) {
+        const kx = hip.x + s * 0.3 + sw * 0.4, ky = hip.y - 0.75;
+        line(hip.x, hip.y, kx, ky, mr, 5);
+        line(kx, ky, kx + s * 0.08, -0.9, mr, 5);
+        arrow(kx + s * 0.08, -0.9, 0, 0.42, gd, 2.4);
+      }
+      circ(hip.x, hip.y, 0.13, C("--surface"), bd, 2.6);
+      line(hip.x - .1, hip.y - .1, hip.x + .1, hip.y + .1, bd, 2.4);
+      line(hip.x - .1, hip.y + .1, hip.x + .1, hip.y - .1, bd, 2.4);
+      txt(hip.x + 0.3, hip.y + 0.1, "모터 없음", bd, 11, "start");
+      txt(1.0, -0.55, "접촉력만이 입력", gd, 11, "start");
+    } },
+
+  { ans: "X", s: "여유 자유도가 있는 로봇에는 Jacobian의 계수가 떨어지는 자세가 존재하지 않는다.",
+    view: [-1.15, 3.45, -1.55, 2.45], rail: true, ticks: true,
+    why: "이 시험의 로봇이 반례입니다. 관절 4, 작업 3이라 <em class='hl'>여유가 있는데도</em> 팔을 모두 펴면 계수가 2로 떨어집니다. 여유가 특이점을 없애 주지는 않습니다.",
+    draw(t) {
+      const u = 0.5 + 0.5 * Math.cos(t * 0.9);
+      const q = [0, u * Math.PI / 2, -u * Math.PI / 2];
+      const P = drawRobot(0.6, q);
+      const J = jac(0.6, q), d = Math.max(det3(JJt(J)), 0);
+      const h = P[3], gd = C("--good"), bd = C("--bad");
+      const A = [[dot(J[0], J[0]), dot(J[0], J[1])], [dot(J[1], J[0]), dot(J[1], J[1])]];
+      const tr = A[0][0] + A[1][1], dt2 = A[0][0] * A[1][1] - A[0][1] * A[1][0];
+      const disc = Math.max(tr * tr / 4 - dt2, 0);
+      const l1 = tr / 2 + Math.sqrt(disc), l2 = Math.max(tr / 2 - Math.sqrt(disc), 0);
+      const ang = 0.5 * Math.atan2(2 * A[0][1], A[0][0] - A[1][1]);
+      const col = d < 0.05 ? bd : gd;
+      el("ellipse", { cx: PX(h.x), cy: PY(h.y), rx: Math.sqrt(l1) * 0.26 * S,
+        ry: Math.sqrt(l2) * 0.26 * S,
+        transform: `rotate(${-ang * 180 / Math.PI} ${PX(h.x)} ${PY(h.y)})`,
+        fill: col, "fill-opacity": .16, stroke: col, "stroke-width": 1.8 });
+      txt(h.x, h.y - 0.66, "√det = " + fmt(Math.sqrt(d), 3), col, 11.5);
+    } },
+
+  { ans: "O", s: "회전행렬 R ∈ SO(3)은 RᵀR = I와 det R = 1을 만족한다.",
+    view: [-2.2, 2.6, -1.6, 2.0], rail: false, ticks: false,
+    why: "열벡터가 서로 직교하는 단위벡터이고 오른손 좌표계를 이룹니다. 돌려도 <em class='hl'>길이와 각도가 변하지 않는다</em>는 뜻이고, 그래서 전치가 곧 역행렬입니다.",
+    draw(t) {
+      const mr = C("--maroon"), gd = C("--good"), sl = C("--muted");
+      const a = t * 0.7;
+      const e1 = { x: Math.cos(a), y: Math.sin(a) };
+      const e2 = { x: -Math.sin(a), y: Math.cos(a) };
+      circ(0, 0, 1, "none", C("--line"), 1);
+      arrow(0, 0, e1.x, e1.y, mr, 3);
+      arrow(0, 0, e2.x, e2.y, gd, 3);
+      txt(e1.x * 1.25, e1.y * 1.25, "열 1", mr, 11);
+      txt(e2.x * 1.3, e2.y * 1.3, "열 2", gd, 11);
+      const sq = [[0, 0], [e1.x, e1.y], [e1.x + e2.x, e1.y + e2.y], [e2.x, e2.y]];
+      for (let i = 0; i < 4; i++)
+        line(sq[i][0], sq[i][1], sq[(i + 1) % 4][0], sq[(i + 1) % 4][1],
+             C("--line"), 1.4);
+      txt(-2.05, 1.72, "길이 1 · 서로 직교 · 넓이 1", sl, 11.5, "start");
+      txt(-2.05, 1.4, "e₁·e₂ = " + fmt(e1.x * e2.x + e1.y * e2.y, 2)
+          + "    det = " + fmt(e1.x * e2.y - e1.y * e2.x, 2), sl, 11.5, "start");
+    } },
+
+  { ans: "X", s: "회전관절의 나사축 S = (ω, v)에서 v는 그 관절이 움직이는 속도를 뜻한다.",
+    view: [-1.6, 3.2, -1.3, 2.3], rail: false,
+    why: "v = −ω × p는 <em class='hl'>축의 위치</em>를 담은 모멘트 항입니다. 실제로 그 관절 자리에 있는 점의 속도는 0입니다. v는 <em class='hl'>원점에 겹쳐 있는 점</em>이 갖게 될 속도입니다.",
+    draw(t) {
+      const mr = C("--maroon"), gd = C("--good"), bd = C("--bad"), sl = C("--muted");
+      const p = { x: 1.4, y: 0.9 };
+      const a = t * 0.9;
+      circ(p.x, p.y, 0.09, mr);
+      txt(p.x + .12, p.y + .3, "회전축이 지나는 점 p", mr, 11, "start");
+      // a point riding the body, to show the axis point itself never moves
+      const r = 0.85;
+      const q2 = { x: p.x + r * Math.cos(a), y: p.y + r * Math.sin(a) };
+      circ(p.x, p.y, r, "none", C("--line"), 1);
+      line(p.x, p.y, q2.x, q2.y, mr, 2.6);
+      circ(q2.x, q2.y, 0.07, mr);
+      arrow(q2.x, q2.y, -0.5 * Math.sin(a), 0.5 * Math.cos(a), mr, 2);
+      // v = -omega x p, drawn where it belongs: at the origin
+      arrow(0, 0, p.y * 0.5, -p.x * 0.5, gd, 3);
+      txt(0.75, -0.6, "v = −ω × p  (원점에서)", gd, 11, "start");
+      circ(p.x, p.y, 0.17, "none", bd, 2);
+      txt(2.0, 0.42, "여기 속도는 0", bd, 11, "start");
+    } },
+
+  { ans: "X", s: "지수곱(PoE) Forward Kinematics에서 지수함수들을 곱하는 순서를 바꾸어도 같은 Forward Kinematics이 나온다.",
+    view: [-2.4, 2.6, -1.6, 2.1], rail: false, ticks: false,
+    why: "행렬 곱은 교환법칙이 성립하지 않습니다. 순서는 <em class='hl'>어느 관절이 어느 관절을 업고 있는지</em>, 즉 체인 구조 그 자체를 뜻합니다. 뒤집으면 1번 관절이 손목이 되고 3번이 베이스가 됩니다.",
+    draw(t) {
+      const mr = C("--maroon"), bd = C("--bad"), sl = C("--muted"), ln = C("--line");
+      const LL = [1.3, 0.9, 0.5];                 // different lengths, so the gap shows
+      const u = 0.5 + 0.5 * Math.sin(t * 0.75);
+      const th = [1.15 * u, -0.85 * u, 1.3 * u];
+
+      // 2-D rigid transforms: x' = R x + d
+      const rotAbout = (p, a) => {
+        const c = Math.cos(a), s = Math.sin(a);
+        return { c, s, tx: p.x - (c * p.x - s * p.y), ty: p.y - (s * p.x + c * p.y) };
+      };
+      const comp = (A, B) => ({
+        c: A.c * B.c - A.s * B.s, s: A.s * B.c + A.c * B.s,
+        tx: A.c * B.tx - A.s * B.ty + A.tx, ty: A.s * B.tx + A.c * B.ty + A.ty });
+      const ap = (A, p) => ({ x: A.c * p.x - A.s * p.y + A.tx,
+                              y: A.s * p.x + A.c * p.y + A.ty });
+
+      // home: the arm laid out along +x, joints at the link ends
+      const P0 = [{ x: 0, y: 0 }, { x: LL[0], y: 0 },
+                  { x: LL[0] + LL[1], y: 0 }];
+      const h0 = { x: LL[0] + LL[1] + LL[2], y: 0 };
+      const A = P0.map((p, i) => rotAbout(p, th[i]));
+
+      // home arm, as a ghost
+      for (let i = 0; i < 2; i++) line(P0[i].x, P0[i].y, P0[i + 1].x, P0[i + 1].y, ln, 4);
+      line(P0[2].x, P0[2].y, h0.x, h0.y, ln, 4);
+      txt(h0.x + 0.1, -0.33, "홈 자세", sl, 10.5, "start");
+
+      // S₁ S₂ S₃ : the ordinary chain, joint 1 carrying the rest
+      const T1 = A[0], T2 = comp(T1, A[1]), T3 = comp(T2, A[2]);
+      const v = [P0[0], ap(T1, P0[1]), ap(T2, P0[2]), ap(T3, h0)];
+      for (let i = 0; i < 3; i++) line(v[i].x, v[i].y, v[i + 1].x, v[i + 1].y, mr, 5);
+      for (let i = 0; i < 3; i++) circ(v[i].x, v[i].y, 0.075, C("--surface"), mr, 2);
+      circ(v[3].x, v[3].y, 0.11, mr);
+      txt(v[3].x, v[3].y + 0.3, "e^[S₁]θ₁ e^[S₂]θ₂ e^[S₃]θ₃", mr, 11);
+
+      // S₃ S₂ S₁ : the same screws, same angles, multiplied the other way
+      const R = comp(comp(A[2], A[1]), A[0]);
+      const hr = ap(R, h0);
+      circ(hr.x, hr.y, 0.11, bd);
+      arrow(hr.x, hr.y, 0.3 * Math.cos(Math.atan2(R.s, R.c)),
+            0.3 * Math.sin(Math.atan2(R.s, R.c)), bd, 2);
+      txt(hr.x, hr.y - 0.42, "e^[S₃]θ₃ e^[S₂]θ₂ e^[S₁]θ₁", bd, 11);
+      line(v[3].x, v[3].y, hr.x, hr.y, sl, 1.6, "4 4");
+
+      const d = Math.hypot(v[3].x - hr.x, v[3].y - hr.y);
+      txt(-3.05, 2.25, "같은 나사축, 같은 각도", sl, 11.5, "start");
+      txt(-3.05, 1.92, "손끝 차이 " + fmt(d, 2) + " m", d > 0.05 ? bd : sl, 12, "start");
+      txt(-3.05, 1.59, "링크 " + LL.join(" / ") + " m", sl, 11, "start");
+    } }
+];
+
+/* --------------------------------------------- a small LaTeX -> MathML
+   Enough of LaTeX for this page's formulas, rendered by the browser's
+   own MathML. No library and no webfont, so it looks the same here and
+   on a plain web server. */
+const TEX_GREEK = { theta: "θ", phi: "φ", varphi: "φ", omega: "ω", tau: "τ",
+  lambda: "λ", alpha: "α", Delta: "Δ", partial: "∂", pi: "π", Lambda: "Λ" };
+const TEX_OPS = { cdot: "⋅", times: "×", pm: "±", le: "≤", ge: "≥", ne: "≠",
+  to: "→", Rightarrow: "⇒", in: "∈", approx: "≈", ldots: "…", perp: "⊥" };
+const TEX_FUN = ["sin", "cos", "tan", "det", "min", "max", "tr", "rank"];
+const esc = s => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+function tex(src) {
+  let i = 0;
+  const skip = () => { while (src[i] === " ") i++; };
+
+  function group() {
+    skip();
+    // msub/msup/mfrac take exactly two children, so a braced run of
+    // several tokens has to come back as one <mrow>
+    if (src[i] === "{") { i++; const o = seq("}"); i++; return `<mrow>${o}</mrow>`; }
+    return atom();
+  }
+  function braced() {                       // raw text up to the matching }
+    skip();
+    if (src[i] !== "{") return "";
+    i++; let d = 1, o = "";
+    while (i < src.length && d) {
+      if (src[i] === "{") d++;
+      else if (src[i] === "}") { d--; if (!d) { i++; break; } }
+      o += src[i++];
+    }
+    return o;
+  }
+  function macro() {
+    i++;
+    let name = "";
+    while (i < src.length && /[A-Za-z]/.test(src[i])) name += src[i++];
+    if (!name) {                             // \, \; \! and friends
+      const c = src[i++];
+      if (c === ",") return `<mspace width="0.17em"/>`;
+      if (c === ";") return `<mspace width="0.28em"/>`;
+      return `<mo>${esc(c)}</mo>`;
+    }
+    if (name === "frac") { const a = group(), b = group(); return `<mfrac>${a}${b}</mfrac>`; }
+    if (name === "sqrt") return `<msqrt>${group()}</msqrt>`;
+    if (name === "hat") return `<mover>${group()}<mo>^</mo></mover>`;
+    if (name === "dot") return `<mover accent="true">${group()}<mo>˙</mo></mover>`;
+    if (name === "ddot") return `<mover accent="true">${group()}<mo>¨</mo></mover>`;
+    if (name === "bar") return `<mover>${group()}<mo>‾</mo></mover>`;
+    if (name === "text") return `<mtext>${esc(braced())}</mtext>`;
+    if (name === "mathbf") return `<mstyle mathvariant="bold">${group()}</mstyle>`;
+    if (name === "left" || name === "right")
+      return `<mo stretchy="true">${esc(src[i++])}</mo>`;
+    if (name === "quad") return `<mspace width="1em"/>`;
+    if (TEX_GREEK[name]) return `<mi>${TEX_GREEK[name]}</mi>`;
+    if (TEX_OPS[name]) return `<mo>${TEX_OPS[name]}</mo>`;
+    if (TEX_FUN.includes(name))
+      return `<mi mathvariant="normal">${name}</mi><mspace width="0.17em"/>`;
+    return `<mi>${name}</mi>`;
+  }
+  function atom() {
+    const c = src[i];
+    if (c === "\\") return macro();
+    if (/[0-9.]/.test(c)) { let s = ""; while (i < src.length && /[0-9.]/.test(src[i])) s += src[i++]; return `<mn>${s}</mn>`; }
+    if (/[A-Za-z]/.test(c)) { i++; return `<mi>${c}</mi>`; }
+    if (c === "-") { i++; return `<mo>−</mo>`; }
+    i++; return `<mo>${esc(c)}</mo>`;
+  }
+  function seq(stop) {
+    let out = "";
+    while (i < src.length) {
+      skip();
+      if (!src[i] || (stop && src[i] === stop)) break;
+      let a = atom();
+      while (src[i] === "_" || src[i] === "^") {
+        const tag = src[i++] === "_" ? "msub" : "msup";
+        a = `<${tag}>${a}${group()}</${tag}>`;
+      }
+      out += a;
+    }
+    return out;
+  }
+  return `<math display="block"><mrow>${seq(null)}</mrow></math>`;
+}
+
+/* ------------------------------------------------------- derivation UI */
+function derivHTML(steps, cur) {
+  let h = `<div class="deriv">`;
+  steps.forEach((s, i) => {
+    const on = i <= cur;
+    h += `<div class="step ${on ? "on" : ""} ${i === cur ? "cur" : ""}">
+            ${s.eq ? `<div class="eq">${s.eq}</div>` : ""}
+            ${s.tex ? `<div class="math">${tex(s.tex)}</div>` : ""}
+            ${s.why ? `<div class="why">${s.why}</div>` : ""}
+          </div>`;
+  });
+  h += `</div><div class="derivbar">
+    <button id="dprev" ${cur <= 0 ? "disabled" : ""}>이전</button>
+    <button id="dnext" ${cur >= steps.length - 1 ? "disabled" : ""}>다음 단계</button>
+    <button id="dall">전체 보기</button>
+    <span class="count">${cur + 1} / ${steps.length}</span></div>`;
+  return h;
+}
+const matTable = (caption, rows, rowlabs, hot) => {
+  let h = `<div class="mat"><table><caption>${caption}</caption>`;
+  rows.forEach((r, i) => {
+    h += `<tr><td class="rowlab">${rowlabs[i]}</td>`;
+    r.forEach((v, j) => h += `<td class="${hot === j ? "col-hot" : ""}">${
+      typeof v === "string" ? v : fmt(v, 2)}</td>`);
+    h += "</tr>";
+  });
+  return h + "</table></div>";
+};
+const factRow = (k, v, cls) =>
+  `<div class="fact"><span>${k}</span><b class="${cls || ""}">${v}</b></div>`;
+
+/* --------------------------------------------------------------- scenes */
+const SCENES = [
+  /* ---------------------------------------------------------- 문제 1 */
+  {
+    tab: "개념 O/X", qn: "1", ox: true, animate: true,
+    title: "O/X 열 문항, 하나씩 움직여 보기",
+    view() { return OXS[state.ox].view; },
+    // the rail and the metre ticks belong to the exam robot, so in the O/X
+    // scenes they appear only where that robot does
+    frameOpts() {
+      const o = OXS[state.ox];
+      return { rail: o.rail === true, ticks: o.ticks === true };
+    },
+    draw() { OXS[state.ox].draw(state.t); },
+    panel() {
+      const o = OXS[state.ox];
+      let list = `<div class="oxlist">`;
+      OXS.forEach((x, i) => {
+        list += `<button data-ox="${i}" ${i === state.ox ? 'data-on="1"' : ""}>
+          <span class="num">(${i + 1})</span>
+          <span>${x.s}</span>
+          <span class="ans ${x.ans === "O" ? "o" : "x"}">${x.ans}</span></button>`;
+      });
+      list += `</div>`;
+      return `<p>문항을 누르면 그 내용이 왼쪽에서 움직입니다. 오른쪽 글자가
+        정답입니다.</p>${list}
+        <p class="note"><b>(${state.ox + 1}) 정답
+        ${o.ans}</b> — ${o.why}</p>`;
+    }
+  },
+
+  /* ---------------------------------------------------------- 문제 2 */
+  {
+    tab: "Forward Kinematics", qn: "2-1 · 2-3", sliders: true,
+    title: "관절을 움직이면 손끝이 어디로 가는가",
+    steps: [
+      { eq: "손끝 = 링크 셋을 <b>이어 붙인 끝</b>",
+        why: "각 링크의 방향은 그 앞 관절들의 각도를 모두 더한 값입니다." },
+      { tex: String.raw`\varphi_1 = q_1, \quad \varphi_2 = q_1 + q_2, \quad \varphi_3 = q_1 + q_2 + q_3`,
+        why: "누적 각도. 이것만 구해 두면 나머지는 더하기입니다." },
+      { tex: String.raw`x = \cos \varphi_1 + \cos \varphi_2 + \cos \varphi_3`,
+        why: "링크 길이가 모두 1이라 계수가 없습니다." },
+      { tex: String.raw`y = \mathbf{b} + \sin \varphi_1 + \sin \varphi_2 + \sin \varphi_3`,
+        why: "베이스는 y에만 그대로 더해집니다 — 이것이 뒤에 나올 J의 첫 열입니다." },
+      { eq: "시험 자세에서는 φ = (0°, 90°, 0°)이므로",
+        tex: String.raw`x = 1 + 0 + 1 = \mathbf{2}, \quad y = 0.6 + 0 + 1 + 0 = \mathbf{1.6}`,
+        why: "사인·코사인이 0 아니면 1이라 암산이 됩니다." }
+    ],
+    draw(b, q) {
+      const P = drawRobot(b, q, { links: state.step >= 2 ? [0, 1, 2] : [] });
+      const h = P[3], ln = C("--line"), mr = C("--maroon"), sl = C("--muted");
+      line(h.x, h.y, h.x, 0, ln, 1, "4 4");
+      line(h.x, h.y, 0, h.y, ln, 1, "4 4");
+      txt(h.x + 0.1, h.y + 0.3, "(" + fmt(h.x, 2) + ", " + fmt(h.y, 2) + ")",
+          mr, 11, "start");
+      for (let i = 0; i < 3; i++) {
+        const mx = (P[i].x + P[i + 1].x) / 2, my = (P[i].y + P[i + 1].y) / 2;
+        const dx = P[i + 1].x - P[i].x, dy = P[i + 1].y - P[i].y;
+        const n = Math.hypot(dx, dy) || 1;
+        txt(mx - 0.19 * dy / n, my + 0.19 * dx / n,
+            state.step >= 1 ? "φ" + (i + 1) : "L" + (i + 1), sl, 10.5);
+      }
+      if (state.step >= 3) arrow(-0.42, 0, 0, b, C("--good"), 2.4);
+    },
+    panel(b, q) {
+      const p = fk(b, q);
+      return `<p>베이스가 <em class="hl">y축을 따라서만</em> 미끄러지고, 그
+        위에 길이 1&nbsp;m짜리 링크 셋이 붙어 있습니다.</p>
+        ${factRow("x", fmt(p.x, 3) + " m")}
+        ${factRow("y", fmt(p.y, 3) + " m")}
+        ${factRow("θ = q₁+q₂+q₃", deg(p.th) + "°")}`;
+    }
+  },
+
+  {
+    tab: "Jacobian", qn: "2-4", sliders: true, hotCol: 2,
+    title: "한 열은 '이 관절만 돌렸을 때 손끝이 가는 방향'",
+    steps: [
+      { tex: String.raw`J = \frac{\partial (x, y, \theta)}{\partial (b, q_1, q_2, q_3)}`,
+        why: "작업좌표를 관절로 편미분한 것. 열 하나가 관절 하나에 대응합니다." },
+      { eq: "q₂를 돌리면 <b>링크 2, 3만</b> 움직인다",
+        why: "그 관절보다 손끝 쪽에 있는 링크만 따라 돕니다. 링크 1은 가만히 있습니다." },
+      { eq: "손끝은 그 관절을 <b>중심으로 도는 원</b> 위에 있다",
+        why: "점선이 그 반지름 r입니다. 관절에서 손끝까지 그은 선." },
+      { eq: "원 위의 속도는 반지름에 <b>수직</b>이므로",
+        tex: String.raw`\text{열} = \hat{z} \times r = (\mathbf{-r_y}, \; \mathbf{r_x})`,
+        why: "r을 반시계로 90° 돌린 것. 그래서 점선과 화살표가 직각입니다 — 그림의 직각 표시를 보세요." },
+      { tex: String.raw`q_2 : \; r = (1, 1) \; \to \; \text{열} = (\mathbf{-1}, \mathbf{1})`,
+        why: "관절이 (1, 0.6), 손끝이 (2, 1.6)이므로 r = (1, 1). 돌리면 (−1, 1)." },
+      { eq: "같은 값을 합으로 써도 된다",
+        tex: String.raw`\frac{\partial x}{\partial q_2} = -(L_2 \sin \varphi_2 + L_3 \sin \varphi_3) = -(1 + 0) = \mathbf{-1}`,
+        why: "부록 A.2의 식. 기하로 본 것과 똑같은 답이고, 이 자세에서는 사인·코사인이 0 아니면 1이라 정수가 됩니다." },
+      { tex: String.raw`\frac{\partial \theta}{\partial q_i} = 1, \quad \text{베이스 열} = (0, 1, 0)`,
+        why: "모든 회전관절이 손끝 방향을 똑같이 1씩 돌립니다. 베이스는 회전이 없으니 미는 방향 그대로입니다." }
+    ],
+    draw(b, q) {
+      const k = this.hotCol;
+      const P = drawRobot(b, q, { links: state.step === 1
+        ? [0, 1, 2].filter(i => i >= k - 1) : [] });
+      const J = jac(b, q), h = P[3];
+      const gd = C("--good"), sl = C("--muted"), mr = C("--maroon");
+      const piv = k > 0 ? P[k - 1] : { x: 0, y: b };
+      const SC = 0.33;                       // one unit of column, drawn
+
+      if (k > 0) {
+        // the circle the hand rides on, and its radius r
+        const r = Math.hypot(h.x - piv.x, h.y - piv.y);
+        circ(piv.x, piv.y, r, "none", C("--line"), 1);
+        line(piv.x, piv.y, h.x, h.y, sl, 1.5, "5 4");
+        circ(piv.x, piv.y, 10 / S, "none", gd, 2);
+
+        // the right angle between r and the velocity, drawn at the hand
+        const ux = (h.x - piv.x) / r, uy = (h.y - piv.y) / r;
+        const vx = -uy, vy = ux, s = 0.14;
+        line(h.x - ux * s, h.y - uy * s,
+             h.x - ux * s + vx * s, h.y - uy * s + vy * s, sl, 1.3);
+        line(h.x + vx * s, h.y + vy * s,
+             h.x - ux * s + vx * s, h.y - uy * s + vy * s, sl, 1.3);
+
+        if (state.step >= 2) {
+          const mx = (piv.x + h.x) / 2, my = (piv.y + h.y) / 2;
+          txt(mx - 0.1, my - 0.26,
+              "r = (" + fmt(h.x - piv.x, 1) + ", " + fmt(h.y - piv.y, 1) + ")",
+              sl, 11, "end");
+        }
+      } else {
+        // a prismatic joint has no radius: the column is the push direction
+        el("rect", { x: PX(0) - 13, y: PY(b) - 13, width: 26, height: 26,
+          rx: 5, fill: "none", stroke: gd, "stroke-width": 2 });
+        line(0, b, 0, b + 0.7, sl, 1.5, "5 4");
+        line(h.x, h.y, h.x, h.y + 0.7, sl, 1.5, "5 4");
+        if (state.step >= 2)
+          txt(0.2, b + 0.5, "미는 방향 그대로", sl, 11, "start");
+      }
+
+      arrow(h.x, h.y, J[0][k] * SC, J[1][k] * SC, gd, 3);
+      const lab = state.step >= 3
+        ? "ẑ × r = (" + fmt(J[0][k], 1) + ", " + fmt(J[1][k], 1) + ")"
+        : "J의 " + (k + 1) + "열";
+      txt(h.x + J[0][k] * SC, h.y + J[1][k] * SC + 0.24, lab, gd, 11);
+    },
+    panel(b, q) {
+      const J = jac(b, q), k = this.hotCol, nm = ["b", "q₁", "q₂", "q₃"][k];
+      const P = pts(b, q), h = P[3];
+      const piv = k > 0 ? P[k - 1] : { x: 0, y: b };
+      const rx = h.x - piv.x, ry = h.y - piv.y;
+      return `<p><span style="font-family:var(--mono)">${nm}</span>만 단위
+        속도로 움직였을 때 손끝이 가는 방향이 곧 <em class="hl">${k + 1}번째
+        열</em>입니다. 점선이 그 관절에서 손끝까지의 반지름입니다.</p>
+        ${matTable("J = ∂(x, y, θ)/∂q", J, ["ẋ", "ẏ", "θ̇"], k)}
+        ${k > 0
+          ? factRow("반지름 r", "(" + fmt(rx, 2) + ", " + fmt(ry, 2) + ")")
+            + factRow("90° 돌리면 ẑ × r",
+                "(" + fmt(-ry, 2) + ", " + fmt(rx, 2) + ")", "ok")
+            + factRow("J의 " + (k + 1) + "열",
+                "(" + fmt(J[0][k], 2) + ", " + fmt(J[1][k], 2) + ")", "ok")
+          : factRow("직동 관절", "반지름 없음 — 미는 방향 (0, 1)", "ok")}`;
+    },
+    buttons: [["b 열", 0], ["q₁ 열", 1], ["q₂ 열", 2], ["q₃ 열", 3]]
+      .map(([t, k]) => ({ label: t, on: s => s.hotCol === k, act: s => s.hotCol = k }))
+  },
+
+  {
+    tab: "Space Jacobian", qn: "2-5",
+    title: "나사축으로 쓰면 관절 위치만 읽으면 된다",
+    steps: [
+      { eq: "회전관절의 나사축은",
+        tex: String.raw`S = (\omega, \; -\omega \times p)`,
+        why: "ω는 축 방향, p는 축 위의 아무 점. 각도는 들어가지 않습니다." },
+      { eq: "평면이면 ω = ẑ 이므로",
+        tex: String.raw`-\hat{z} \times (p_x, p_y, 0) = (p_y, \; -p_x, \; 0)`,
+        why: "그래서 평면 성분이 (ω_z ; vₓ, v_y) = (1 ; p_y, −pₓ)가 됩니다." },
+      { eq: "관절 위치는 그림과 같다 — q₁(0, 0.6), q₂(1, 0.6), q₃(1, 1.6)",
+        why: "자세가 아니라 위치만 필요합니다. 그림을 보고 바로 씁니다." },
+      { eq: "직동관절은 회전이 없으므로",
+        tex: String.raw`S = (\mathbf{0}, \; d)`,
+        why: "ω = 0이고, 여기서는 d가 진짜 방향벡터 ŷ입니다." },
+      { eq: "손끝 속도로 바꾸려면",
+        tex: String.raw`\dot{x} = v_x - \omega_z p_y, \quad \dot{y} = v_y + \omega_z p_x`,
+        why: "J_s의 선속도는 손끝이 아니라 <b>원점에 겹쳐 있는 점</b>의 속도이기 때문입니다. ω × p를 더해야 손끝이 됩니다." }
+    ],
+    draw(b, q) {
+      const P = drawRobot(b, q);
+      const gd = C("--good"), sl = C("--muted"), mr = C("--maroon");
+      if (state.step >= 2)
+        for (let i = 0; i < 3; i++) {
+          circ(P[i].x, P[i].y, 9 / S, "none", gd, 1.8);
+          txt(P[i].x - 0.14, P[i].y + 0.26,
+              "(" + fmt(P[i].x, 1) + ", " + fmt(P[i].y, 1) + ")", gd, 10, "end");
+        }
+      if (state.step >= 4) {
+        const h = P[3], Js = jacSpace(b, q), k = 2;
+        arrow(0, 0, Js[1][k] * 0.4, Js[2][k] * 0.4, gd, 2.6);
+        txt(Js[1][k] * 0.4 + .1, Js[2][k] * 0.4 - .25, "v_s (원점에서)", gd, 10.5, "start");
+        const J = jac(b, q);
+        arrow(h.x, h.y, J[0][k] * 0.4, J[1][k] * 0.4, mr, 2.6);
+        txt(h.x + J[0][k] * 0.4, h.y + J[1][k] * 0.4 + 0.24, "손끝 속도", mr, 10.5);
+      }
+    },
+    panel(b, q) {
+      const Js = jacSpace(b, q), J = jac(b, q);
+      const n1 = nullVec(J), n2 = nullVec(Js);
+      const same = Math.abs(Math.abs(dot(n1, n2)) - 1) < 1e-6;
+      return `<p>Space Jacobian의 열은 <em class="hl">나사축 그 자체</em>라,
+        관절의 위치만 알면 바로 씁니다.</p>
+        ${matTable("J_s (평면 성분)", Js, ["ω_z", "vₓ", "v_y"], -1)}
+        ${factRow("J 와 Null space가 같은가", same ? "같다" : "다르다", same ? "ok" : "no")}
+        <p class="note">둘은 가역변환으로 이어져 있어 <em class="hl">Null space가
+        같습니다</em>. 그래서 뒤 문항의 답은 어느 쪽으로 세워도 같습니다.</p>`;
+    }
+  },
+
+  /* ---------------------------------------------------------- 문제 3 */
+  {
+    tab: "Null space", qn: "3-1", animate: true,
+    title: "손끝을 세워 둔 채 자세만 바꾸는 단 하나의 방향",
+    steps: [
+      { tex: String.raw`J v = 0`,
+        why: "손끝을 전혀 움직이지 않는 관절속도. 네 개 중 세 식이니 하나가 남습니다." },
+      { eq: "x행:",
+        tex: String.raw`-v_1 - v_2 = 0 \; \to \; \mathbf{v_2 = -v_1}`,
+        why: "x행이 (0, −1, −1, 0)이라 두 항만 남습니다." },
+      { eq: "θ행:",
+        tex: String.raw`v_1 + v_2 + v_3 = 0 \; \to \; \mathbf{v_3 = 0}`,
+        why: "위에서 v₂ = −v₁이므로 둘이 지워지고 v₃만 남습니다." },
+      { eq: "y행:",
+        tex: String.raw`v_0 + 2 v_1 + v_2 + v_3 = 0 \; \to \; \mathbf{v_0 = -v_1}`,
+        why: "v₂ = −v₁, v₃ = 0을 넣으면 v₀ + v₁ = 0." },
+      { tex: String.raw`v = v_1 \cdot (\mathbf{-1},\, \mathbf{1},\, \mathbf{-1},\, \mathbf{0})`,
+        why: "한 줄기뿐이니 Null space는 1차원. 4 − 3 = 1과 맞습니다." }
+    ],
+    draw() {
+      const J = jac(EXAM.b, EXAM.q), n = nullVec(J);
+      const a = 0.55 * Math.sin(state.t * 1.1);
+      const bb = EXAM.b + a * n[0], qq = EXAM.q.map((v, i) => v + a * n[i + 1]);
+      drawRobot(EXAM.b, EXAM.q, { ghost: true });
+      const P = drawRobot(bb, qq);
+      const h = P[3], gd = C("--good");
+      circ(h.x, h.y, 13 / S, "none", gd, 2);
+      txt(h.x + 0.6, h.y + 0.32, "손끝 고정", gd, 11.5);
+      arrow(-0.42, bb, 0, 0.3 * Math.sign(n[0]) * Math.cos(state.t * 1.1), gd, 2.4);
+      state.live = { bb, qq };
+    },
+    panel() {
+      const J = jac(EXAM.b, EXAM.q), n = nullVec(J), Jn = mulMV(J, n);
+      const live = state.live || { bb: EXAM.b, qq: EXAM.q };
+      const p = fk(live.bb, live.qq), p0 = fk(EXAM.b, EXAM.q);
+      const err = Math.hypot(p.x - p0.x, p.y - p0.y);
+      return `<p>관절은 4개, 작업은 3차원이라 <em class="hl">여유가 정확히
+        1차원</em>입니다.</p>
+        ${factRow("J n", "(" + Jn.map(v => fmt(v, 1)).join(", ") + ")", "ok")}
+        ${factRow("손끝이 흐른 거리", fmt(err * 1000, 2) + " mm", err < 1e-3 ? "ok" : "no")}
+        ${factRow("지금 베이스 위치", fmt(live.bb, 3) + " m")}
+        <p class="note">손끝이 완전히 0이 아니라 0.0x&nbsp;mm씩 흐르는 것은
+        Null space가 <em class="hl">접선 방향</em>이기 때문입니다. 실제 제어기는
+        매 주기 J를 다시 계산합니다.</p>`;
+    }
+  },
+
+  {
+    tab: "세 가지 해", qn: "3-3 · 3-5 · 4-1", mode: 1,
+    title: "같은 작업을 다르게 풀면 베이스가 다르게 움직인다",
+    steps: [
+      { tex: String.raw`J v = V, \quad V = (0, 1, 0)`,
+        why: "손끝을 +y로 1 m/s. 해가 무수히 많습니다 — 직선 하나를 이룹니다." },
+      { eq: "팔을 고정하면",
+        tex: String.raw`v = (\mathbf{1}, 0, 0, 0)`,
+        why: "q̇ = 0으로 두면 베이스 열만 남아 v₀ = 1. 가장 쉬운 해입니다." },
+      { tex: String.raw`v^* = v - (v \cdot \hat{n}) \, \hat{n}`,
+        why: "그 직선 위에서 원점에 가장 가까운 점. null space 성분만 덜어내면 됩니다." },
+      { tex: String.raw`= (1, 0, 0, 0) + \frac{1}{3}(-1, 1, -1, 0) = \left( \mathbf{\frac{2}{3}}, \mathbf{\frac{1}{3}}, \mathbf{-\frac{1}{3}}, \mathbf{0} \right)`,
+        why: "v·n = −1, |n|² = 3이므로 ⅓만큼 n을 더합니다. 노름이 1 → 0.8165." },
+      { eq: "가중 최소 노름:",
+        tex: String.raw`v_W = v - \frac{v^T W n}{n^T W n} \, n`,
+        why: "베이스를 100배로 비싸게. 같은 직선 위이되 W 기준으로 가장 싼 점입니다." },
+      { eq: "우선순위 — α로 <b>베이스를 0</b>으로:",
+        tex: String.raw`v^* + \alpha n, \quad \alpha = \frac{2}{3} \; \to \; (\mathbf{0}, \mathbf{1}, \mathbf{-1}, \mathbf{0})`,
+        why: "가중치 없이 정확히 0입니다." }
+    ],
+    draw() {
+      const J = jac(EXAM.b, EXAM.q), n = nullVec(J), V = [0, 1, 0];
+      const vmin = minNorm(J, V);
+      const sols = [[1, 0, 0, 0], vmin, weighted(J, V, [100, 1, 1, 1]),
+                    vmin.map((v, i) => v - (vmin[0] / n[0]) * n[i])];
+      const v = sols[this.mode];
+      const k = 0.42 * (0.5 + 0.5 * Math.sin(state.t * 1.4));
+      const bb = EXAM.b + k * v[0], qq = EXAM.q.map((x, i) => x + k * v[i + 1]);
+      drawRobot(EXAM.b, EXAM.q, { ghost: true });
+      const P = drawRobot(bb, qq);
+      const gd = C("--good"), mr = C("--maroon");
+      arrow(P[3].x, P[3].y, 0, 0.42, gd, 3);
+      txt(P[3].x + 0.55, P[3].y + 0.32, "V = (0,1,0)", gd, 11);
+      arrow(-0.42, EXAM.b, 0, v[0] * 0.42, mr, 3);
+      txt(-0.78, EXAM.b + 0.26, "베이스", mr, 10.5);
+    },
+    panel() {
+      const J = jac(EXAM.b, EXAM.q), n = nullVec(J), V = [0, 1, 0];
+      const vmin = minNorm(J, V);
+      const names = ["팔 고정 (3-3)", "최소 노름 (3-4)", "가중 100배 (3-5)", "우선순위 (4-1)"];
+      const sols = [[1, 0, 0, 0], vmin, weighted(J, V, [100, 1, 1, 1]),
+                    vmin.map((v, i) => v - (vmin[0] / n[0]) * n[i])];
+      let rows = "";
+      sols.forEach((s, i) => rows += factRow(names[i],
+        fmt(Math.abs(s[0]), 4) + " m/s",
+        i === this.mode ? (Math.abs(s[0]) < 1e-9 ? "ok" : "") : ""));
+      return `${matTable("지금 고른 해 v", [sols[this.mode]], ["v"], -1)}
+        <div class="facts">${rows}</div>
+        <p class="note">가중치를 100배로 올려도 베이스는 0이 되지 않습니다.
+        우선순위는 가중치 없이 <em class="hl">정확히 0</em>입니다. 가중치는
+        소원이고 수준은 약속입니다.</p>`;
+    },
+    buttons: ["팔 고정", "최소 노름", "가중 100배", "우선순위"].map((t, i) => ({
+      label: t, on: s => s.mode === i, act: s => s.mode = i }))
+  },
+
+  /* ---------------------------------------------------------- 문제 4 */
+  {
+    tab: "Velocity Limit", qn: "4-3", sliders: true,
+    title: "한계에 가까워질수록 상자가 저절로 좁아진다",
+    steps: [
+      { eq: "위치 한계는 <b>속도</b> 한계가 아니다",
+        tex: String.raw`\text{lo} \le q \le \text{hi}`,
+        why: "QP의 미지수는 속도입니다. 그대로는 제약으로 쓸 수 없습니다." },
+      { eq: "한 주기 Δt 뒤의 위치로 바꾸면",
+        tex: String.raw`q + \dot{q} \, \Delta t \le \text{hi}`,
+        why: "이번 주기에 q̇로 움직이면 어디까지 가는지를 적은 것뿐입니다." },
+      { tex: String.raw`\dot{q} \le \frac{\text{hi} - q}{\Delta t}`,
+        why: "남은 간격을 한 주기에 다 쓰는 속도가 상한입니다." },
+      { tex: String.raw`\text{high} = \mathbf{\min} \left( \frac{\text{hi} - q}{\Delta t}, \; v_{\max} \right)`,
+        why: "모터 최대 속도와 교집합. 둘 중 더 빡빡한 쪽이 이깁니다." },
+      { tex: String.raw`b : \; \frac{1 - 0.6}{0.5} = \mathbf{0.8} \; < \; 1.0`,
+        why: "한계까지 0.4 m밖에 안 남아, 모터가 아니라 위치가 묶습니다." }
+    ],
+    draw(b, q) {
+      drawRobot(b, q);
+      const box = velBox(b, q), bd = C("--bad"), sl = C("--muted");
+      line(0, b, 0, LIM.hi[0], box[0].posHi ? bd : sl, 4);
+      txt(0.44, (b + LIM.hi[0]) / 2, fmt(LIM.hi[0] - b, 2) + " m",
+          box[0].posHi ? bd : sl, 10.5, "start");
+      const P = pts(b, q);
+      circ(P[2].x, P[2].y, 11 / S, "none", box[2].posHi ? bd : sl, 2);
+      txt(P[2].x + 0.52, P[2].y - 0.3, "q₂ 여유 " + fmt(LIM.hi[2] - q[1], 2),
+          box[2].posHi ? bd : sl, 10.5, "start");
+    },
+    panel(b, q) {
+      const box = velBox(b, q), nm = ["b", "q₁", "q₂", "q₃"];
+      let rows = "";
+      box.forEach((x, i) => {
+        const bind = x.posHi || x.posLo;
+        rows += factRow(nm[i] + (bind ? " (위치가 묶음)" : ""),
+          "[" + fmt(x.lo, 2) + ", " + fmt(x.hi, 2) + "]", bind ? "no" : "");
+      });
+      return `<div class="facts">${rows}</div>
+        <p class="note">주황색은 모터 속도가 아니라 <em class="hl">위치
+        한계</em>가 더 세게 묶는다는 표시입니다. 슬라이더로 q₂를 올려
+        보세요.</p>`;
+    }
+  },
+
+  /* ---------------------------------------------------------- 문제 5 */
+  {
+    tab: "특이점", qn: "5-1 · 5-2", sliders: true,
+    title: "팔을 펴면 손끝이 갈 수 없는 방향이 생긴다",
+    steps: [
+      { tex: String.raw`\frac{\partial x}{\partial q_i} = - \sum_{k \ge i} L_k \sin \varphi_k`,
+        why: "x를 바꾸려면 어떤 링크든 기울어져 있어야 합니다." },
+      { eq: "펴진 자세에서는",
+        tex: String.raw`q = (0, 0, 0) \; \to \; \varphi = (0, 0, 0)`,
+        why: "링크 셋이 모두 +x를 향합니다." },
+      { tex: String.raw`\sin 0 = 0 \; \to \; \mathbf{x \text{행 전체가 } 0}`,
+        why: "어떤 관절속도를 넣어도 ẋ = 0. 손끝이 x로는 꿈쩍도 하지 않습니다." },
+      { tex: String.raw`\det (J J^T) = \mathbf{0}, \quad \text{계수 } 2`,
+        why: "행 하나가 사라졌으니 랭크가 떨어집니다." },
+      { eq: "조작성도 따라서",
+        tex: String.raw`\sqrt{\det (J J^T)} = 0`,
+        why: "타원이 납작해져 선분이 됩니다. 여유 자유도가 있어도 특이점은 있습니다." }
+    ],
+    draw(b, q) {
+      const P = drawRobot(b, q);
+      const J = jac(b, q), h = P[3];
+      const d = Math.max(det3(JJt(J)), 0);
+      const A = [[dot(J[0], J[0]), dot(J[0], J[1])], [dot(J[1], J[0]), dot(J[1], J[1])]];
+      const tr = A[0][0] + A[1][1], dt2 = A[0][0] * A[1][1] - A[0][1] * A[1][0];
+      const disc = Math.max(tr * tr / 4 - dt2, 0);
+      const l1 = tr / 2 + Math.sqrt(disc), l2 = Math.max(tr / 2 - Math.sqrt(disc), 0);
+      const ang = 0.5 * Math.atan2(2 * A[0][1], A[0][0] - A[1][1]);
+      const col = d < 0.05 ? C("--bad") : C("--good");
+      el("ellipse", { cx: PX(h.x), cy: PY(h.y), rx: Math.sqrt(l1) * 0.26 * S,
+        ry: Math.sqrt(l2) * 0.26 * S,
+        transform: `rotate(${-ang * 180 / Math.PI} ${PX(h.x)} ${PY(h.y)})`,
+        fill: col, "fill-opacity": .16, stroke: col, "stroke-width": 1.8 });
+      txt(h.x, h.y - 0.66, "√det = " + fmt(Math.sqrt(d), 3), col, 11.5);
+    },
+    panel(b, q) {
+      const J = jac(b, q), d = det3(JJt(J)), flat = Math.abs(d) < 1e-9;
+      return `${matTable("J", J, ["ẋ", "ẏ", "θ̇"], -1)}
+        ${factRow("det(J Jᵀ)", fmt(d, 4), flat ? "no" : "ok")}
+        ${factRow("조작성 √det", fmt(Math.sqrt(Math.max(d, 0)), 4), flat ? "no" : "ok")}
+        ${factRow("계수", flat ? "2 — 특이" : "3", flat ? "no" : "ok")}
+        <p class="note">'펴진 자세' 버튼을 눌러 보세요. 타원이 선분으로
+        납작해지는 순간이 특이점입니다. Jacobian 장면의 점선으로 보면
+        이유가 더 분명합니다 — 팔이 펴지면 세 관절의 반지름이 <em
+        class="hl">모두 +x로 나란해져서</em>, 90° 돌린 열 셋도 전부 +y로
+        나란해집니다. 그래서 x행이 사라집니다.</p>`;
+    }
+  },
+
+  /* ---------------------------------------------------------- 문제 6 */
+  {
+    tab: "토크", qn: "6-1 · 6-2", hard: false,
+    title: "넘치는 토크를 자르면 방향이 틀어진다",
+    steps: [
+      { tex: String.raw`M(q) \, \ddot{q} + h(q, \dot{q}) = \tau`,
+        why: "관성을 이기고, 중력·코리올리를 상쇄해야 움직입니다." },
+      { tex: String.raw`\tau = \mathbf{M a + h}`,
+        why: "원하는 가속도 a를 토크로 번역한 것. M은 대각이라 성분별 곱셈입니다." },
+      { eq: "a = (0, 4, −6, 0)을 넣으면",
+        tex: String.raw`\tau = (0,\; 2 \cdot 4,\; 1 \cdot (-6),\; 0) + (0, 6, 2, 1)`,
+        why: "M = diag(4,2,1,1), h = (0,6,2,1)을 그대로 넣습니다." },
+      { tex: String.raw`\tau = (0, \mathbf{14}, -4, 1), \quad \text{한계 } (50, 10, 5, 5)`,
+        why: "q₁이 10을 4만큼 넘습니다." },
+      { eq: "자르면 실제 가속도는",
+        tex: String.raw`a' = M^{-1}(\tau_{\text{clip}} - h) = (0, \mathbf{2}, -6, 0)`,
+        why: "q₁만 반으로 깎이고 q₂는 그대로입니다." },
+      { tex: String.raw`4 : -6 \; \to \; \mathbf{2 : -6}`,
+        why: "크기만 준 게 아니라 방향이 틀어졌습니다. 손끝이 엉뚱한 데로 갑니다." }
+    ],
+    draw() {
+      const a = this.hard ? [0, 4, -6, 0] : [0.5, 1, -2, 0];
+      const tau = a.map((v, i) => M_DYN[i] * v + H_DYN[i]);
+      const cl = tau.map((v, i) => Math.max(-TAU_MAX[i], Math.min(TAU_MAX[i], v)));
+      const ac = cl.map((v, i) => (v - H_DYN[i]) / M_DYN[i]);
+      const sc = 0.26, ox = 1.15, oy = 1.1;
+      const sl = C("--muted"), mr = C("--maroon"), bd = C("--bad"), gd = C("--good");
+      line(ox - 0.25, oy, ox + 1.55, oy, sl, 1.2);
+      line(ox, oy + 0.35, ox, oy - 2.05, sl, 1.2);
+      txt(ox + 1.68, oy - 0.06, "q̈₁", sl, 11);
+      txt(ox - 0.02, oy - 2.26, "q̈₂", sl, 11);
+      arrow(ox, oy, a[1] * sc, a[2] * sc, mr, 3);
+      txt(ox + a[1] * sc + 0.46, oy + a[2] * sc, "원한 것", mr, 11);
+      if (this.hard) {
+        line(ox, oy, ox + a[1] * sc * 1.2, oy + a[2] * sc * 1.2, sl, 1, "4 4");
+        arrow(ox, oy, ac[1] * sc, ac[2] * sc, bd, 3);
+        txt(ox + ac[1] * sc - 0.56, oy + ac[2] * sc - 0.22, "자른 것", bd, 11);
+        arrow(ox, oy, 0.5 * a[1] * sc, 0.5 * a[2] * sc, gd, 3);
+        txt(ox + 0.5 * a[1] * sc + 0.42, oy + 0.5 * a[2] * sc + 0.18, "QP", gd, 11);
+      }
+      drawRobot(EXAM.b, EXAM.q, { ghost: true });
+    },
+    panel() {
+      const a = this.hard ? [0, 4, -6, 0] : [0.5, 1, -2, 0];
+      const tau = a.map((v, i) => M_DYN[i] * v + H_DYN[i]);
+      const over = tau.map((v, i) => Math.abs(v) - TAU_MAX[i]);
+      const cl = tau.map((v, i) => Math.max(-TAU_MAX[i], Math.min(TAU_MAX[i], v)));
+      const ac = cl.map((v, i) => (v - H_DYN[i]) / M_DYN[i]);
+      const bad = over.some(v => v > 1e-9);
+      return `${matTable("요구한 가속도 a", [a], ["a"], -1)}
+        ${matTable("필요한 토크 τ  (한계 50/10/5/5)", [tau], ["τ"], -1)}
+        ${factRow("한계 초과", bad ? "q₁이 " + fmt(over[1], 0) + " N·m" : "없음",
+          bad ? "no" : "ok")}
+        ${bad ? factRow("자른 뒤 실제 가속도",
+          "(" + ac.map(v => fmt(v, 0)).join(", ") + ")", "no") : ""}
+        ${bad ? factRow("q₁ : q₂ 비", fmt(a[1] / a[2], 3) + " → " + fmt(ac[1] / ac[2], 3), "no") : ""}
+        <p class="note">${bad
+          ? "QP는 자르는 대신 같은 방향으로 크기만 줄입니다 — s = 0.5에서 (0, 2, −3, 0). 비 2:−3이 그대로입니다. (시험 문항에서는 뺐습니다.)"
+          : "이 요구는 모터 한계 안에 들어갑니다. '더 센 요구' 버튼을 눌러 보세요."}</p>`;
+    },
+    buttons: [["가벼운 요구", false], ["더 센 요구", true]].map(([t, v]) => ({
+      label: t, on: s => s.hard === v, act: s => s.hard = v }))
+  }
+];
+
+/* ------------------------------------------------------------------- app */
+const nav = document.querySelector("nav.scenes");
+const panel = document.getElementById("panel");
+const poses = document.getElementById("poses");
+
+SCENES.forEach((sc, i) => {
+  const b = document.createElement("button");
+  b.setAttribute("role", "tab");
+  b.innerHTML = `<span class="qn">${sc.qn}</span>${sc.tab}`;
+  b.onclick = () => { state.scene = i; state.t = 0; state.step = 0; build(); };
+  nav.appendChild(b);
+});
+
+function build() {
+  const sc = SCENES[state.scene];
+  [...nav.children].forEach((b, i) =>
+    b.setAttribute("aria-selected", i === state.scene ? "true" : "false"));
+
+  poses.innerHTML = "";
+  const add = (label, on, act) => {
+    const b = document.createElement("button");
+    b.textContent = label;
+    if (on) b.dataset.on = "1";
+    b.onclick = () => { act(); build(); };
+    poses.appendChild(b);
+  };
+  if (sc.sliders) {
+    add("시험 자세", false, () => { state.b = EXAM.b; state.q = EXAM.q.slice(); });
+    add("펴진 자세", false, () => { state.b = STRAIGHT.b; state.q = STRAIGHT.q.slice(); });
+  }
+  (sc.buttons || []).forEach(btn => add(btn.label, btn.on(sc), () => btn.act(sc)));
+  if (sc.animate || sc.mode !== undefined)
+    add(state.playing ? "정지" : "재생", false, () => state.playing = !state.playing);
+
+  let h = `<h2 class="scene">${sc.title}</h2><p class="qref">문제 ${sc.qn}</p>`;
+  h += sc.panel(state.b, state.q);
+  if (sc.steps) h += derivHTML(sc.steps, state.step);
+  if (sc.sliders) {
+    const nm = ["b", "q₁", "q₂", "q₃"];
+    h += `<div class="ctrls">`;
+    for (let i = 0; i < 4; i++) {
+      const v = i === 0 ? state.b : state.q[i - 1] * 180 / Math.PI;
+      const mn = i === 0 ? -1 : -180, mx = i === 0 ? 1 : 180;
+      h += `<div class="row"><label for="s${i}">${nm[i]}</label>
+        <input type="range" id="s${i}" min="${mn}" max="${mx}"
+          step="${i === 0 ? 0.01 : 1}" value="${i === 0 ? v : Math.round(v)}">
+        <output>${i === 0 ? fmt(v, 2) : Math.round(v) + "°"}</output></div>`;
+    }
+    h += `</div>`;
+  }
+  panel.innerHTML = h;
+
+  if (sc.sliders) for (let i = 0; i < 4; i++) {
+    const s = document.getElementById("s" + i);
+    s.oninput = () => {
+      const v = parseFloat(s.value);
+      if (i === 0) state.b = v; else state.q[i - 1] = v * Math.PI / 180;
+      build();
+    };
+  }
+  if (sc.steps) {
+    const go = d => { state.step = Math.max(0, Math.min(sc.steps.length - 1, state.step + d)); build(); };
+    const prev = document.getElementById("dprev"), next = document.getElementById("dnext"),
+          all = document.getElementById("dall");
+    if (prev) prev.onclick = () => go(-1);
+    if (next) next.onclick = () => go(1);
+    if (all) all.onclick = () => { state.step = sc.steps.length - 1; build(); };
+  }
+  if (sc.ox) panel.querySelectorAll("[data-ox]").forEach(b =>
+    b.onclick = () => { state.ox = +b.dataset.ox; state.t = 0; build(); });
+
+  render();
+}
+
+function render() {
+  const sc = SCENES[state.scene];
+  while (svg.firstChild) svg.removeChild(svg.firstChild);
+  const v = sc.view ? sc.view() : [-1.15, 3.45, -1.55, 2.45];
+  setView(v[0], v[1], v[2], v[3]);
+  drawFrame(sc.frameOpts ? sc.frameOpts() : {});
+  sc.draw(state.b, state.q);
+}
+
+let last = performance.now();
+function tick(now) {
+  const dt = Math.min((now - last) / 1000, 0.05); last = now;
+  const sc = SCENES[state.scene];
+  if (state.playing && (sc.animate || sc.mode !== undefined)) {
+    state.t += dt;
+    render();
+    if (sc.animate && !sc.ox) {
+      const fresh = document.createElement("div");
+      fresh.innerHTML = sc.panel(state.b, state.q);
+      const old = panel.querySelectorAll(".fact"), neu = fresh.querySelectorAll(".fact");
+      old.forEach((o, i) => { if (neu[i]) o.innerHTML = neu[i].innerHTML; });
+    }
+  }
+  requestAnimationFrame(tick);
+}
+
+build();
+requestAnimationFrame(tick);
+</script>
+
+</body>
+</html>
