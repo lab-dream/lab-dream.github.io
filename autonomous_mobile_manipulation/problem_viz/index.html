@@ -1387,35 +1387,45 @@ function build() {
   if (sc.sliders) {
     add("시험 자세", false, () => { state.b = EXAM.b; state.q = EXAM.q.slice(); });
     add("펴진 자세", false, () => { state.b = STRAIGHT.b; state.q = STRAIGHT.q.slice(); });
+    const tip = document.createElement("span");
+    tip.style.cssText = "font-size:12px;color:var(--muted);align-self:center";
+    tip.textContent = "링크나 베이스를 끌어 보세요";
+    poses.appendChild(tip);
   }
   (sc.buttons || []).forEach(btn => add(btn.label, btn.on(sc), () => btn.act(sc)));
   if (sc.animate || sc.mode !== undefined)
     add(state.playing ? "정지" : "재생", false, () => state.playing = !state.playing);
 
+  // The sliders live in their own block that is never rebuilt. Replacing
+  // the <input> under the pointer cancels the drag, which is why dragging
+  // used to do nothing and a click looked like a reset.
   let h = `<h2 class="scene">${sc.title}</h2><p class="qref">문제 ${sc.qn}</p>`;
-  h += sc.panel(state.b, state.q);
-  if (sc.steps) h += derivHTML(sc.steps, state.step);
+  h += `<div id="pdyn">${sc.panel(state.b, state.q)}</div>`;
+  if (sc.steps) h += `<div id="pderiv">${derivHTML(sc.steps, state.step)}</div>`;
   if (sc.sliders) {
     const nm = ["b", "q₁", "q₂", "q₃"];
-    h += `<div class="ctrls">`;
+    h += `<div class="ctrls" id="pctrl">`;
     for (let i = 0; i < 4; i++) {
       const v = i === 0 ? state.b : state.q[i - 1] * 180 / Math.PI;
       const mn = i === 0 ? -1 : -180, mx = i === 0 ? 1 : 180;
       h += `<div class="row"><label for="s${i}">${nm[i]}</label>
         <input type="range" id="s${i}" min="${mn}" max="${mx}"
           step="${i === 0 ? 0.01 : 1}" value="${i === 0 ? v : Math.round(v)}">
-        <output>${i === 0 ? fmt(v, 2) : Math.round(v) + "°"}</output></div>`;
+        <output id="o${i}">${i === 0 ? fmt(v, 2) : Math.round(v) + "°"}</output>
+        </div>`;
     }
     h += `</div>`;
   }
   panel.innerHTML = h;
 
   if (sc.sliders) for (let i = 0; i < 4; i++) {
-    const s = document.getElementById("s" + i);
+    const s = document.getElementById("s" + i), o = document.getElementById("o" + i);
     s.oninput = () => {
       const v = parseFloat(s.value);
       if (i === 0) state.b = v; else state.q[i - 1] = v * Math.PI / 180;
-      build();
+      o.textContent = i === 0 ? fmt(v, 2) : Math.round(v) + "°";
+      document.getElementById("pdyn").innerHTML = sc.panel(state.b, state.q);
+      render();
     };
   }
   if (sc.steps) {
@@ -1431,6 +1441,88 @@ function build() {
 
   render();
 }
+
+/* ------------------------------------------------- dragging the robot */
+const world = ev => {
+  const r = svg.getBoundingClientRect();
+  const px = (ev.clientX - r.left) * (VIEW.w / r.width);
+  const py = (ev.clientY - r.top) * (VIEW.h / r.height);
+  return { x: (px - OX) / S + VIEW.x0, y: (VIEW.h - py - OY) / S + VIEW.y0 };
+};
+const wrap = a => Math.atan2(Math.sin(a), Math.cos(a));
+
+/** distance from p to the segment ab, in world units */
+function segDist(p, a, b) {
+  const dx = b.x - a.x, dy = b.y - a.y, l2 = dx * dx + dy * dy;
+  const t = l2 ? Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.y - a.y) * dy) / l2)) : 0;
+  return Math.hypot(p.x - (a.x + t * dx), p.y - (a.y + t * dy));
+}
+
+/** which part of the robot is under the pointer: "base" or a link index */
+function pick(p, b, q) {
+  const P = pts(b, q);
+  if (Math.hypot(p.x, p.y - b) < 0.26) return "base";
+  let best = null, bd = 0.3;
+  for (let i = 0; i < 3; i++) {
+    const d = segDist(p, P[i], P[i + 1]);
+    if (d < bd) { bd = d; best = i; }
+  }
+  return best;
+}
+
+function syncSliders() {
+  for (let i = 0; i < 4; i++) {
+    const s = document.getElementById("s" + i), o = document.getElementById("o" + i);
+    if (!s) continue;
+    const v = i === 0 ? state.b : state.q[i - 1] * 180 / Math.PI;
+    s.value = i === 0 ? v : Math.round(v);
+    o.textContent = i === 0 ? fmt(v, 2) : Math.round(v) + "°";
+  }
+}
+
+let drag = null;
+svg.style.touchAction = "none";
+svg.addEventListener("pointermove", ev => {
+  const sc = SCENES[state.scene];
+  if (!sc.sliders) { svg.style.cursor = "default"; return; }
+  if (!drag) {
+    svg.style.cursor = pick(world(ev), state.b, state.q) === null ? "default" : "grab";
+    return;
+  }
+  const p = world(ev);
+  if (drag === "base") {
+    state.b = Math.max(-1, Math.min(1, p.y));
+  } else {
+    const P = pts(state.b, state.q);
+    const piv = P[drag];
+    const want = Math.atan2(p.y - piv.y, p.x - piv.x);
+    let before = 0;
+    for (let k = 0; k < drag; k++) before += state.q[k];
+    state.q[drag] = wrap(want - before);
+  }
+  syncSliders();
+  const dyn = document.getElementById("pdyn");
+  if (dyn) dyn.innerHTML = sc.panel(state.b, state.q);
+  render();
+});
+svg.addEventListener("pointerdown", ev => {
+  const sc = SCENES[state.scene];
+  if (!sc.sliders) return;
+  const hit = pick(world(ev), state.b, state.q);
+  if (hit === null) return;
+  drag = hit;
+  svg.setPointerCapture(ev.pointerId);
+  svg.style.cursor = "grabbing";
+  ev.preventDefault();
+});
+const endDrag = ev => {
+  if (drag === null) return;
+  drag = null;
+  svg.style.cursor = "grab";
+  try { svg.releasePointerCapture(ev.pointerId); } catch (e) { /* already gone */ }
+};
+svg.addEventListener("pointerup", endDrag);
+svg.addEventListener("pointercancel", endDrag);
 
 function render() {
   const sc = SCENES[state.scene];
