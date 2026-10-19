@@ -1044,31 +1044,72 @@ const SCENES = [
       { tex: String.raw`v = v_1 \cdot (\mathbf{-1},\, \mathbf{1},\, \mathbf{-1},\, \mathbf{0})`,
         why: "한 줄기뿐이니 Null space는 1차원. 4 − 3 = 1과 맞습니다." }
     ],
+    // 0 J frozen at the start · 1 J recomputed each step · 2 and the task
+    // error corrected as well, which is what a controller actually runs
+    nmode: 2,
     draw() {
-      const J = jac(EXAM.b, EXAM.q), n = nullVec(J);
-      const a = 0.55 * Math.sin(state.t * 1.1);
-      const bb = EXAM.b + a * n[0], qq = EXAM.q.map((v, i) => v + a * n[i + 1]);
+      const A = 0.55, W = 1.1, KP = 10;
+      const dt = Math.min(state.dt || 0, 0.05);
+      if (state.ns === undefined || state.nsWas !== this.nmode) {
+        // seed s at its current value, or the first frame takes one huge
+        // step and injects an error that has nothing to do with the point
+        state.ns = { b: EXAM.b, q: EXAM.q.slice(),
+                     s: A * Math.sin(state.t * W), n: null };
+        state.nsWas = this.nmode;
+      }
+      const cur = state.ns, p0 = fk(EXAM.b, EXAM.q);
+
+      // the direction to slide along, from the pose it is computed at
+      const J = jac(this.nmode ? cur.b : EXAM.b, this.nmode ? cur.q : EXAM.q);
+      let n = nullVec(J);
+      if (cur.n && dot(n, cur.n) < 0) n = n.map(x => -x);    // no sign flips
+      cur.n = n;
+
+      const s = A * Math.sin(state.t * W), ds = s - cur.s;
+      cur.s = s;
+      let v = n.map(x => x * ds / Math.max(dt, 1e-4));
+
+      if (this.nmode === 2) {                   // pull the hand back as well
+        const pc = fk(cur.b, cur.q);
+        const e = [KP * (p0.x - pc.x), KP * (p0.y - pc.y), KP * (p0.th - pc.th)];
+        const corr = minNorm(jac(cur.b, cur.q), e);
+        v = v.map((x, i) => x + corr[i]);
+      }
+      cur.b += v[0] * dt;
+      for (let i = 0; i < 3; i++) cur.q[i] += v[i + 1] * dt;
+
       drawRobot(EXAM.b, EXAM.q, { ghost: true });
-      const P = drawRobot(bb, qq);
-      const h = P[3], gd = C("--good");
-      circ(h.x, h.y, 13 / S, "none", gd, 2);
-      txt(h.x + 0.6, h.y + 0.32, "손끝 고정", gd, 11.5);
-      arrow(-0.42, bb, 0, 0.3 * Math.sign(n[0]) * Math.cos(state.t * 1.1), gd, 2.4);
-      state.live = { bb, qq };
+      const P = drawRobot(cur.b, cur.q);
+      const h = P[3], gd = C("--good"), bd = C("--bad");
+      const err = Math.hypot(h.x - p0.x, h.y - p0.y);
+      const col = err < 1e-4 ? gd : bd;
+      circ(p0.x, p0.y, 13 / S, "none", col, 2);
+      txt(p0.x + 0.64, p0.y + 0.34,
+          err < 1e-4 ? "손끝 고정" : "손끝이 " + fmt(err * 1000, 1) + " mm 흐름",
+          col, 11.5);
+      if (err > 3e-4) arrow(p0.x, p0.y, h.x - p0.x, h.y - p0.y, bd, 2.6);
+      arrow(-0.42, cur.b, 0, 0.3 * Math.sign(n[0]) * Math.cos(state.t * W), gd, 2.4);
+      state.live = { bb: cur.b, err };
     },
+    buttons: [["J 고정", 0], ["매 프레임 J 재계산", 1], ["＋ 오차 보정", 2]]
+      .map(([t, v]) => ({ label: t, on: s => s.nmode === v,
+                          act: s => { s.nmode = v; state.ns = undefined; } })),
     panel() {
       const J = jac(EXAM.b, EXAM.q), n = nullVec(J), Jn = mulMV(J, n);
-      const live = state.live || { bb: EXAM.b, qq: EXAM.q };
-      const p = fk(live.bb, live.qq), p0 = fk(EXAM.b, EXAM.q);
-      const err = Math.hypot(p.x - p0.x, p.y - p0.y);
+      const live = state.live || { bb: EXAM.b, err: 0 };
       return `<p>관절은 4개, 작업은 3차원이라 <em class="hl">여유가 정확히
         1차원</em>입니다.</p>
         ${factRow("J n", "(" + Jn.map(v => fmt(v, 1)).join(", ") + ")", "ok")}
-        ${factRow("손끝이 흐른 거리", fmt(err * 1000, 2) + " mm", err < 1e-3 ? "ok" : "no")}
+        ${factRow("손끝이 흐른 거리", ((live.err || 0) * 1000).toFixed(3) + " mm",
+          (live.err || 0) < 1e-4 ? "ok" : "no")}
         ${factRow("지금 베이스 위치", fmt(live.bb, 3) + " m")}
-        <p class="note">손끝이 완전히 0이 아니라 0.0x&nbsp;mm씩 흐르는 것은
-        Null space가 <em class="hl">접선 방향</em>이기 때문입니다. 실제 제어기는
-        매 주기 J를 다시 계산합니다.</p>`;
+        <p class="note">Null space는 <em class="hl">접선 방향</em>이라 세
+        버튼이 다르게 나옵니다. 10초 동안 손끝이 흐른 최대 거리로 재면
+        <b>J 고정</b> 50&nbsp;mm, <b>매 프레임 재계산</b> 5&nbsp;mm,
+        <b>＋ 오차 보정</b> 0.1&nbsp;mm입니다. J를 다시 계산하는 것만으로
+        열 배 좋아지지만 2차 오차가 <em class="hl">쌓이는</em> 것은 그대로라,
+        흐르지 않게 하려면 손끝 오차를 되돌리는 항이 함께 있어야 합니다.
+        실제 whole-body 제어기가 매 주기에 하는 일이 그것입니다.</p>`;
     }
   },
 
@@ -1093,20 +1134,49 @@ const SCENES = [
         why: "가중치 없이 정확히 0입니다." }
     ],
     draw() {
-      const J = jac(EXAM.b, EXAM.q), n = nullVec(J), V = [0, 1, 0];
+      // Run it as a controller: recompute J and the solution at the
+      // configuration the robot is actually in, then integrate one step.
+      // The hand then really does travel at V, instead of sliding along a
+      // straight line that was only correct at the starting pose.
+      const SPEED = 0.42, W = 1.3;
+      const dir = Math.cos(state.t * W);
+      const dt = Math.min(state.dt || 0, 0.05);
+      if (state.sol === undefined || state.solMode !== this.mode) {
+        const p = fk(EXAM.b, EXAM.q);
+        state.sol = { b: EXAM.b, q: EXAM.q.slice(), cy: p.y, base: 0 };
+        state.solMode = this.mode;
+      }
+      const cur = state.sol;
+      const J = jac(cur.b, cur.q), n = nullVec(J);
+      // track the commanded hand pose, not just the instantaneous V: the
+      // feedback term is what keeps every one of the four honest, so the
+      // only thing left to differ between them is how much base they use
+      const KP = 8, pcur = fk(cur.b, cur.q), pstart = fk(EXAM.b, EXAM.q);
+      const V = [KP * (pstart.x - pcur.x),
+                 dir * SPEED + KP * (cur.cy - pcur.y),
+                 KP * (pstart.th - pcur.th)];
       const vmin = minNorm(J, V);
-      const sols = [[1, 0, 0, 0], vmin, weighted(J, V, [100, 1, 1, 1]),
-                    vmin.map((v, i) => v - (vmin[0] / n[0]) * n[i])];
-      const v = sols[this.mode];
-      const k = 0.42 * (0.5 + 0.5 * Math.sin(state.t * 1.4));
-      const bb = EXAM.b + k * v[0], qq = EXAM.q.map((x, i) => x + k * v[i + 1]);
+      const v = [[V[1], 0, 0, 0],            // arm held: the base alone
+                 vmin,
+                 weighted(J, V, [100, 1, 1, 1]),
+                 vmin.map((x, i) => x - (vmin[0] / n[0]) * n[i])][this.mode];
+      cur.b += v[0] * dt;
+      for (let i = 0; i < 3; i++) cur.q[i] += v[i + 1] * dt;
+      cur.cy += V[1] * dt;                       // where the hand was told to be
+      cur.base = v[0];
+
       drawRobot(EXAM.b, EXAM.q, { ghost: true });
-      const P = drawRobot(bb, qq);
-      const gd = C("--good"), mr = C("--maroon");
-      arrow(P[3].x, P[3].y, 0, 0.42, gd, 3);
-      txt(P[3].x + 0.55, P[3].y + 0.32, "V = (0,1,0)", gd, 11);
-      arrow(-0.42, EXAM.b, 0, v[0] * 0.42, mr, 3);
-      txt(-0.78, EXAM.b + 0.26, "베이스", mr, 10.5);
+      const P = drawRobot(cur.b, cur.q);
+      const h = P[3], gd = C("--good"), mr = C("--maroon"), bd = C("--bad");
+      const p0 = fk(EXAM.b, EXAM.q);
+      const err = Math.hypot(h.x - p0.x, h.y - cur.cy);
+      line(p0.x, p0.y - 0.5, p0.x, p0.y + 0.6, C("--line"), 1.4, "5 4");
+      circ(p0.x, cur.cy, 7 / S, "none", err < 2e-3 ? gd : bd, 2);
+      arrow(h.x, h.y, 0, dir * 0.42, gd, 3);
+      txt(h.x + 0.58, h.y + 0.34, "V = (0, " + fmt(dir, 1) + ", 0)", gd, 11);
+      arrow(-0.42, cur.b, 0, v[0] * 0.42, mr, 3);
+      txt(-0.8, cur.b + 0.28, "베이스", mr, 10.5);
+      state.solLive = { err, base: Math.abs(v[0]) };
     },
     panel() {
       const J = jac(EXAM.b, EXAM.q), n = nullVec(J), V = [0, 1, 0];
@@ -1118,7 +1188,10 @@ const SCENES = [
       sols.forEach((s, i) => rows += factRow(names[i],
         fmt(Math.abs(s[0]), 4) + " m/s",
         i === this.mode ? (Math.abs(s[0]) < 1e-9 ? "ok" : "") : ""));
-      return `${matTable("지금 고른 해 v", [sols[this.mode]], ["v"], -1)}
+      const lv = state.solLive || { err: 0 };
+      return `${matTable("시험 자세에서의 해 v", [sols[this.mode]], ["v"], -1)}
+        ${factRow("손끝 추종 오차", (lv.err * 1000).toFixed(3) + " mm",
+          lv.err < 2e-3 ? "ok" : "no")}
         <div class="facts">${rows}</div>
         <p class="note">가중치를 100배로 올려도 베이스는 0이 되지 않습니다.
         우선순위는 가중치 없이 <em class="hl">정확히 0</em>입니다. 가중치는
@@ -1371,6 +1444,7 @@ function render() {
 let last = performance.now();
 function tick(now) {
   const dt = Math.min((now - last) / 1000, 0.05); last = now;
+  state.dt = dt;
   const sc = SCENES[state.scene];
   if (state.playing && (sc.animate || sc.mode !== undefined)) {
     state.t += dt;
