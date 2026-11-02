@@ -104,6 +104,27 @@
   group: graduate
   photo: /assets/img/members/chanwoo-seon.jpg
   interests: [Reinforcement Learning, Imitation Learning]
+  github: https://github.com/cwseon27
+  research:
+    - title_ko: "HITMEN: 신체 부위별 센싱을 활용한 휴머노이드 원격조작"
+      title_en: "HITMEN: Humanoid teleoperation with body-specific sensing"
+      desc_ko: >-
+        휴머노이드의 머리·몸통·팔·손가락을 하나의 착용형 인터페이스로 조작하는 HITMEN을 연구합니다.
+        HMD, 가슴에 장착한 VR 컨트롤러, 리더 암, 손바닥을 바라보는 손목 카메라를
+        각 신체 부위의 움직임에 맞게 배정합니다. 추적 신뢰도를 예측해 가림 상황에서도
+        손 제어를 이어가고, 목과 허리를 독립적으로 움직일 수 있도록 합니다.
+      desc_en: >-
+        I develop HITMEN, a wearable interface for coordinating a humanoid's head, torso, arms,
+        and fingers. It assigns an HMD, chest-mounted VR controllers, leader arms, and palm-facing
+        wrist cameras to the body parts they control. Predicting tracking reliability helps
+        maintain finger control through occlusion, while separate head and chest targets let
+        the neck and waist move independently.
+      tags: [Humanoid Teleoperation, Dexterous Manipulation, Multimodal Sensing]
+      image: /assets/img/pubs/seon2026hitmen.jpg
+      video: /assets/video/HITMEN_Homepage_Main.mp4
+      links:
+        project: /HITMEN/
+        video: /assets/video/HITMEN_Homepage_Main.mp4
 
 - name: Jinwoo Lee
   slug: jinwoo-lee

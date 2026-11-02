@@ -37,6 +37,18 @@
 #   year: 2025
 #   type: workshop
 
+- title: "HITMEN: A Hybrid Interface for Humanoid Teleoperation with Multimodal Sensing and Exoskeleton Control"
+  authors: "Chanwoo Seon, Dongwoo Son, Junho An, Jinwoo Lee, Youngsang Hwang, Gahyun Oh, Suhan Park†"
+  venue: Manuscript
+  year: 2026
+  type: preprint
+  topics: [physical-ai, humanoids]
+  image: /assets/img/pubs/seon2026hitmen.jpg
+  video: /assets/video/HITMEN_Homepage_Main.mp4
+  links:
+    project: /HITMEN/
+    video: /assets/video/HITMEN_Homepage_Main.mp4
+
 - title: "PATACON: GPU-Parallel Tangent-Bundle RRT-Connect for Constrained Motion Planning"
   authors: "Gahyun Oh, Junho An, Suhyun Jeon, Suhan Park"
   venue: Preprint
