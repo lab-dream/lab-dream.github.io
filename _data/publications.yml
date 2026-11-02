@@ -44,7 +44,7 @@
   type: preprint
   topics: [physical-ai, humanoids]
   image: /assets/img/pubs/seon2026hitmen.jpg
-  video: /assets/video/HITMEN_Homepage_Main.mp4
+  video: /assets/video/hitmen-card.mp4          # 목록 카드용 8초 발췌 (전체 영상은 아래 links.video)
   links:
     project: /HITMEN/
     video: /assets/video/HITMEN_Homepage_Main.mp4

@@ -10,6 +10,20 @@
 #            사이트 안 페이지는 /로 시작해서 적습니다 → [안내 페이지](/ros2_special_lecture/)
 # ─────────────────────────────────────────────────────────────
 
+- date: 2026-11-02
+  tag: paper
+  text_ko: >-
+    휴머노이드 원격조작 인터페이스 **HITMEN**의 프로젝트 페이지를 공개했습니다. 머리는 HMD, 몸통은 가슴에 멘 VR 컨트롤러,
+    팔은 어깨에 멘 리더 암, 손가락은 VR과 손목 카메라를 함께 쓰는 **신체 부위별 하이브리드 인터페이스**입니다.
+    최근 움직임으로 다음 1초의 손 추적 신뢰도를 미리 내다보고, 추적이 흔들리면 손목 카메라 쪽으로 제어를 옮깁니다.
+    연구실 대학원생 여섯 명이 모두 저자로 참여했습니다. [프로젝트 페이지](/HITMEN/)
+  text_en: >-
+    We published the project page for **HITMEN**, our hybrid interface for humanoid teleoperation — an HMD for the head,
+    chest-mounted VR controllers for the torso, shoulder-mounted leader arms for the arms, and VR together with wrist
+    cameras for the fingers. It anticipates the next second of hand-tracking reliability from recent motion and shifts
+    finger control toward the wrist cameras when tracking degrades. All six of our graduate students are authors.
+    [Project page](/HITMEN/)
+
 - date: 2026-10-09
   tag: paper
   text_ko: >-
