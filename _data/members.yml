@@ -120,7 +120,7 @@
         maintain finger control through occlusion, while separate head and chest targets let
         the neck and waist move independently.
       tags: [Humanoid Teleoperation, Dexterous Manipulation, Multimodal Sensing]
-      image: /assets/img/pubs/seon2026hitmen.jpg
+      image: /assets/img/pubs/hitmen-card.jpg
       video: /assets/video/hitmen-card.mp4
       links:
         project: /HITMEN/
